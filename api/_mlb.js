@@ -32,13 +32,19 @@ function ipToOuts(ip) {
 export async function fetchLiveToday(date) {
   const sch = await j(`${MLB}/schedule?sportId=1&date=${date}`);
   const games = (sch.dates && sch.dates[0] && sch.dates[0].games) || [];
-  // Only IN-PROGRESS games: these are exactly what ESPN's official feed lags on.
-  // Final games are (or soon will be) in ESPN's totals, so counting them here too
-  // would double-count.
-  const playing = games.filter((g) => g.status && g.status.abstractGameState === "Live");
+  // Count today's games that have produced stats: IN-PROGRESS *and* FINAL.
+  // ESPN's public feed lags on both — it does NOT absorb a game the instant it
+  // ends (a just-final HR shows in ESPN's own app but not yet in lm-api-reads),
+  // so excluding finals leaves a gap where neither source counts the play.
+  // Folding live + just-finished games on top of ESPN's (yesterday-ish) base
+  // keeps us real-time. Games not yet started (Preview) contribute nothing.
+  const counted = games.filter((g) => {
+    const s = g.status && g.status.abstractGameState;
+    return s === "Live" || s === "Final";
+  });
 
   const boxes = await Promise.all(
-    playing.map((g) => j(`${MLB}/game/${g.gamePk}/boxscore`).catch(() => null))
+    counted.map((g) => j(`${MLB}/game/${g.gamePk}/boxscore`).catch(() => null))
   );
 
   const byName = {};
