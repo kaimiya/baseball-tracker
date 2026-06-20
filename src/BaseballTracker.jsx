@@ -115,11 +115,11 @@ function SectionLabel({ t, children, sub, style }) {
 // right, so the column's numbers stay aligned whether or not a delta is present.
 function StatWithDelta({ value, delta }) {
   return (
-    <span className="bt-statwrap" style={{ display: "inline-flex", alignItems: "baseline", justifyContent: "flex-end", gap: "4px" }}>
+    <span style={{ display: "inline-flex", alignItems: "baseline", gap: "5px" }}>
       <span>{value}</span>
-      <span className="bt-deltaslot" style={{ width: "20px", textAlign: "left", fontSize: "10.5px", fontWeight: "800", color: "#16a34a", fontVariantNumeric: "tabular-nums" }}>
-        {delta ? `+${delta}` : ""}
-      </span>
+      {delta ? (
+        <span style={{ fontSize: "10.5px", fontWeight: "800", color: "#16a34a", fontVariantNumeric: "tabular-nums" }}>+{delta}</span>
+      ) : null}
     </span>
   );
 }
@@ -214,6 +214,9 @@ export default function BaseballTracker() {
   const th = (align) => ({ padding: "11px 14px", textAlign: align, fontSize: "11px", fontWeight: "700", letterSpacing: "0.5px", textTransform: "uppercase", color: t.tableHeadText, whiteSpace: "nowrap" });
   const td = (align) => ({ padding: "0 14px", height: "52px", textAlign: align, fontSize: "13px", color: t.textSecondary, borderBottom: `1px solid ${t.divider}`, whiteSpace: "nowrap" });
   const numCell = { fontVariantNumeric: "tabular-nums", fontWeight: "600", color: t.numberColor, fontSize: "14px" };
+  // All four stat columns share one fixed width and are left-justified, so they
+  // read as an even block. Wider than the viewport on mobile -> the table scrolls.
+  const STATW = "88px";
   // Highlight every team that ties for a category lead (compared at displayed precision).
   const fmtVal = (cat, v) => (cat === "avg" ? fmtAvg(v) : cat === "era" ? fmtERA(v) : String(v));
   const leadFmt = {};
@@ -293,44 +296,6 @@ export default function BaseballTracker() {
 
       <main className="bt-main" style={{ maxWidth: MAXW, margin: "0 auto", padding: "28px 24px 56px" }}>
 
-        {/* Today strip — your team's live gains in the 4 categories so far today */}
-        {(() => {
-          const mt = myTeam && liveTeams[myTeam];
-          if (!mt) return null;
-          const contribs = mt.contributors || [];
-          const bits = [];
-          if (mt.hr) bits.push(`+${mt.hr} HR`);
-          if (mt.h) bits.push(`+${mt.h} H`);
-          if (mt.w) bits.push(`+${mt.w} W`);
-          if (!bits.length && !contribs.length) return null;
-          const lastName = (n) => n.split(" ").slice(-1)[0];
-          const names = contribs.map(c => lastName(c.name));
-          const who = names.length === 0 ? null
-            : names.length <= 3 ? names.join(", ")
-            : `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
-          return (
-            <div title="Your team's live gains in HR / AVG / Wins / ERA so far today — updates as games play" style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.22)", borderRadius: "10px", padding: "10px 14px", marginBottom: "24px" }}>
-              <span className="bt-pulse" style={{ width: 7, height: 7, borderRadius: "50%", background: "#16a34a", flexShrink: 0 }} />
-              <span style={{ fontSize: "11px", fontWeight: "800", letterSpacing: "0.6px", textTransform: "uppercase", color: "#16a34a", flexShrink: 0 }}>Today</span>
-              <span style={{ fontSize: "13px", fontWeight: "700", color: t.textPrimary }}>{myTeam}</span>
-              {bits.length ? (
-                <span style={{ display: "flex", gap: "12px", alignItems: "baseline", flexWrap: "wrap" }}>
-                  {bits.map(b => (
-                    <span key={b} style={{ fontSize: "13px", color: "#16a34a", fontWeight: "800", fontVariantNumeric: "tabular-nums" }}>{b}</span>
-                  ))}
-                </span>
-              ) : (
-                <span style={{ fontSize: "12.5px", color: t.textMuted, fontWeight: "500" }}>No category gains yet</span>
-              )}
-              {who && (
-                <span style={{ marginLeft: "auto", fontSize: "12px", color: t.textMuted, fontWeight: "500", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {who} playing
-                </span>
-              )}
-            </div>
-          );
-        })()}
-
         {/* League leaders */}
         <section style={{ marginBottom: "30px" }}>
           <SectionLabel t={t} sub={synced ? `Regular Season Leaders · as of ${synced}` : "Regular Season Leaders"}>👑 King Category Awards</SectionLabel>
@@ -386,10 +351,10 @@ export default function BaseballTracker() {
                   <th className="bt-c-rank" style={{ ...th("left"), width: "30px", minWidth: "30px", position: "sticky", left: 0, zIndex: 4, background: t.panel }}>#</th>
                   <th className="bt-freeze-edge bt-c-team" style={{ ...th("left"), position: "sticky", left: "30px", zIndex: 4, background: t.panel }}>Team</th>
                   <th className="bt-hide-mobile" style={th("left")}>Record</th>
-                  <th className="bt-c-stat" style={th("right")}>HR</th>
-                  <th className="bt-c-stat" style={th("right")}>AVG</th>
-                  <th className="bt-c-stat" style={th("right")}>Wins</th>
-                  <th className="bt-c-stat" style={th("right")}>ERA</th>
+                  <th className="bt-c-stat" style={{ ...th("left"), width: STATW, minWidth: STATW }}>HR</th>
+                  <th className="bt-c-stat" style={{ ...th("left"), width: STATW, minWidth: STATW }}>AVG</th>
+                  <th className="bt-c-stat" style={{ ...th("left"), width: STATW, minWidth: STATW }}>Wins</th>
+                  <th className="bt-c-stat" style={{ ...th("left"), width: STATW, minWidth: STATW }}>ERA</th>
                 </tr>
               </thead>
               <tbody>
@@ -418,10 +383,10 @@ export default function BaseballTracker() {
                         </div>
                       </td>
                       <td className="bt-hide-mobile" style={{ ...cell("left"), color: t.textMuted, fontVariantNumeric: "tabular-nums", fontSize: "12.5px" }}>{records[player] || "—"}</td>
-                      <td className={["bt-c-stat", fcls("hr")].filter(Boolean).join(" ")} style={{ ...cell("right"), ...numCell, ...leadCell("hr", player) }}>{showDeltas ? <StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} /> : tot.hr}</td>
-                      <td className={["bt-c-stat", fcls("avg")].filter(Boolean).join(" ")} style={{ ...cell("right"), ...numCell, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
-                      <td className={["bt-c-stat", fcls("wins")].filter(Boolean).join(" ")} style={{ ...cell("right"), ...numCell, ...leadCell("wins", player) }}>{showDeltas ? <StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} /> : tot.wins}</td>
-                      <td className={["bt-c-stat", fcls("era")].filter(Boolean).join(" ")} style={{ ...cell("right"), ...numCell, ...leadCell("era", player) }}>{fmtERA(tot.era)}</td>
+                      <td className={["bt-c-stat", fcls("hr")].filter(Boolean).join(" ")} style={{ ...cell("left"), ...numCell, width: STATW, minWidth: STATW, ...leadCell("hr", player) }}>{showDeltas ? <StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} /> : tot.hr}</td>
+                      <td className={["bt-c-stat", fcls("avg")].filter(Boolean).join(" ")} style={{ ...cell("left"), ...numCell, width: STATW, minWidth: STATW, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
+                      <td className={["bt-c-stat", fcls("wins")].filter(Boolean).join(" ")} style={{ ...cell("left"), ...numCell, width: STATW, minWidth: STATW, ...leadCell("wins", player) }}>{showDeltas ? <StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} /> : tot.wins}</td>
+                      <td className={["bt-c-stat", fcls("era")].filter(Boolean).join(" ")} style={{ ...cell("left"), ...numCell, width: STATW, minWidth: STATW, ...leadCell("era", player) }}>{fmtERA(tot.era)}</td>
                     </tr>
                   );
                 })}
@@ -455,10 +420,10 @@ export default function BaseballTracker() {
               <thead>
                 <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
                   <th style={th("left")}>Week</th>
-                  <th style={th("right")}>HR</th>
-                  <th style={th("right")}>AVG</th>
-                  <th style={th("right")}>Wins</th>
-                  <th style={th("right")}>ERA</th>
+                  <th style={{ ...th("left"), width: STATW, minWidth: STATW }}>HR</th>
+                  <th style={{ ...th("left"), width: STATW, minWidth: STATW }}>AVG</th>
+                  <th style={{ ...th("left"), width: STATW, minWidth: STATW }}>Wins</th>
+                  <th style={{ ...th("left"), width: STATW, minWidth: STATW }}>ERA</th>
                 </tr>
               </thead>
               <tbody>
@@ -479,19 +444,19 @@ export default function BaseballTracker() {
                         <div style={{ fontSize: "11px", color: t.textFaint, marginTop: "2px" }}>{league.weekLabels[i]}</div>
                       )}
                     </td>
-                    <td style={{ ...td("right"), ...numCell }}>{w.hr}</td>
-                    <td style={{ ...td("right"), ...numCell }}>{fmtAvg(w.avg)}</td>
-                    <td style={{ ...td("right"), ...numCell }}>{w.wins}</td>
-                    <td style={{ ...td("right"), ...numCell }}>{fmtERA(w.era)}</td>
+                    <td style={{ ...td("left"), ...numCell, width: STATW, minWidth: STATW }}>{w.hr}</td>
+                    <td style={{ ...td("left"), ...numCell, width: STATW, minWidth: STATW }}>{fmtAvg(w.avg)}</td>
+                    <td style={{ ...td("left"), ...numCell, width: STATW, minWidth: STATW }}>{w.wins}</td>
+                    <td style={{ ...td("left"), ...numCell, width: STATW, minWidth: STATW }}>{fmtERA(w.era)}</td>
                   </tr>
                   );
                 })}
                 <tr style={{ borderTop: `2px solid ${t.panelBorder}` }}>
                   <td style={{ ...td("left"), borderBottom: "none",fontSize: "11px", fontWeight: "700", letterSpacing: "0.6px", textTransform: "uppercase", color: t.textMuted }}>Season</td>
-                  <td style={{ ...td("right"), borderBottom: "none",...numCell, fontWeight: "800" }}>{selTot.hr}</td>
-                  <td style={{ ...td("right"), borderBottom: "none",...numCell, fontWeight: "800" }}>{fmtAvg(selTot.avg)}</td>
-                  <td style={{ ...td("right"), borderBottom: "none",...numCell, fontWeight: "800" }}>{selTot.wins}</td>
-                  <td style={{ ...td("right"), borderBottom: "none",...numCell, fontWeight: "800" }}>{fmtERA(selTot.era)}</td>
+                  <td style={{ ...td("left"), borderBottom: "none",...numCell, width: STATW, minWidth: STATW, fontWeight: "800" }}>{selTot.hr}</td>
+                  <td style={{ ...td("left"), borderBottom: "none",...numCell, width: STATW, minWidth: STATW, fontWeight: "800" }}>{fmtAvg(selTot.avg)}</td>
+                  <td style={{ ...td("left"), borderBottom: "none",...numCell, width: STATW, minWidth: STATW, fontWeight: "800" }}>{selTot.wins}</td>
+                  <td style={{ ...td("left"), borderBottom: "none",...numCell, width: STATW, minWidth: STATW, fontWeight: "800" }}>{fmtERA(selTot.era)}</td>
                 </tr>
               </tbody>
             </table>

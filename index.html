@@ -50,18 +50,6 @@
         .bt-table th, .bt-table td { padding-left: 11px !important; padding-right: 11px !important; }
         .bt-hide-mobile { display: none !important; }
         .bt-team-name { display: inline-block; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
-
-        /* Standings: fit all four stat columns on screen at equal widths
-           (no horizontal scroll, no clipped headers). */
-        .bt-standings { table-layout: fixed; }
-        .bt-standings th, .bt-standings td { padding-left: 6px !important; padding-right: 6px !important; }
-        .bt-standings .bt-c-rank { width: 22px !important; padding-left: 8px !important; padding-right: 2px !important; }
-        .bt-standings .bt-c-stat { width: 52px; }
-        .bt-standings .bt-team-name { max-width: 72px; }
-        /* Collapse the delta's reserved slot so HR/Wins stay the same width as
-           AVG/ERA; the +N rides right after the number instead. */
-        .bt-deltaslot { width: auto !important; font-size: 9px !important; }
-        .bt-statwrap { gap: 2px !important; }
         /* Stack the header so the full league title shows, controls below */
         .bt-headrow { flex-direction: column; align-items: flex-start; gap: 12px; }
         .bt-title { white-space: normal !important; overflow: visible !important; }
