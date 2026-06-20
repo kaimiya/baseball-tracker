@@ -118,6 +118,14 @@ function proxiedLogo(url) {
   return url;
 }
 
+function managerName(team, memberById) {
+  const id = team.primaryOwner || (Array.isArray(team.owners) && team.owners[0]);
+  const m = id && memberById[id];
+  if (!m) return null;
+  const full = `${m.firstName || ""} ${m.lastName || ""}`.trim();
+  return full || m.displayName || null;
+}
+
 function utc(monthIndex, day) {
   return new Date(Date.UTC(SEASON_YEAR, monthIndex, day));
 }
@@ -187,8 +195,12 @@ export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }
   const logos = {};
   const records = {};
   const seeds = {};
+  const managers = {};
   const data = {};
   let myTeam = null;
+
+  const memberById = {};
+  (base.members || []).forEach(m => { memberById[m.id] = m; });
 
   teams.forEach((team, i) => {
     let name = teamName(team);
@@ -200,6 +212,7 @@ export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }
     const rec = team.record && (team.record.overall || team.record.division);
     records[name] = rec ? `${num(rec.wins)}-${num(rec.losses)}-${num(rec.ties)}` : null;
     seeds[name] = num(team.playoffSeed) || null;
+    managers[name] = managerName(team, memberById);
 
     const tw = byTeamWeek[team.id] || {};
     const rows = [];
@@ -225,6 +238,7 @@ export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }
     logos,
     records,
     seeds,
+    managers,
     data,
     myTeam,
     weekLabels,

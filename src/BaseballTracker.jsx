@@ -97,6 +97,7 @@ export default function BaseballTracker() {
   const logos = league.logos;
   const records = league.records;
   const seeds = league.seeds;
+  const managers = league.managers;
   const data = league.data;
   const myTeam = league.myTeam;
 
@@ -353,11 +354,19 @@ export default function BaseballTracker() {
         <section ref={splitsRef}>
           <SectionLabel t={t}>Weekly Splits</SectionLabel>
           <div style={{ ...panel, overflow: "hidden" }}>
-            <div style={{ padding: "16px 20px", borderBottom: `1px solid ${t.panelBorder}`, display: "flex", alignItems: "center", gap: "12px" }}>
-              <TeamMark logo={logos[sel]} color={colors[sel]} size={28} />
-              <span style={{ fontSize: "16px", fontWeight: "700", color: t.textPrimary, letterSpacing: "-0.2px" }}>{sel}</span>
-              {records[sel] && <span style={{ fontSize: "12.5px", color: t.textMuted, fontVariantNumeric: "tabular-nums" }}>{records[sel]}</span>}
-              <span style={{ marginLeft: "auto", fontSize: "12px", color: t.textMuted }}>{selWeeks.length} weeks</span>
+            <div style={{ padding: "16px 20px", borderBottom: `1px solid ${t.panelBorder}`, display: "flex", alignItems: "center", gap: "13px" }}>
+              <TeamMark logo={logos[sel]} color={colors[sel]} size={34} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "9px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "16px", fontWeight: "700", color: t.textPrimary, letterSpacing: "-0.2px" }}>{sel}</span>
+                  {records[sel] && (
+                    <span style={{ fontSize: "12.5px", color: t.textMuted, fontVariantNumeric: "tabular-nums" }}>
+                      {records[sel]}{seeds[sel] ? ` (${ordinal(seeds[sel])} of ${league.meta?.teamCount || players.length})` : ""}
+                    </span>
+                  )}
+                </div>
+                {managers[sel] && <div style={{ fontSize: "12px", color: t.textMuted, marginTop: "2px" }}>{managers[sel]}</div>}
+              </div>
             </div>
             <div className="bt-scroll">
             <table className="bt-table" style={{ width: "100%", borderCollapse: "collapse" }}>
