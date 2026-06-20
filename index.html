@@ -52,9 +52,13 @@
         .bt-standings, .bt-weekly { table-layout: fixed; }
         .bt-standings .bt-c-rank { width: 4%; }
         .bt-standings .bt-c-team { width: 20%; }
-        .bt-standings .bt-c-record { width: 9%; }
-        .bt-weekly .bt-c-week { width: 33%; }
-        .bt-c-stat { width: 16.75%; }
+        /* Record sits right after Team; its wide column is mostly the reading
+           gap that pushes the four stat columns over to the right. */
+        .bt-standings .bt-c-record { width: 40%; }
+        .bt-weekly .bt-c-week { width: 64%; }
+        /* Tight stat columns grouped on the right so they're easy to scan, and
+           they start at the same x (64%) in both tables. */
+        .bt-c-stat { width: 9%; }
       }
 
       @media (max-width: 600px) {
