@@ -197,6 +197,7 @@ export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }
   const seeds = {};
   const managers = {};
   const data = {};
+  const seasonTotals = {}; // exact ESPN season figures (valuesByStat), not derived from weeks
   let myTeam = null;
 
   const memberById = {};
@@ -213,6 +214,7 @@ export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }
     records[name] = rec ? `${num(rec.wins)}-${num(rec.losses)}-${num(rec.ties)}` : null;
     seeds[name] = num(team.playoffSeed) || null;
     managers[name] = managerName(team, memberById);
+    seasonTotals[name] = seasonStats(team); // exact season AVG/ERA/HR/W from ESPN
 
     const tw = byTeamWeek[team.id] || {};
     const rows = [];
@@ -240,6 +242,7 @@ export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }
     seeds,
     managers,
     data,
+    seasonTotals,
     myTeam,
     weekLabels,
     meta: {

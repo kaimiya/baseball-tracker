@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
-// Fetches live league data from our own /api/league proxy. Loads on mount
-// (so the app is current on page load) and exposes refresh() for a manual
-// re-sync without a full page reload.
+// How often to silently re-pull while the tab is open (keeps the live week current).
+const AUTO_REFRESH_MS = 60000;
+
+// Fetches live league data from our own /api/league proxy. Loads on mount,
+// auto-refreshes in the background while visible, and exposes refresh() for a
+// manual re-sync.
 export function useLeagueData() {
   const [state, setState] = useState({
     status: "loading", // "loading" | "ready" | "error"
@@ -13,6 +16,7 @@ export function useLeagueData() {
     seeds: {},
     managers: {},
     data: {},
+    seasonTotals: {},
     myTeam: null,
     weekLabels: [],
     meta: null,
@@ -20,10 +24,12 @@ export function useLeagueData() {
     refreshing: false,
   });
 
-  const load = useCallback((isRefresh) => {
-    setState((s) => ({ ...s, ...(isRefresh ? { refreshing: true } : { status: "loading" }) }));
+  // isRefresh → force a fresh ESPN pull. silent → don't show the spinner
+  // (used by auto-refresh; the stat flash is the visible cue instead).
+  const load = useCallback((isRefresh, silent) => {
+    if (isRefresh && !silent) setState((s) => ({ ...s, refreshing: true }));
+    else if (!isRefresh) setState((s) => ({ ...s, status: "loading" }));
     let alive = true;
-    // Manual refresh forces a fresh ESPN pull; the initial load may use the cache.
     fetch(isRefresh ? "/api/league?fresh=1" : "/api/league", { cache: "no-store" })
       .then(async (r) => {
         const body = await r.json().catch(() => ({}));
@@ -43,6 +49,7 @@ export function useLeagueData() {
           seeds: body.seeds || {},
           managers: body.managers || {},
           data: body.data || {},
+          seasonTotals: body.seasonTotals || {},
           myTeam: body.myTeam || null,
           weekLabels: body.weekLabels || [],
           meta: body.meta || null,
@@ -68,6 +75,21 @@ export function useLeagueData() {
   useEffect(() => {
     const cleanup = load(false);
     return cleanup;
+  }, [load]);
+
+  // Auto-refresh: silently re-pull on an interval while the tab is visible, and
+  // immediately when it regains focus. Paused while hidden to avoid wasted calls.
+  useEffect(() => {
+    let timer = null;
+    const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+    const start = () => { stop(); timer = setInterval(() => { if (document.visibilityState === "visible") load(true, true); }, AUTO_REFRESH_MS); };
+    const onVis = () => {
+      if (document.visibilityState === "visible") { load(true, true); start(); }
+      else stop();
+    };
+    start();
+    document.addEventListener("visibilitychange", onVis);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVis); };
   }, [load]);
 
   return { ...state, refresh: () => load(true) };

@@ -102,6 +102,7 @@ export default function BaseballTracker() {
   const seeds = league.seeds;
   const managers = league.managers;
   const data = league.data;
+  const seasonTotals = league.seasonTotals || {};
   const myTeam = league.myTeam;
 
   const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -111,11 +112,14 @@ export default function BaseballTracker() {
   const splitsRef = useRef(null);
   const prevTotalsRef = useRef(null);
 
+  // Season totals come straight from ESPN (exact AVG/ERA), not averaged from the
+  // weekly rows — so the standings/leaders match ESPN to the decimal. Falls back
+  // to weekly-derived only if ESPN didn't supply them.
   const totals = useMemo(() => {
     const m = {};
-    players.forEach(p => { m[p] = calcTotals(data[p] || []); });
+    players.forEach(p => { m[p] = seasonTotals[p] || calcTotals(data[p] || []); });
     return m;
-  }, [data, players]);
+  }, [seasonTotals, data, players]);
 
   const numWeeks = useMemo(
     () => (players.length ? Math.max(...players.map(p => (data[p] || []).length)) : 0),
