@@ -350,7 +350,7 @@ export default function BaseballTracker() {
                 <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
                   <th className="bt-c-rank" style={{ ...th("left"), width: "30px", minWidth: "30px", position: "sticky", left: 0, zIndex: 4, background: t.panel }}>#</th>
                   <th className="bt-freeze-edge bt-c-team" style={{ ...th("left"), position: "sticky", left: "30px", zIndex: 4, background: t.panel }}>Team</th>
-                  <th className="bt-hide-mobile" style={th("left")}>Record</th>
+                  <th className="bt-hide-mobile bt-c-record" style={th("left")}>Record</th>
                   <th style={th("right")}>HR</th>
                   <th style={th("right")}>AVG</th>
                   <th style={th("right")}>Wins</th>
