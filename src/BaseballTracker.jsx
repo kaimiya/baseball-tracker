@@ -128,12 +128,8 @@ export default function BaseballTracker() {
     [players, seeds, totals]
   );
 
-  // Default the splits panel to the #1 team (neutral, not "my team").
-  useEffect(() => {
-    if (league.status === "ready" && standingsSorted.length && !standingsSorted.includes(selectedPlayer)) {
-      setSelectedPlayer(standingsSorted[0]);
-    }
-  }, [league.status, standingsSorted, selectedPlayer]);
+  // No team is selected on load — the page is a shared league view, not tied to
+  // any one account. The Weekly Splits panel stays empty until a row is clicked.
 
   const fmtAvg = v => v.toFixed(3).replace("0.", ".");
   const fmtERA = v => v.toFixed(2);
@@ -171,7 +167,7 @@ export default function BaseballTracker() {
   if (league.status === "error") {
     return <Splash t={t} title="Couldn't load league" sub={league.error} error />;
   }
-  if (league.status !== "ready" || !players.length || !selectedPlayer || !data[selectedPlayer]) {
+  if (league.status !== "ready" || !players.length) {
     return <Splash t={t} title="Loading league" sub="Pulling live standings from ESPN Fantasy" loading />;
   }
 
@@ -353,6 +349,7 @@ export default function BaseballTracker() {
         {/* Weekly splits for the selected team */}
         <section ref={splitsRef}>
           <SectionLabel t={t}>Weekly Splits</SectionLabel>
+          {sel && selWeeks ? (
           <div style={{ ...panel, overflow: "hidden" }}>
             <div style={{ padding: "16px 20px", borderBottom: `1px solid ${t.panelBorder}`, display: "flex", alignItems: "center", gap: "13px" }}>
               <TeamMark logo={logos[sel]} color={colors[sel]} size={34} />
@@ -413,6 +410,11 @@ export default function BaseballTracker() {
             </table>
             </div>
           </div>
+          ) : (
+            <div style={{ ...panel, padding: "44px 24px", textAlign: "center", color: t.textMuted, fontSize: "13.5px" }}>
+              Select a team from the standings above to see its weekly splits.
+            </div>
+          )}
         </section>
       </main>
     </div>
