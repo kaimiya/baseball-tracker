@@ -28,13 +28,25 @@
       .bt-scroll::-webkit-scrollbar-thumb { background: rgba(140, 140, 140, 0.4); border-radius: 999px; }
       .bt-scroll::-webkit-scrollbar-track { background: transparent; }
       .bt-table { min-width: 600px; }
+      .bt-headrow { display: flex; align-items: center; gap: 16px; }
+
+      /* Flash a stat cell when its value changes on refresh (green up, red down) */
+      @keyframes bt-flash-up { 0% { background-color: rgba(22, 163, 74, 0.30); } 100% { background-color: transparent; } }
+      @keyframes bt-flash-down { 0% { background-color: rgba(220, 38, 38, 0.30); } 100% { background-color: transparent; } }
+      .bt-flash-up { animation: bt-flash-up 1.4s ease-out; }
+      .bt-flash-down { animation: bt-flash-down 1.4s ease-out; }
 
       @media (max-width: 600px) {
+        .bt-freeze-edge { box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.10) !important; }
         .bt-main { padding-left: 14px !important; padding-right: 14px !important; }
         .bt-leaders { grid-template-columns: 1fr !important; }
         .bt-table { min-width: 0; }
         .bt-table th, .bt-table td { padding-left: 11px !important; padding-right: 11px !important; }
         .bt-hide-mobile { display: none !important; }
+        /* Stack the header so the full league title shows, controls below */
+        .bt-headrow { flex-direction: column; align-items: flex-start; gap: 12px; }
+        .bt-title { white-space: normal !important; overflow: visible !important; }
+        .bt-headctrls { margin-left: 0 !important; }
       }
     </style>
   </head>

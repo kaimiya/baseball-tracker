@@ -9,7 +9,9 @@ function espnApiDevPlugin(env) {
     name: "espn-api-dev",
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url || !req.url.startsWith("/api/league")) return next();
+        if (!req.url || !req.url.startsWith("/api/")) return next();
+        const name = req.url.slice(5).split(/[?/]/)[0];
+        if (!name) return next();
 
         for (const k of ["ESPN_S2", "SWID", "ESPN_LEAGUE_ID", "ESPN_SEASON_ID", "ESPN_TEAM_ID"]) {
           if (!process.env[k] && env[k]) process.env[k] = env[k];
@@ -20,6 +22,7 @@ function espnApiDevPlugin(env) {
           statusCode: 200,
           status(c) { this.statusCode = c; res.statusCode = c; return this; },
           setHeader(k, v) { res.setHeader(k, v); return this; },
+          end(body) { res.end(body); },
           json(obj) {
             res.setHeader("content-type", "application/json");
             res.end(JSON.stringify(obj));
@@ -27,7 +30,7 @@ function espnApiDevPlugin(env) {
         };
 
         try {
-          const mod = await server.ssrLoadModule("/api/league.js");
+          const mod = await server.ssrLoadModule(`/api/${name}.js`);
           await mod.default(req, shim);
         } catch (e) {
           res.statusCode = 500;

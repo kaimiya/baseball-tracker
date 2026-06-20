@@ -26,7 +26,7 @@ const WEEK1 = { start: [2, 25], end: [3, 5] }; // [monthIndex, day]
 const WEEK2_START = [3, 6];
 
 // SWID is normally wrapped in braces, e.g. {ABCD-...}. Accept it either way.
-function normalizeSwid(swid) {
+export function normalizeSwid(swid) {
   let s = String(swid || "").trim();
   if (!s) return s;
   if (!s.startsWith("{")) s = "{" + s;
@@ -108,6 +108,16 @@ function teamName(team) {
   return full || `Team ${team.id}`;
 }
 
+// Logos hosted on mystique-api require ESPN auth (they 401 for the browser).
+// Route those through our own image proxy; public CDN logos pass through as-is.
+function proxiedLogo(url) {
+  if (!url) return null;
+  if (url.includes("mystique-api.fantasy.espn.com")) {
+    return `/api/logo?url=${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
 function utc(monthIndex, day) {
   return new Date(Date.UTC(SEASON_YEAR, monthIndex, day));
 }
@@ -185,7 +195,7 @@ export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }
     if (data[name]) name = `${name} (${team.id})`; // avoid duplicate-name key collisions
     players.push(name);
     colors[name] = PALETTE[i % PALETTE.length];
-    logos[name] = team.logo || null;
+    logos[name] = proxiedLogo(team.logo);
 
     const rec = team.record && (team.record.overall || team.record.division);
     records[name] = rec ? `${num(rec.wins)}-${num(rec.losses)}-${num(rec.ties)}` : null;

@@ -102,7 +102,9 @@ export default function BaseballTracker() {
 
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [hoverRow, setHoverRow] = useState(null);
+  const [flash, setFlash] = useState({});
   const splitsRef = useRef(null);
+  const prevTotalsRef = useRef(null);
 
   const totals = useMemo(() => {
     const m = {};
@@ -133,6 +135,29 @@ export default function BaseballTracker() {
 
   const fmtAvg = v => v.toFixed(3).replace("0.", ".");
   const fmtERA = v => v.toFixed(2);
+
+  // Flash any stat cell whose value changed since the last fetch (skip first load).
+  useEffect(() => {
+    if (league.status !== "ready") return;
+    const cur = totals;
+    const prev = prevTotalsRef.current;
+    prevTotalsRef.current = cur;
+    if (!prev) return;
+    const fmtC = (cat, v) => (cat === "avg" ? fmtAvg(v) : cat === "era" ? fmtERA(v) : String(v));
+    const next = {};
+    players.forEach(p => {
+      ["hr", "avg", "wins", "era"].forEach(cat => {
+        const a = prev[p]?.[cat], b = cur[p]?.[cat];
+        if (a == null || b == null) return;
+        if (fmtC(cat, a) !== fmtC(cat, b)) next[`${p}-${cat}`] = b > a ? "up" : "down";
+      });
+    });
+    if (!Object.keys(next).length) return;
+    setFlash(next);
+    const id = setTimeout(() => setFlash({}), 1500);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [league.meta?.fetchedAt]);
 
   function selectTeam(player) {
     setSelectedPlayer(player);
@@ -194,16 +219,16 @@ export default function BaseballTracker() {
 
       {/* Header */}
       <header style={{ background: t.panel, borderBottom: `1px solid ${t.panelBorder}` }}>
-        <div style={{ maxWidth: MAXW, margin: "0 auto", padding: "20px 24px", display: "flex", alignItems: "center", gap: "16px" }}>
+        <div className="bt-headrow" style={{ maxWidth: MAXW, margin: "0 auto", padding: "20px 24px" }}>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ margin: 0, fontSize: "22px", fontWeight: "700", letterSpacing: "-0.4px", color: t.textPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <h1 className="bt-title" style={{ margin: 0, fontSize: "22px", fontWeight: "700", letterSpacing: "-0.4px", color: t.textPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {leagueName}
             </h1>
             {metaLine && (
               <div style={{ fontSize: "12.5px", color: t.textMuted, marginTop: "4px", fontWeight: "500" }}>{metaLine}</div>
             )}
           </div>
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+          <div className="bt-headctrls" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
             {synced && (
               <span style={{ fontSize: "11.5px", color: t.textMuted, marginRight: "4px", whiteSpace: "nowrap" }}>
                 {league.refreshing ? "Syncing…" : `Updated ${synced}`}
@@ -273,8 +298,8 @@ export default function BaseballTracker() {
             <table className="bt-table" style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
-                  <th style={{ ...th("left"), width: "52px" }}>#</th>
-                  <th style={th("left")}>Team</th>
+                  <th style={{ ...th("left"), width: "52px", position: "sticky", left: 0, zIndex: 4, background: t.panel }}>#</th>
+                  <th className="bt-freeze-edge" style={{ ...th("left"), position: "sticky", left: "52px", zIndex: 4, background: t.panel }}>Team</th>
                   <th className="bt-hide-mobile" style={th("left")}>Record</th>
                   <th style={th("right")}>HR</th>
                   <th style={th("right")}>AVG</th>
@@ -288,27 +313,30 @@ export default function BaseballTracker() {
                   const isSel = player === sel;
                   const isLast = idx === standingsSorted.length - 1;
                   const bg = isSel ? t.rowSelected : hoverRow === player ? t.rowHover : "transparent";
+                  // Opaque background for the frozen (sticky) cells so scrolling stats slide cleanly underneath.
+                  const solidBg = isSel ? `linear-gradient(0deg, ${t.rowSelected}, ${t.rowSelected}), ${t.panel}` : hoverRow === player ? t.rowHover : t.panel;
                   const cell = (align) => ({ ...td(align), borderBottom: isLast ? "none" : `1px solid ${t.divider}` });
+                  const fcls = (cat) => { const d = flash[`${player}-${cat}`]; return d ? `bt-flash-${d}` : undefined; };
                   return (
                     <tr
                       key={player}
                       onClick={() => selectTeam(player)}
                       onMouseEnter={() => setHoverRow(player)}
                       onMouseLeave={() => setHoverRow(null)}
-                      style={{ cursor: "pointer", background: bg, boxShadow: isSel ? `inset 3px 0 0 ${t.selectedBar}` : "none", transition: "background 0.1s" }}
+                      style={{ cursor: "pointer", background: bg, transition: "background 0.1s" }}
                     >
-                      <td style={{ ...cell("left"), color: t.textMuted, fontWeight: "700", fontVariantNumeric: "tabular-nums" }}>{idx + 1}</td>
-                      <td style={cell("left")}>
+                      <td style={{ ...cell("left"), position: "sticky", left: 0, zIndex: 2, background: solidBg, boxShadow: isSel ? `inset 3px 0 0 ${t.selectedBar}` : "none", color: t.textMuted, fontWeight: "700", fontVariantNumeric: "tabular-nums" }}>{idx + 1}</td>
+                      <td className="bt-freeze-edge" style={{ ...cell("left"), position: "sticky", left: "52px", zIndex: 2, background: solidBg }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "11px" }}>
                           <TeamMark logo={logos[player]} color={colors[player]} size={22} />
                           <span style={{ fontWeight: "600", color: t.textPrimary, fontSize: "13.5px" }}>{player}</span>
                         </div>
                       </td>
                       <td className="bt-hide-mobile" style={{ ...cell("left"), color: t.textMuted, fontVariantNumeric: "tabular-nums", fontSize: "12.5px" }}>{records[player] || "—"}</td>
-                      <td style={{ ...cell("right"), ...numCell, ...leadCell("hr", player) }}>{tot.hr}</td>
-                      <td style={{ ...cell("right"), ...numCell, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
-                      <td style={{ ...cell("right"), ...numCell, ...leadCell("wins", player) }}>{tot.wins}</td>
-                      <td style={{ ...cell("right"), ...numCell, ...leadCell("era", player) }}>{fmtERA(tot.era)}</td>
+                      <td className={fcls("hr")} style={{ ...cell("right"), ...numCell, ...leadCell("hr", player) }}>{tot.hr}</td>
+                      <td className={fcls("avg")} style={{ ...cell("right"), ...numCell, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
+                      <td className={fcls("wins")} style={{ ...cell("right"), ...numCell, ...leadCell("wins", player) }}>{tot.wins}</td>
+                      <td className={fcls("era")} style={{ ...cell("right"), ...numCell, ...leadCell("era", player) }}>{fmtERA(tot.era)}</td>
                     </tr>
                   );
                 })}
