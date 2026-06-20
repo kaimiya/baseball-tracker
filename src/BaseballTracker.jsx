@@ -252,7 +252,7 @@ export default function BaseballTracker() {
 
         {/* League leaders */}
         <section style={{ marginBottom: "30px" }}>
-          <SectionLabel t={t} sub="Regular Season Leaders">👑 King Category Awards</SectionLabel>
+          <SectionLabel t={t} sub={synced ? `Regular Season Leaders · as of ${synced}` : "Regular Season Leaders"}>👑 King Category Awards</SectionLabel>
           <div className="bt-leaders" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "14px" }}>
             {["hr", "avg", "wins", "era"].map(cat => {
               const label = cat === "era" ? "Best ERA" : cat === "hr" ? "Home Runs" : cat === "avg" ? "Batting Avg" : "Wins";
