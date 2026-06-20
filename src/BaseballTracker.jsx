@@ -113,12 +113,15 @@ function SectionLabel({ t, children, sub, style }) {
 
 // A standings number with today's live gain shown in a fixed-width slot to its
 // right, so the column's numbers stay aligned whether or not a delta is present.
+// The value stays in normal flow so every column's numbers right-align cleanly;
+// the +N delta is absolutely positioned just past the number's right edge, so it
+// never shifts the number out of alignment.
 function StatWithDelta({ value, delta }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "baseline", gap: "5px" }}>
-      <span>{value}</span>
+    <span style={{ position: "relative", whiteSpace: "nowrap" }}>
+      {value}
       {delta ? (
-        <span style={{ fontSize: "10.5px", fontWeight: "800", color: "#16a34a", fontVariantNumeric: "tabular-nums" }}>+{delta}</span>
+        <span style={{ position: "absolute", left: "100%", top: "50%", transform: "translateY(-50%)", marginLeft: "4px", fontSize: "10px", fontWeight: "800", color: "#16a34a", fontVariantNumeric: "tabular-nums" }}>+{delta}</span>
       ) : null}
     </span>
   );
