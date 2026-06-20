@@ -80,11 +80,14 @@ function TeamMark({ logo, color, size = 20 }) {
   return <span style={box}><span style={{ width: dot, height: dot, borderRadius: "50%", background: color }} /></span>;
 }
 
-function SectionLabel({ t, children, style }) {
+function SectionLabel({ t, children, sub, style }) {
   return (
-    <h2 style={{ fontSize: "18px", fontWeight: "700", letterSpacing: "-0.3px", color: t.textPrimary, margin: "0 0 14px 0", ...style }}>
-      {children}
-    </h2>
+    <div style={{ margin: "0 0 14px 0", ...style }}>
+      <h2 style={{ fontSize: "18px", fontWeight: "700", letterSpacing: "-0.3px", color: t.textPrimary, margin: 0 }}>
+        {children}
+      </h2>
+      {sub && <div style={{ fontSize: "12.5px", color: t.textMuted, marginTop: "3px", fontWeight: "500" }}>{sub}</div>}
+    </div>
   );
 }
 
@@ -289,7 +292,7 @@ export default function BaseballTracker() {
 
         {/* Standings */}
         <section style={{ marginBottom: "30px" }}>
-          <SectionLabel t={t}>Standings</SectionLabel>
+          <SectionLabel t={t} sub="Select a team to see its weekly splits.">Standings</SectionLabel>
           <div style={{ ...panel, overflow: "hidden" }}>
             <div className={"bt-scroll" + (stScrolled ? " bt-scrolled" : "")} onScroll={e => { const v = e.currentTarget.scrollLeft > 1; setStScrolled(p => (p === v ? p : v)); }}>
             <table className="bt-table" style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -340,9 +343,6 @@ export default function BaseballTracker() {
               </tbody>
             </table>
             </div>
-          </div>
-          <div style={{ fontSize: "11.5px", color: t.textFaint, marginTop: "10px", marginLeft: "2px" }}>
-            Select a team to see its week-by-week splits below.
           </div>
         </section>
 
