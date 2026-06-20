@@ -15,6 +15,25 @@ function calcTotals(weeks) {
   return { hr, avg, wins, era };
 }
 
+// Fold today's live MLB delta (d) into an ESPN base total in the 4 categories.
+// HR/Wins are counting (add); AVG/ERA are recomputed from components so they
+// stay true (total H/AB, total ER/IP). Returns the base unchanged if no delta.
+function foldLive(base, d) {
+  if (!base || !d) return base;
+  const ab = (base.ab || 0) + (d.ab || 0);
+  const h = (base.h || 0) + (d.h || 0);
+  const outs = (base.outs || 0) + (d.outs || 0);
+  const er = (base.er || 0) + (d.er || 0);
+  return {
+    ...base,
+    hr: (base.hr || 0) + (d.hr || 0),
+    wins: (base.wins || 0) + (d.w || 0),
+    avg: ab ? h / ab : base.avg,
+    era: outs ? (9 * er) / (outs / 3) : base.era,
+    h, ab, er, outs,
+  };
+}
+
 function ordinal(n) {
   const s = ["th", "st", "nd", "rd"];
   const v = n % 100;
@@ -114,24 +133,13 @@ export default function BaseballTracker() {
   const splitsRef = useRef(null);
   const prevTotalsRef = useRef(null);
 
-  // Teams with live action today (from MLB), sorted by what's hottest.
-  const liveRows = useMemo(
-    () =>
-      Object.entries(live.teams || {})
-        .map(([name, s]) => ({ name, ...s }))
-        .filter((r) => r.hr + r.r + r.rbi + r.sb + r.k + r.w > 0)
-        .sort((a, b) => b.hr - a.hr || b.r - a.r || b.rbi - a.rbi),
-    [live.teams]
-  );
-
-  // Season totals come straight from ESPN (exact AVG/ERA), not averaged from the
-  // weekly rows — so the standings/leaders match ESPN to the decimal. Falls back
-  // to weekly-derived only if ESPN didn't supply them.
+  // Season totals = ESPN's exact figures, with today's live in-progress MLB
+  // stats folded into all four categories so awards + standings reflect live games.
   const totals = useMemo(() => {
     const m = {};
-    players.forEach(p => { m[p] = seasonTotals[p] || calcTotals(data[p] || []); });
+    players.forEach(p => { m[p] = foldLive(seasonTotals[p] || calcTotals(data[p] || []), live.teams?.[p]); });
     return m;
-  }, [seasonTotals, data, players]);
+  }, [seasonTotals, data, players, live.teams]);
 
   const numWeeks = useMemo(
     () => (players.length ? Math.max(...players.map(p => (data[p] || []).length)) : 0),
@@ -245,6 +253,11 @@ export default function BaseballTracker() {
             )}
           </div>
           <div className="bt-headctrls" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+            {live.meta?.gamesLive > 0 && (
+              <span title={`${live.meta.gamesLive} MLB games in progress — live stats folded in`} style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "10.5px", fontWeight: "700", letterSpacing: "0.5px", color: "#16a34a", whiteSpace: "nowrap" }}>
+                <span className="bt-pulse" style={{ width: 7, height: 7, borderRadius: "50%", background: "#16a34a", display: "inline-block" }} />LIVE
+              </span>
+            )}
             {synced && (
               <span style={{ fontSize: "11.5px", color: t.textMuted, marginRight: "4px", whiteSpace: "nowrap" }}>
                 {league.refreshing ? "Syncing…" : `Updated ${synced}`}
@@ -261,63 +274,6 @@ export default function BaseballTracker() {
       </header>
 
       <main className="bt-main" style={{ maxWidth: MAXW, margin: "0 auto", padding: "28px 24px 56px" }}>
-
-        {/* Today's Live — real-time from MLB (ahead of ESPN's fantasy feed) */}
-        <section style={{ marginBottom: "30px" }}>
-          <SectionLabel t={t} sub={live.meta ? `${live.meta.gamesLive} of ${live.meta.gamesTotal} MLB games in progress · live from MLB, refreshes every 30s` : "Live from MLB"}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "9px" }}>
-              Today's Live
-              {live.meta?.gamesLive > 0 && <span className="bt-pulse" style={{ width: 9, height: 9, borderRadius: "50%", background: "#16a34a", display: "inline-block" }} />}
-            </span>
-          </SectionLabel>
-          <div style={{ ...panel, overflow: "hidden" }}>
-            {liveRows.length ? (
-              <div className="bt-scroll">
-                <table className="bt-table" style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
-                      <th style={th("left")}>Team</th>
-                      <th style={th("right")}>HR</th>
-                      <th style={th("right")}>R</th>
-                      <th style={th("right")}>RBI</th>
-                      <th style={th("right")}>SB</th>
-                      <th style={th("right")}>K</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {liveRows.map((row, idx) => {
-                      const isLast = idx === liveRows.length - 1;
-                      const cell = (align) => ({ ...td(align), borderBottom: isLast ? "none" : `1px solid ${t.divider}` });
-                      return (
-                        <tr key={row.name}>
-                          <td style={cell("left")}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "11px" }}>
-                              <TeamMark logo={logos[row.name]} color={colors[row.name]} size={22} />
-                              <span style={{ fontWeight: "600", color: t.textPrimary, fontSize: "13.5px" }}>{row.name}</span>
-                            </div>
-                          </td>
-                          <td style={{ ...cell("right"), ...numCell, color: row.hr ? t.leader : t.numberColor, fontWeight: row.hr ? "800" : "600" }}>{row.hr}</td>
-                          <td style={{ ...cell("right"), ...numCell }}>{row.r}</td>
-                          <td style={{ ...cell("right"), ...numCell }}>{row.rbi}</td>
-                          <td style={{ ...cell("right"), ...numCell }}>{row.sb}</td>
-                          <td style={{ ...cell("right"), ...numCell }}>{row.k}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div style={{ padding: "30px 24px", textAlign: "center", color: t.textMuted, fontSize: "13.5px" }}>
-                {live.status === "loading"
-                  ? "Checking today's games…"
-                  : live.meta?.gamesTotal
-                  ? `No fantasy action yet — ${live.meta.gamesLive} of ${live.meta.gamesTotal} games in progress.`
-                  : "No MLB games today."}
-              </div>
-            )}
-          </div>
-        </section>
 
         {/* League leaders */}
         <section style={{ marginBottom: "30px" }}>
@@ -451,7 +407,9 @@ export default function BaseballTracker() {
               </thead>
               <tbody>
                 {[...selWeeks.keys()].reverse().map((i) => {
-                  const w = selWeeks[i];
+                  const isCurrent = i + 1 === numWeeks;
+                  // Fold today's live MLB stats into the current (in-progress) week only.
+                  const w = isCurrent ? foldLive(selWeeks[i], live.teams?.[sel]) : selWeeks[i];
                   return (
                   <tr key={i}>
                     <td style={{ ...td("left"), paddingTop: "8px", paddingBottom: "8px", height: "auto" }}>

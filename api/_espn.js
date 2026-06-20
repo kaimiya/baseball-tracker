@@ -84,29 +84,27 @@ function num(v) {
   return typeof v === "number" && isFinite(v) ? v : 0;
 }
 
-// Pull the four stats out of a matchup's scoreByStat map ({id: {score, ...}}).
+// Rate-stat components so the client can fold in live deltas:
+// H=1, AB=0, ER=45, outs(IP*3)=34.
+const EMPTY = { hr: 0, avg: 0, wins: 0, era: 0, h: 0, ab: 0, er: 0, outs: 0 };
+
+// Pull the four stats (+ components) out of a matchup's scoreByStat map.
 function statsFromScoreByStat(sbs) {
   const score = (id) => num(sbs[id] && sbs[id].score);
   return {
-    hr: score(STAT_IDS.HR),
-    avg: score(STAT_IDS.AVG),
-    wins: score(STAT_IDS.W),
-    era: score(STAT_IDS.ERA),
+    hr: score(STAT_IDS.HR), avg: score(STAT_IDS.AVG), wins: score(STAT_IDS.W), era: score(STAT_IDS.ERA),
+    h: score("1"), ab: score("0"), er: score("45"), outs: score("34"),
   };
 }
 
-// Season totals fallback (used pre-season or if weekly data is unavailable).
+// Season totals (+ components) from valuesByStat.
 function seasonStats(team) {
   const v = team.valuesByStat;
-  if (v) {
-    return {
-      hr: num(v[STAT_IDS.HR]),
-      avg: num(v[STAT_IDS.AVG]),
-      wins: num(v[STAT_IDS.W]),
-      era: num(v[STAT_IDS.ERA]),
-    };
-  }
-  return { hr: 0, avg: 0, wins: 0, era: 0 };
+  if (!v) return { ...EMPTY };
+  return {
+    hr: num(v[STAT_IDS.HR]), avg: num(v[STAT_IDS.AVG]), wins: num(v[STAT_IDS.W]), era: num(v[STAT_IDS.ERA]),
+    h: num(v["1"]), ab: num(v["0"]), er: num(v["45"]), outs: num(v["34"]),
+  };
 }
 
 export function teamName(team) {
