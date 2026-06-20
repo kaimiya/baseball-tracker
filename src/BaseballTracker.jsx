@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useLeagueData } from "./useLeagueData.js";
+import { useLiveToday } from "./useLiveToday.js";
 import { useTheme } from "./theme.js";
 
 const FONT = "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -93,6 +94,7 @@ function SectionLabel({ t, children, sub, style }) {
 
 export default function BaseballTracker() {
   const league = useLeagueData();
+  const live = useLiveToday();
   const { mode, t, toggle } = useTheme();
 
   const players = league.players;
@@ -111,6 +113,16 @@ export default function BaseballTracker() {
   const [stScrolled, setStScrolled] = useState(false);
   const splitsRef = useRef(null);
   const prevTotalsRef = useRef(null);
+
+  // Teams with live action today (from MLB), sorted by what's hottest.
+  const liveRows = useMemo(
+    () =>
+      Object.entries(live.teams || {})
+        .map(([name, s]) => ({ name, ...s }))
+        .filter((r) => r.hr + r.r + r.rbi + r.sb + r.k + r.w > 0)
+        .sort((a, b) => b.hr - a.hr || b.r - a.r || b.rbi - a.rbi),
+    [live.teams]
+  );
 
   // Season totals come straight from ESPN (exact AVG/ERA), not averaged from the
   // weekly rows — so the standings/leaders match ESPN to the decimal. Falls back
@@ -249,6 +261,63 @@ export default function BaseballTracker() {
       </header>
 
       <main className="bt-main" style={{ maxWidth: MAXW, margin: "0 auto", padding: "28px 24px 56px" }}>
+
+        {/* Today's Live — real-time from MLB (ahead of ESPN's fantasy feed) */}
+        <section style={{ marginBottom: "30px" }}>
+          <SectionLabel t={t} sub={live.meta ? `${live.meta.gamesLive} of ${live.meta.gamesTotal} MLB games in progress · live from MLB, refreshes every 30s` : "Live from MLB"}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "9px" }}>
+              Today's Live
+              {live.meta?.gamesLive > 0 && <span className="bt-pulse" style={{ width: 9, height: 9, borderRadius: "50%", background: "#16a34a", display: "inline-block" }} />}
+            </span>
+          </SectionLabel>
+          <div style={{ ...panel, overflow: "hidden" }}>
+            {liveRows.length ? (
+              <div className="bt-scroll">
+                <table className="bt-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
+                      <th style={th("left")}>Team</th>
+                      <th style={th("right")}>HR</th>
+                      <th style={th("right")}>R</th>
+                      <th style={th("right")}>RBI</th>
+                      <th style={th("right")}>SB</th>
+                      <th style={th("right")}>K</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {liveRows.map((row, idx) => {
+                      const isLast = idx === liveRows.length - 1;
+                      const cell = (align) => ({ ...td(align), borderBottom: isLast ? "none" : `1px solid ${t.divider}` });
+                      return (
+                        <tr key={row.name}>
+                          <td style={cell("left")}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "11px" }}>
+                              <TeamMark logo={logos[row.name]} color={colors[row.name]} size={22} />
+                              <span style={{ fontWeight: "600", color: t.textPrimary, fontSize: "13.5px" }}>{row.name}</span>
+                            </div>
+                          </td>
+                          <td style={{ ...cell("right"), ...numCell, color: row.hr ? t.leader : t.numberColor, fontWeight: row.hr ? "800" : "600" }}>{row.hr}</td>
+                          <td style={{ ...cell("right"), ...numCell }}>{row.r}</td>
+                          <td style={{ ...cell("right"), ...numCell }}>{row.rbi}</td>
+                          <td style={{ ...cell("right"), ...numCell }}>{row.sb}</td>
+                          <td style={{ ...cell("right"), ...numCell }}>{row.k}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div style={{ padding: "30px 24px", textAlign: "center", color: t.textMuted, fontSize: "13.5px" }}>
+                {live.status === "loading"
+                  ? "Checking today's games…"
+                  : live.meta?.gamesTotal
+                  ? `No fantasy action yet — ${live.meta.gamesLive} of ${live.meta.gamesTotal} games in progress.`
+                  : "No MLB games today."}
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* League leaders */}
         <section style={{ marginBottom: "30px" }}>

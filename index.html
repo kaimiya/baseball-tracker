@@ -21,6 +21,8 @@
       * { box-sizing: border-box; }
       @keyframes bt-spin { to { transform: rotate(360deg); } }
       .bt-spin { animation: bt-spin 0.8s linear infinite; }
+      @keyframes bt-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+      .bt-pulse { animation: bt-pulse 1.4s ease-in-out infinite; }
 
       /* Data-table horizontal scroll: smooth on touch, refined scrollbar */
       .bt-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }

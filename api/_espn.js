@@ -64,6 +64,13 @@ export function fetchBase({ leagueId, seasonId, espnS2, swid }) {
   return getJson(url, espnS2, swid);
 }
 
+// Team rosters for a scoring period (today's lineups, with lineupSlotId per player).
+export function fetchRosters({ leagueId, seasonId, espnS2, swid, scoringPeriodId }) {
+  const sp = scoringPeriodId != null ? `&scoringPeriodId=${scoringPeriodId}` : "";
+  const url = `${HOST}/apis/v3/games/flb/seasons/${seasonId}/segments/0/leagues/${leagueId}?view=mRoster&view=mTeam${sp}`;
+  return getJson(url, espnS2, swid);
+}
+
 // A single scoring period: schedule matchups carry cumulativeScore.scoreByStat
 // (the real per-week category totals) only when scoped to a scoringPeriodId.
 export function fetchPeriod({ leagueId, seasonId, espnS2, swid, scoringPeriodId }) {
@@ -102,7 +109,7 @@ function seasonStats(team) {
   return { hr: 0, avg: 0, wins: 0, era: 0 };
 }
 
-function teamName(team) {
+export function teamName(team) {
   if (team.name && String(team.name).trim()) return String(team.name).trim();
   const full = `${team.location || ""} ${team.nickname || ""}`.trim();
   return full || `Team ${team.id}`;
