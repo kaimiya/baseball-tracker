@@ -115,9 +115,9 @@ function SectionLabel({ t, children, sub, style }) {
 // right, so the column's numbers stay aligned whether or not a delta is present.
 function StatWithDelta({ value, delta }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "baseline", justifyContent: "flex-end", gap: "4px" }}>
+    <span className="bt-statwrap" style={{ display: "inline-flex", alignItems: "baseline", justifyContent: "flex-end", gap: "4px" }}>
       <span>{value}</span>
-      <span style={{ width: "20px", textAlign: "left", fontSize: "10.5px", fontWeight: "800", color: "#16a34a", fontVariantNumeric: "tabular-nums" }}>
+      <span className="bt-deltaslot" style={{ width: "20px", textAlign: "left", fontSize: "10.5px", fontWeight: "800", color: "#16a34a", fontVariantNumeric: "tabular-nums" }}>
         {delta ? `+${delta}` : ""}
       </span>
     </span>
@@ -293,31 +293,40 @@ export default function BaseballTracker() {
 
       <main className="bt-main" style={{ maxWidth: MAXW, margin: "0 auto", padding: "28px 24px 56px" }}>
 
-        {/* Today strip — your team's live gains so far today */}
+        {/* Today strip — your team's live gains in the 4 categories so far today */}
         {(() => {
           const mt = myTeam && liveTeams[myTeam];
           if (!mt) return null;
-          const active = mt.contributors?.length || 0;
+          const contribs = mt.contributors || [];
           const bits = [];
-          if (mt.hr) bits.push({ label: "HR", n: mt.hr });
-          if (mt.h) bits.push({ label: "H", n: mt.h });
-          if (mt.w) bits.push({ label: "W", n: mt.w });
-          if (!bits.length && !active) return null;
+          if (mt.hr) bits.push(`+${mt.hr} HR`);
+          if (mt.h) bits.push(`+${mt.h} H`);
+          if (mt.w) bits.push(`+${mt.w} W`);
+          if (!bits.length && !contribs.length) return null;
+          const lastName = (n) => n.split(" ").slice(-1)[0];
+          const names = contribs.map(c => lastName(c.name));
+          const who = names.length === 0 ? null
+            : names.length <= 3 ? names.join(", ")
+            : `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
           return (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.22)", borderRadius: "10px", padding: "10px 14px", marginBottom: "24px" }}>
+            <div title="Your team's live gains in HR / AVG / Wins / ERA so far today — updates as games play" style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.22)", borderRadius: "10px", padding: "10px 14px", marginBottom: "24px" }}>
               <span className="bt-pulse" style={{ width: 7, height: 7, borderRadius: "50%", background: "#16a34a", flexShrink: 0 }} />
-              <span style={{ fontSize: "11px", fontWeight: "800", letterSpacing: "0.6px", textTransform: "uppercase", color: "#16a34a" }}>Today</span>
+              <span style={{ fontSize: "11px", fontWeight: "800", letterSpacing: "0.6px", textTransform: "uppercase", color: "#16a34a", flexShrink: 0 }}>Today</span>
               <span style={{ fontSize: "13px", fontWeight: "700", color: t.textPrimary }}>{myTeam}</span>
-              <span style={{ display: "flex", gap: "14px", alignItems: "baseline", flexWrap: "wrap" }}>
-                {bits.map(b => (
-                  <span key={b.label} style={{ fontSize: "13px", color: t.textSecondary, fontWeight: "600", fontVariantNumeric: "tabular-nums" }}>
-                    <span style={{ color: "#16a34a", fontWeight: "800" }}>+{b.n}</span> {b.label}
-                  </span>
-                ))}
-              </span>
-              <span style={{ marginLeft: "auto", fontSize: "12px", color: t.textMuted, fontWeight: "500" }}>
-                {active} {active === 1 ? "player" : "players"} in action
-              </span>
+              {bits.length ? (
+                <span style={{ display: "flex", gap: "12px", alignItems: "baseline", flexWrap: "wrap" }}>
+                  {bits.map(b => (
+                    <span key={b} style={{ fontSize: "13px", color: "#16a34a", fontWeight: "800", fontVariantNumeric: "tabular-nums" }}>{b}</span>
+                  ))}
+                </span>
+              ) : (
+                <span style={{ fontSize: "12.5px", color: t.textMuted, fontWeight: "500" }}>No category gains yet</span>
+              )}
+              {who && (
+                <span style={{ marginLeft: "auto", fontSize: "12px", color: t.textMuted, fontWeight: "500", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {who} playing
+                </span>
+              )}
             </div>
           );
         })()}
@@ -371,16 +380,16 @@ export default function BaseballTracker() {
           <SectionLabel t={t} sub="Select a team to see its weekly splits.">Standings</SectionLabel>
           <div style={{ ...panel, overflow: "hidden" }}>
             <div className={"bt-scroll" + (stScrolled ? " bt-scrolled" : "")} onScroll={e => { const v = e.currentTarget.scrollLeft > 1; setStScrolled(p => (p === v ? p : v)); }}>
-            <table className="bt-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table className="bt-table bt-standings" style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
                   <th className="bt-c-rank" style={{ ...th("left"), width: "30px", minWidth: "30px", position: "sticky", left: 0, zIndex: 4, background: t.panel }}>#</th>
                   <th className="bt-freeze-edge bt-c-team" style={{ ...th("left"), position: "sticky", left: "30px", zIndex: 4, background: t.panel }}>Team</th>
                   <th className="bt-hide-mobile" style={th("left")}>Record</th>
-                  <th style={th("right")}>HR</th>
-                  <th style={th("right")}>AVG</th>
-                  <th style={th("right")}>Wins</th>
-                  <th style={th("right")}>ERA</th>
+                  <th className="bt-c-stat" style={th("right")}>HR</th>
+                  <th className="bt-c-stat" style={th("right")}>AVG</th>
+                  <th className="bt-c-stat" style={th("right")}>Wins</th>
+                  <th className="bt-c-stat" style={th("right")}>ERA</th>
                 </tr>
               </thead>
               <tbody>
@@ -409,10 +418,10 @@ export default function BaseballTracker() {
                         </div>
                       </td>
                       <td className="bt-hide-mobile" style={{ ...cell("left"), color: t.textMuted, fontVariantNumeric: "tabular-nums", fontSize: "12.5px" }}>{records[player] || "—"}</td>
-                      <td className={fcls("hr")} style={{ ...cell("right"), ...numCell, ...leadCell("hr", player) }}>{showDeltas ? <StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} /> : tot.hr}</td>
-                      <td className={fcls("avg")} style={{ ...cell("right"), ...numCell, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
-                      <td className={fcls("wins")} style={{ ...cell("right"), ...numCell, ...leadCell("wins", player) }}>{showDeltas ? <StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} /> : tot.wins}</td>
-                      <td className={fcls("era")} style={{ ...cell("right"), ...numCell, ...leadCell("era", player) }}>{fmtERA(tot.era)}</td>
+                      <td className={["bt-c-stat", fcls("hr")].filter(Boolean).join(" ")} style={{ ...cell("right"), ...numCell, ...leadCell("hr", player) }}>{showDeltas ? <StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} /> : tot.hr}</td>
+                      <td className={["bt-c-stat", fcls("avg")].filter(Boolean).join(" ")} style={{ ...cell("right"), ...numCell, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
+                      <td className={["bt-c-stat", fcls("wins")].filter(Boolean).join(" ")} style={{ ...cell("right"), ...numCell, ...leadCell("wins", player) }}>{showDeltas ? <StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} /> : tot.wins}</td>
+                      <td className={["bt-c-stat", fcls("era")].filter(Boolean).join(" ")} style={{ ...cell("right"), ...numCell, ...leadCell("era", player) }}>{fmtERA(tot.era)}</td>
                     </tr>
                   );
                 })}
