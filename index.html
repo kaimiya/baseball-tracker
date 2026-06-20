@@ -43,14 +43,18 @@
       .bt-flash-up { animation: bt-flash-up 1.4s ease-out; }
       .bt-flash-down { animation: bt-flash-down 1.4s ease-out; }
 
-      /* Desktop: cap the Team and Record columns to their content so the auto
-         table-layout doesn't dump all the leftover width into them (which blew
-         open a gap before the stat columns). The four stat columns then split
-         the remaining width evenly. On mobile these stay auto and the table
-         scrolls. */
+      /* Desktop: lock BOTH tables to the same fixed column geometry so the
+         HR/AVG/Wins/ERA columns line up vertically between Standings and Weekly
+         Splits. The left block (#+Team+Record in Standings, Week in Weekly) is
+         33%, leaving four equal 16.75% stat columns that start at the same x in
+         both. On mobile these rules don't apply: tables stay auto + scroll. */
       @media (min-width: 601px) {
-        .bt-standings .bt-c-team { width: 200px; }
-        .bt-standings .bt-c-record { width: 96px; }
+        .bt-standings, .bt-weekly { table-layout: fixed; }
+        .bt-standings .bt-c-rank { width: 4%; }
+        .bt-standings .bt-c-team { width: 20%; }
+        .bt-standings .bt-c-record { width: 9%; }
+        .bt-weekly .bt-c-week { width: 33%; }
+        .bt-c-stat { width: 16.75%; }
       }
 
       @media (max-width: 600px) {

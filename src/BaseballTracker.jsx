@@ -348,13 +348,13 @@ export default function BaseballTracker() {
             <table className="bt-table bt-standings" style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
-                  <th className="bt-c-rank" style={{ ...th("left"), width: "30px", minWidth: "30px", position: "sticky", left: 0, zIndex: 4, background: t.panel }}>#</th>
+                  <th className="bt-c-rank" style={{ ...th("left"), minWidth: "30px", position: "sticky", left: 0, zIndex: 4, background: t.panel }}>#</th>
                   <th className="bt-freeze-edge bt-c-team" style={{ ...th("left"), position: "sticky", left: "30px", zIndex: 4, background: t.panel }}>Team</th>
                   <th className="bt-hide-mobile bt-c-record" style={th("left")}>Record</th>
-                  <th style={th("left")}>HR</th>
-                  <th style={th("left")}>AVG</th>
-                  <th style={th("left")}>Wins</th>
-                  <th style={th("left")}>ERA</th>
+                  <th className="bt-c-stat" style={th("left")}>HR</th>
+                  <th className="bt-c-stat" style={th("left")}>AVG</th>
+                  <th className="bt-c-stat" style={th("left")}>Wins</th>
+                  <th className="bt-c-stat" style={th("left")}>ERA</th>
                 </tr>
               </thead>
               <tbody>
@@ -375,7 +375,7 @@ export default function BaseballTracker() {
                       onMouseLeave={() => setHoverRow(null)}
                       style={{ cursor: "pointer", background: bg, transition: "background 0.1s" }}
                     >
-                      <td className="bt-c-rank" style={{ ...cell("left"), width: "30px", minWidth: "30px", position: "sticky", left: 0, zIndex: 2, background: solidBg, boxShadow: isSel ? `inset 3px 0 0 ${t.selectedBar}` : "none", color: t.textMuted, fontWeight: "700", fontVariantNumeric: "tabular-nums" }}>{idx + 1}</td>
+                      <td className="bt-c-rank" style={{ ...cell("left"), minWidth: "30px", position: "sticky", left: 0, zIndex: 2, background: solidBg, boxShadow: isSel ? `inset 3px 0 0 ${t.selectedBar}` : "none", color: t.textMuted, fontWeight: "700", fontVariantNumeric: "tabular-nums" }}>{idx + 1}</td>
                       <td className="bt-freeze-edge bt-c-team" style={{ ...cell("left"), position: "sticky", left: "30px", zIndex: 2, background: solidBg }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
                           <TeamMark logo={logos[player]} color={colors[player]} size={22} />
@@ -416,14 +416,14 @@ export default function BaseballTracker() {
               </div>
             </div>
             <div className="bt-scroll">
-            <table className="bt-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table className="bt-table bt-weekly" style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
-                  <th style={th("left")}>Week</th>
-                  <th style={th("left")}>HR</th>
-                  <th style={th("left")}>AVG</th>
-                  <th style={th("left")}>Wins</th>
-                  <th style={th("left")}>ERA</th>
+                  <th className="bt-c-week" style={th("left")}>Week</th>
+                  <th className="bt-c-stat" style={th("left")}>HR</th>
+                  <th className="bt-c-stat" style={th("left")}>AVG</th>
+                  <th className="bt-c-stat" style={th("left")}>Wins</th>
+                  <th className="bt-c-stat" style={th("left")}>ERA</th>
                 </tr>
               </thead>
               <tbody>
