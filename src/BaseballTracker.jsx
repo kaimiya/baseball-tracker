@@ -352,7 +352,7 @@ export default function BaseballTracker() {
 
         {/* Weekly splits for the selected team */}
         <section ref={splitsRef}>
-          <SectionLabel t={t}>Weekly Splits</SectionLabel>
+          <SectionLabel t={t} sub="Finished weeks match ESPN exactly. The current week is live — its AVG/ERA update as games play and may differ from ESPN until all of the week's games are final.">Weekly Splits</SectionLabel>
           {sel && selWeeks ? (
           <div style={{ ...panel, overflow: "hidden" }}>
             <div style={{ padding: "16px 20px", borderBottom: `1px solid ${t.panelBorder}`, display: "flex", alignItems: "center", gap: "13px" }}>
