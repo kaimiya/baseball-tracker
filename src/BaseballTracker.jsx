@@ -214,11 +214,6 @@ export default function BaseballTracker() {
   const th = (align) => ({ padding: "11px 14px", textAlign: align, fontSize: "11px", fontWeight: "700", letterSpacing: "0.5px", textTransform: "uppercase", color: t.tableHeadText, whiteSpace: "nowrap" });
   const td = (align) => ({ padding: "0 14px", height: "52px", textAlign: align, fontSize: "13px", color: t.textSecondary, borderBottom: `1px solid ${t.divider}`, whiteSpace: "nowrap" });
   const numCell = { fontVariantNumeric: "tabular-nums", fontWeight: "600", color: t.numberColor, fontSize: "14px" };
-  // The four stat columns share one tight, equal width and left-justify, so the
-  // value (and its +/- delta) hugs the start of the cell and reads as an even
-  // block. A trailing spacer column soaks up leftover width so the stats stay
-  // grouped next to the team name instead of spreading to the right on desktop.
-  const STATW = "66px";
   // Highlight every team that ties for a category lead (compared at displayed precision).
   const fmtVal = (cat, v) => (cat === "avg" ? fmtAvg(v) : cat === "era" ? fmtERA(v) : String(v));
   const leadFmt = {};
@@ -353,11 +348,10 @@ export default function BaseballTracker() {
                   <th className="bt-c-rank" style={{ ...th("left"), width: "30px", minWidth: "30px", position: "sticky", left: 0, zIndex: 4, background: t.panel }}>#</th>
                   <th className="bt-freeze-edge bt-c-team" style={{ ...th("left"), position: "sticky", left: "30px", zIndex: 4, background: t.panel }}>Team</th>
                   <th className="bt-hide-mobile" style={th("left")}>Record</th>
-                  <th className="bt-c-stat" style={{ ...th("left"), width: STATW, minWidth: STATW }}>HR</th>
-                  <th className="bt-c-stat" style={{ ...th("left"), width: STATW, minWidth: STATW }}>AVG</th>
-                  <th className="bt-c-stat" style={{ ...th("left"), width: STATW, minWidth: STATW }}>Wins</th>
-                  <th className="bt-c-stat" style={{ ...th("left"), width: STATW, minWidth: STATW }}>ERA</th>
-                  <th className="bt-hide-mobile" style={{ ...th("left"), width: "100%" }} aria-hidden="true"></th>
+                  <th style={th("right")}>HR</th>
+                  <th style={th("right")}>AVG</th>
+                  <th style={th("right")}>Wins</th>
+                  <th style={th("right")}>ERA</th>
                 </tr>
               </thead>
               <tbody>
@@ -386,11 +380,10 @@ export default function BaseballTracker() {
                         </div>
                       </td>
                       <td className="bt-hide-mobile" style={{ ...cell("left"), color: t.textMuted, fontVariantNumeric: "tabular-nums", fontSize: "12.5px" }}>{records[player] || "—"}</td>
-                      <td className={["bt-c-stat", fcls("hr")].filter(Boolean).join(" ")} style={{ ...cell("left"), ...numCell, width: STATW, minWidth: STATW, ...leadCell("hr", player) }}>{showDeltas ? <StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} /> : tot.hr}</td>
-                      <td className={["bt-c-stat", fcls("avg")].filter(Boolean).join(" ")} style={{ ...cell("left"), ...numCell, width: STATW, minWidth: STATW, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
-                      <td className={["bt-c-stat", fcls("wins")].filter(Boolean).join(" ")} style={{ ...cell("left"), ...numCell, width: STATW, minWidth: STATW, ...leadCell("wins", player) }}>{showDeltas ? <StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} /> : tot.wins}</td>
-                      <td className={["bt-c-stat", fcls("era")].filter(Boolean).join(" ")} style={{ ...cell("left"), ...numCell, width: STATW, minWidth: STATW, ...leadCell("era", player) }}>{fmtERA(tot.era)}</td>
-                      <td className="bt-hide-mobile" style={cell("left")} aria-hidden="true"></td>
+                      <td className={fcls("hr")} style={{ ...cell("right"), ...numCell, ...leadCell("hr", player) }}>{showDeltas ? <StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} /> : tot.hr}</td>
+                      <td className={fcls("avg")} style={{ ...cell("right"), ...numCell, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
+                      <td className={fcls("wins")} style={{ ...cell("right"), ...numCell, ...leadCell("wins", player) }}>{showDeltas ? <StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} /> : tot.wins}</td>
+                      <td className={fcls("era")} style={{ ...cell("right"), ...numCell, ...leadCell("era", player) }}>{fmtERA(tot.era)}</td>
                     </tr>
                   );
                 })}
