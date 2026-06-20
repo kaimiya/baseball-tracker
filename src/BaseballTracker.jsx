@@ -351,10 +351,10 @@ export default function BaseballTracker() {
                   <th className="bt-c-rank" style={{ ...th("left"), width: "30px", minWidth: "30px", position: "sticky", left: 0, zIndex: 4, background: t.panel }}>#</th>
                   <th className="bt-freeze-edge bt-c-team" style={{ ...th("left"), position: "sticky", left: "30px", zIndex: 4, background: t.panel }}>Team</th>
                   <th className="bt-hide-mobile bt-c-record" style={th("left")}>Record</th>
-                  <th style={th("right")}>HR</th>
-                  <th style={th("right")}>AVG</th>
-                  <th style={th("right")}>Wins</th>
-                  <th style={th("right")}>ERA</th>
+                  <th style={th("left")}>HR</th>
+                  <th style={th("left")}>AVG</th>
+                  <th style={th("left")}>Wins</th>
+                  <th style={th("left")}>ERA</th>
                 </tr>
               </thead>
               <tbody>
@@ -383,10 +383,10 @@ export default function BaseballTracker() {
                         </div>
                       </td>
                       <td className="bt-hide-mobile" style={{ ...cell("left"), color: t.textMuted, fontVariantNumeric: "tabular-nums", fontSize: "12.5px" }}>{records[player] || "—"}</td>
-                      <td className={fcls("hr")} style={{ ...cell("right"), ...numCell, ...leadCell("hr", player) }}>{showDeltas ? <StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} /> : tot.hr}</td>
-                      <td className={fcls("avg")} style={{ ...cell("right"), ...numCell, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
-                      <td className={fcls("wins")} style={{ ...cell("right"), ...numCell, ...leadCell("wins", player) }}>{showDeltas ? <StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} /> : tot.wins}</td>
-                      <td className={fcls("era")} style={{ ...cell("right"), ...numCell, ...leadCell("era", player) }}>{fmtERA(tot.era)}</td>
+                      <td className={fcls("hr")} style={{ ...cell("left"), ...numCell, ...leadCell("hr", player) }}>{showDeltas ? <StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} /> : tot.hr}</td>
+                      <td className={fcls("avg")} style={{ ...cell("left"), ...numCell, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
+                      <td className={fcls("wins")} style={{ ...cell("left"), ...numCell, ...leadCell("wins", player) }}>{showDeltas ? <StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} /> : tot.wins}</td>
+                      <td className={fcls("era")} style={{ ...cell("left"), ...numCell, ...leadCell("era", player) }}>{fmtERA(tot.era)}</td>
                     </tr>
                   );
                 })}
@@ -420,10 +420,10 @@ export default function BaseballTracker() {
               <thead>
                 <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
                   <th style={th("left")}>Week</th>
-                  <th style={th("right")}>HR</th>
-                  <th style={th("right")}>AVG</th>
-                  <th style={th("right")}>Wins</th>
-                  <th style={th("right")}>ERA</th>
+                  <th style={th("left")}>HR</th>
+                  <th style={th("left")}>AVG</th>
+                  <th style={th("left")}>Wins</th>
+                  <th style={th("left")}>ERA</th>
                 </tr>
               </thead>
               <tbody>
@@ -444,19 +444,19 @@ export default function BaseballTracker() {
                         <div style={{ fontSize: "11px", color: t.textFaint, marginTop: "2px" }}>{league.weekLabels[i]}</div>
                       )}
                     </td>
-                    <td style={{ ...td("right"), ...numCell }}>{w.hr}</td>
-                    <td style={{ ...td("right"), ...numCell }}>{fmtAvg(w.avg)}</td>
-                    <td style={{ ...td("right"), ...numCell }}>{w.wins}</td>
-                    <td style={{ ...td("right"), ...numCell }}>{fmtERA(w.era)}</td>
+                    <td style={{ ...td("left"), ...numCell }}>{w.hr}</td>
+                    <td style={{ ...td("left"), ...numCell }}>{fmtAvg(w.avg)}</td>
+                    <td style={{ ...td("left"), ...numCell }}>{w.wins}</td>
+                    <td style={{ ...td("left"), ...numCell }}>{fmtERA(w.era)}</td>
                   </tr>
                   );
                 })}
                 <tr style={{ borderTop: `2px solid ${t.panelBorder}` }}>
                   <td style={{ ...td("left"), borderBottom: "none",fontSize: "11px", fontWeight: "700", letterSpacing: "0.6px", textTransform: "uppercase", color: t.textMuted }}>Season</td>
-                  <td style={{ ...td("right"), borderBottom: "none",...numCell, fontWeight: "800" }}>{selTot.hr}</td>
-                  <td style={{ ...td("right"), borderBottom: "none",...numCell, fontWeight: "800" }}>{fmtAvg(selTot.avg)}</td>
-                  <td style={{ ...td("right"), borderBottom: "none",...numCell, fontWeight: "800" }}>{selTot.wins}</td>
-                  <td style={{ ...td("right"), borderBottom: "none",...numCell, fontWeight: "800" }}>{fmtERA(selTot.era)}</td>
+                  <td style={{ ...td("left"), borderBottom: "none",...numCell, fontWeight: "800" }}>{selTot.hr}</td>
+                  <td style={{ ...td("left"), borderBottom: "none",...numCell, fontWeight: "800" }}>{fmtAvg(selTot.avg)}</td>
+                  <td style={{ ...td("left"), borderBottom: "none",...numCell, fontWeight: "800" }}>{selTot.wins}</td>
+                  <td style={{ ...td("left"), borderBottom: "none",...numCell, fontWeight: "800" }}>{fmtERA(selTot.era)}</td>
                 </tr>
               </tbody>
             </table>
