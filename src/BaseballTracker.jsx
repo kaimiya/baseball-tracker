@@ -219,12 +219,12 @@ export default function BaseballTracker() {
         </div>
       </header>
 
-      <main style={{ maxWidth: MAXW, margin: "0 auto", padding: "28px 24px 56px" }}>
+      <main className="bt-main" style={{ maxWidth: MAXW, margin: "0 auto", padding: "28px 24px 56px" }}>
 
         {/* League leaders */}
         <section style={{ marginBottom: "30px" }}>
           <SectionLabel t={t}>League Leaders</SectionLabel>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "14px" }}>
+          <div className="bt-leaders" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "14px" }}>
             {["hr", "avg", "wins", "era"].map(cat => {
               const label = cat === "era" ? "Best ERA" : cat === "hr" ? "Home Runs" : cat === "avg" ? "Batting Avg" : "Wins";
               const tied = leaderTeams[cat];
@@ -269,13 +269,13 @@ export default function BaseballTracker() {
         <section style={{ marginBottom: "30px" }}>
           <SectionLabel t={t}>Standings</SectionLabel>
           <div style={{ ...panel, overflow: "hidden" }}>
-            <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "620px" }}>
+            <div className="bt-scroll">
+            <table className="bt-table" style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
                   <th style={{ ...th("left"), width: "52px" }}>#</th>
                   <th style={th("left")}>Team</th>
-                  <th style={th("left")}>Record</th>
+                  <th className="bt-hide-mobile" style={th("left")}>Record</th>
                   <th style={th("right")}>HR</th>
                   <th style={th("right")}>AVG</th>
                   <th style={th("right")}>Wins</th>
@@ -304,7 +304,7 @@ export default function BaseballTracker() {
                           <span style={{ fontWeight: "600", color: t.textPrimary, fontSize: "13.5px" }}>{player}</span>
                         </div>
                       </td>
-                      <td style={{ ...cell("left"), color: t.textMuted, fontVariantNumeric: "tabular-nums", fontSize: "12.5px" }}>{records[player] || "—"}</td>
+                      <td className="bt-hide-mobile" style={{ ...cell("left"), color: t.textMuted, fontVariantNumeric: "tabular-nums", fontSize: "12.5px" }}>{records[player] || "—"}</td>
                       <td style={{ ...cell("right"), ...numCell, ...leadCell("hr", player) }}>{tot.hr}</td>
                       <td style={{ ...cell("right"), ...numCell, ...leadCell("avg", player) }}>{fmtAvg(tot.avg)}</td>
                       <td style={{ ...cell("right"), ...numCell, ...leadCell("wins", player) }}>{tot.wins}</td>
@@ -331,7 +331,8 @@ export default function BaseballTracker() {
               {records[sel] && <span style={{ fontSize: "12.5px", color: t.textMuted, fontVariantNumeric: "tabular-nums" }}>{records[sel]}</span>}
               <span style={{ marginLeft: "auto", fontSize: "12px", color: t.textMuted }}>{selWeeks.length} weeks</span>
             </div>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <div className="bt-scroll">
+            <table className="bt-table" style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
                   <th style={th("left")}>Week</th>
@@ -373,6 +374,7 @@ export default function BaseballTracker() {
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
         </section>
       </main>

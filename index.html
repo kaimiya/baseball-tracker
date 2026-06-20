@@ -21,6 +21,21 @@
       * { box-sizing: border-box; }
       @keyframes bt-spin { to { transform: rotate(360deg); } }
       .bt-spin { animation: bt-spin 0.8s linear infinite; }
+
+      /* Data-table horizontal scroll: smooth on touch, refined scrollbar */
+      .bt-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+      .bt-scroll::-webkit-scrollbar { height: 6px; }
+      .bt-scroll::-webkit-scrollbar-thumb { background: rgba(140, 140, 140, 0.4); border-radius: 999px; }
+      .bt-scroll::-webkit-scrollbar-track { background: transparent; }
+      .bt-table { min-width: 600px; }
+
+      @media (max-width: 600px) {
+        .bt-main { padding-left: 14px !important; padding-right: 14px !important; }
+        .bt-leaders { grid-template-columns: 1fr !important; }
+        .bt-table { min-width: 0; }
+        .bt-table th, .bt-table td { padding-left: 11px !important; padding-right: 11px !important; }
+        .bt-hide-mobile { display: none !important; }
+      }
     </style>
   </head>
   <body>
