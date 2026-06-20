@@ -104,6 +104,7 @@ export default function BaseballTracker() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [hoverRow, setHoverRow] = useState(null);
   const [flash, setFlash] = useState({});
+  const [stScrolled, setStScrolled] = useState(false);
   const splitsRef = useRef(null);
   const prevTotalsRef = useRef(null);
 
@@ -207,7 +208,6 @@ export default function BaseballTracker() {
   const metaParts = [];
   if (league.meta?.seasonId) metaParts.push(`${league.meta.seasonId} Season`);
   if (league.meta?.teamCount) metaParts.push(`${league.meta.teamCount} Teams`);
-  if (numWeeks) metaParts.push(`Through Week ${numWeeks}`);
   const metaLine = metaParts.join("  ·  ");
 
   const sel = selectedPlayer;
@@ -295,12 +295,12 @@ export default function BaseballTracker() {
         <section style={{ marginBottom: "30px" }}>
           <SectionLabel t={t}>Standings</SectionLabel>
           <div style={{ ...panel, overflow: "hidden" }}>
-            <div className="bt-scroll">
+            <div className={"bt-scroll" + (stScrolled ? " bt-scrolled" : "")} onScroll={e => { const v = e.currentTarget.scrollLeft > 1; setStScrolled(p => (p === v ? p : v)); }}>
             <table className="bt-table" style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${t.panelBorder}` }}>
-                  <th style={{ ...th("left"), width: "52px", position: "sticky", left: 0, zIndex: 4, background: t.panel }}>#</th>
-                  <th className="bt-freeze-edge" style={{ ...th("left"), position: "sticky", left: "52px", zIndex: 4, background: t.panel }}>Team</th>
+                  <th className="bt-c-rank" style={{ ...th("left"), width: "30px", minWidth: "30px", position: "sticky", left: 0, zIndex: 4, background: t.panel }}>#</th>
+                  <th className="bt-freeze-edge bt-c-team" style={{ ...th("left"), position: "sticky", left: "30px", zIndex: 4, background: t.panel }}>Team</th>
                   <th className="bt-hide-mobile" style={th("left")}>Record</th>
                   <th style={th("right")}>HR</th>
                   <th style={th("right")}>AVG</th>
@@ -326,11 +326,11 @@ export default function BaseballTracker() {
                       onMouseLeave={() => setHoverRow(null)}
                       style={{ cursor: "pointer", background: bg, transition: "background 0.1s" }}
                     >
-                      <td style={{ ...cell("left"), position: "sticky", left: 0, zIndex: 2, background: solidBg, boxShadow: isSel ? `inset 3px 0 0 ${t.selectedBar}` : "none", color: t.textMuted, fontWeight: "700", fontVariantNumeric: "tabular-nums" }}>{idx + 1}</td>
-                      <td className="bt-freeze-edge" style={{ ...cell("left"), position: "sticky", left: "52px", zIndex: 2, background: solidBg }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "11px" }}>
+                      <td className="bt-c-rank" style={{ ...cell("left"), width: "30px", minWidth: "30px", position: "sticky", left: 0, zIndex: 2, background: solidBg, boxShadow: isSel ? `inset 3px 0 0 ${t.selectedBar}` : "none", color: t.textMuted, fontWeight: "700", fontVariantNumeric: "tabular-nums" }}>{idx + 1}</td>
+                      <td className="bt-freeze-edge bt-c-team" style={{ ...cell("left"), position: "sticky", left: "30px", zIndex: 2, background: solidBg }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
                           <TeamMark logo={logos[player]} color={colors[player]} size={22} />
-                          <span style={{ fontWeight: "600", color: t.textPrimary, fontSize: "13.5px" }}>{player}</span>
+                          <span className="bt-team-name" style={{ fontWeight: "600", color: t.textPrimary, fontSize: "13.5px" }}>{player}</span>
                         </div>
                       </td>
                       <td className="bt-hide-mobile" style={{ ...cell("left"), color: t.textMuted, fontVariantNumeric: "tabular-nums", fontSize: "12.5px" }}>{records[player] || "—"}</td>
