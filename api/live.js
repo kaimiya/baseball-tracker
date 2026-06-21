@@ -19,7 +19,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const date = new Date().toISOString().slice(0, 10);
+    // Use the US (Pacific) calendar date, not UTC. After ~5pm Pacific, UTC has
+    // already rolled to "tomorrow", so toISOString() would make us fetch the
+    // next day's empty slate and drop every live stat. Pacific keeps us on
+    // today's games until they're actually finished.
+    const date = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
     const [rosters, live] = await Promise.all([
       fetchRosters({ leagueId, seasonId, espnS2, swid }),
       fetchLiveToday(date),
