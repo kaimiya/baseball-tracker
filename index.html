@@ -48,15 +48,22 @@
       .bt-flash-down { animation: bt-flash-down 1.4s ease-out; }
 
       /* Rake board: floating off-white surface on warm sand. Awards columns are
-         divided by a hairline border-left (--rk-divider set per theme in JS). */
-      .bt-award { border-left: 1px solid var(--rk-divider); padding: 0 13px; min-width: 0; }
-      .bt-award:first-child { border-left: none; padding-left: 0; }
-      .bt-award:last-child { padding-right: 0; }
+         divided by a hairline border-left (--rk-divider set per theme in JS).
+         Symmetric side padding on every column (the outer edge inset comes from
+         the board's own padding) so all four read as exactly equal width. */
+      .bt-award { border-left: 1px solid var(--rk-divider); padding: 0 18px; min-width: 0; animation: bt-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+      .bt-award:first-child { border-left: none; }
 
       /* Motion: a soft entrance for the content, and a subtle lift on the
          clickable leader teams. Respects reduced-motion. */
       @keyframes bt-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
       .bt-rise { animation: bt-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+      /* Staggered entrances: award columns rise in sequence; standings rows fade
+         in one after another (opacity-only so the sticky rank/team cells never
+         glitch). Per-item delay is set inline in JS. */
+      @keyframes bt-fade-up { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+      @keyframes bt-row-in { from { opacity: 0; } to { opacity: 1; } }
+      .bt-row-in { animation: bt-row-in 0.45s ease both; }
       @keyframes bt-dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
       .bt-dot-pulse { animation: bt-dot-pulse 1.15s ease-in-out infinite; }
 
@@ -69,8 +76,13 @@
         .bt-flip { animation: none; }
         .bt-shimmer { animation: none; }
       }
-      .bt-award-team { transition: opacity 0.14s ease, transform 0.14s ease; }
-      .bt-award-team:hover { opacity: 0.68; }
+      .bt-award-team { transition: opacity 0.14s ease, transform 0.16s cubic-bezier(0.16, 1, 0.3, 1); }
+      .bt-award-team:hover { opacity: 0.72; transform: translateY(-1px); }
+      .bt-award-team:active { transform: translateY(0) scale(0.98); }
+      /* Press feedback on the header action buttons + payouts trigger. */
+      .bt-iconbtn:active:not(:disabled) { transform: scale(0.9); }
+      .bt-payinfo { transition: transform 0.12s ease; }
+      .bt-payinfo:active { transform: scale(0.96); }
       .bt-refresh-btn { transition: color 0.14s ease; }
       .bt-refresh-btn:hover:not(:disabled) { color: var(--rk-accent) !important; }
       .bt-payouts-btn { transition: background 0.12s ease; }
@@ -89,7 +101,7 @@
         .bt-pay-col + .bt-pay-col { border-left: none; border-top: 1px solid var(--rk-divider); }
       }
       @media (prefers-reduced-motion: reduce) {
-        .bt-rise { animation: none; }
+        .bt-rise, .bt-award, .bt-row-in { animation: none; }
         .bt-dot-pulse { animation: none; opacity: 0.85; }
       }
 

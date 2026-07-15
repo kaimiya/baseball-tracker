@@ -118,6 +118,10 @@ const LOADER_ICONS = [
   ["11111", "11111", "01110", "00100", "01110", "11111"], // title (trophy)
 ];
 const LOADER_DOT = 7; // dot size for the loader icons
+// The loader draws every glyph on one fixed canvas sized to the tallest/widest
+// icon, so the SVG footprint never changes as icons cycle (see LoaderIcon).
+const LOADER_MAX_ROWS = Math.max(...LOADER_ICONS.map(r => r.length));
+const LOADER_COLS = LOADER_ICONS[0][0].length;
 const LOADER_LINES = [
   "Tallying the dingers…",
   "Counting who actually paid…",
@@ -126,17 +130,25 @@ const LOADER_LINES = [
   "Following the money…",
 ];
 
-// One brand icon rendered at a fixed dot size (dots ~5px, radius 16%, gap 12%).
+// One brand icon rendered on a FIXED canvas (tallest × widest across the icon
+// set) with the glyph centered inside it. Because the SVG footprint is identical
+// for every icon, nothing reflows and flexbox never has to re-center a
+// different-sized box on each swap — that sub-pixel re-centering was the source
+// of the hairline jump. Dots ~5px, radius 16%, gap 12%.
 function LoaderIcon({ rows, dot = 5, color = "#0076B6" }) {
   const R = rows.length, C = rows[0].length;
   const gap = Math.max(1, dot * 0.12);
-  const w = C * dot + (C - 1) * gap;
-  const h = R * dot + (R - 1) * gap;
+  const cell = dot + gap;
+  const w = LOADER_COLS * dot + (LOADER_COLS - 1) * gap;
+  const h = LOADER_MAX_ROWS * dot + (LOADER_MAX_ROWS - 1) * gap;
+  // Center this glyph within the fixed canvas.
+  const xOff = ((LOADER_COLS - C) / 2) * cell;
+  const yOff = ((LOADER_MAX_ROWS - R) / 2) * cell;
   const cells = [];
   for (let r = 0; r < R; r++) {
     for (let c = 0; c < C; c++) {
       if (rows[r][c] !== "1") continue;
-      cells.push(<rect key={`${r}-${c}`} x={c * (dot + gap)} y={r * (dot + gap)} width={dot} height={dot} rx={dot * 0.16} fill={color} />);
+      cells.push(<rect key={`${r}-${c}`} x={xOff + c * cell} y={yOff + r * cell} width={dot} height={dot} rx={dot * 0.16} fill={color} />);
     }
   }
   return <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" style={{ display: "block" }}>{cells}</svg>;
@@ -212,6 +224,7 @@ function IconButton({ label, onClick, t, disabled, children }) {
   const [hover, setHover] = useState(false);
   return (
     <button
+      className="bt-iconbtn"
       onClick={onClick}
       disabled={disabled}
       title={label}
@@ -224,7 +237,7 @@ function IconButton({ label, onClick, t, disabled, children }) {
         border: "none",
         background: hover && !disabled ? t.iconHover : "transparent",
         color: t.iconColor, cursor: disabled ? "default" : "pointer",
-        opacity: disabled ? 0.45 : 1, transition: "background 0.12s",
+        opacity: disabled ? 0.45 : 1, transition: "background 0.12s ease, transform 0.1s ease",
       }}
     >
       {children}
@@ -465,15 +478,30 @@ export default function BaseballTracker() {
             </div>
           </div>
         </div>
-        {/* League headline — condenses on scroll */}
-        <div className="bt-gutter" style={{ maxWidth: MAXW, margin: "0 auto", paddingTop: pageScrolled ? "9px" : "14px", paddingBottom: pageScrolled ? "9px" : "16px", transition: "padding 0.22s ease" }}>
-          <h1 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: "700", letterSpacing: "-0.02em", color: t.textPrimary, lineHeight: 1.25, fontSize: pageScrolled ? "13.5px" : "16px", whiteSpace: pageScrolled ? "nowrap" : "normal", overflow: "hidden", textOverflow: "ellipsis", transition: "font-size 0.22s ease" }}>
-            {leagueName}
-          </h1>
-          {metaLine && (
-            <div style={{ fontSize: "12px", color: t.textMuted, overflow: "hidden", maxHeight: pageScrolled ? "0px" : "22px", opacity: pageScrolled ? 0 : 1, marginTop: pageScrolled ? "0px" : "3px", transition: "max-height 0.22s ease, opacity 0.18s ease, margin-top 0.22s ease" }}>
-              {metaLine}
-            </div>
+        {/* League headline — condenses on scroll; the sync status sits at the
+            bottom-right, baseline-aligned with the season/teams meta line. */}
+        <div className="bt-gutter" style={{ maxWidth: MAXW, margin: "0 auto", paddingTop: pageScrolled ? "9px" : "14px", paddingBottom: pageScrolled ? "9px" : "16px", transition: "padding 0.22s ease", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "16px" }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: "700", letterSpacing: "-0.02em", color: t.textPrimary, lineHeight: 1.25, fontSize: pageScrolled ? "13.5px" : "16px", whiteSpace: pageScrolled ? "nowrap" : "normal", overflow: "hidden", textOverflow: "ellipsis", transition: "font-size 0.22s ease" }}>
+              {leagueName}
+            </h1>
+            {metaLine && (
+              <div style={{ fontSize: "12px", color: t.textMuted, overflow: "hidden", maxHeight: pageScrolled ? "0px" : "22px", opacity: pageScrolled ? 0 : 1, marginTop: pageScrolled ? "0px" : "3px", transition: "max-height 0.22s ease, opacity 0.18s ease, margin-top 0.22s ease" }}>
+                {metaLine}
+              </div>
+            )}
+          </div>
+          {synced && (
+            <button
+              className="bt-refresh-btn"
+              onClick={league.refresh}
+              disabled={league.refreshing}
+              title="Refresh now"
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", padding: 0, cursor: league.refreshing ? "default" : "pointer", font: "inherit", fontSize: "11px", color: t.textMuted, whiteSpace: "nowrap", flexShrink: 0 }}
+            >
+              {league.refreshing && <RefreshIcon size={11} spinning />}
+              {league.refreshing ? "Syncing…" : `Updated ${synced}`}
+            </button>
           )}
         </div>
       </header>
@@ -482,41 +510,27 @@ export default function BaseballTracker() {
 
         {/* King Category Awards */}
         <section className="bt-sec" style={{ marginBottom: "30px" }}>
-          <h2 style={{ fontFamily: DISPLAY, fontSize: "17px", fontWeight: "700", letterSpacing: "-0.02em", color: t.textPrimary, margin: 0 }}>King Category Awards</h2>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginTop: "7px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+            <h2 style={{ fontFamily: DISPLAY, fontSize: "17px", fontWeight: "700", letterSpacing: "-0.02em", color: t.textPrimary, margin: 0 }}>King Category Awards</h2>
             <button
               className="bt-payinfo"
               onClick={() => setPayoutsOpen(true)}
               title="View payouts"
-              style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: "transparent", border: "none", padding: 0, cursor: "pointer", font: "inherit", fontSize: "12px", color: t.textMuted }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: "transparent", border: "none", padding: 0, cursor: "pointer", font: "inherit", fontSize: "12px", color: t.textMuted, flexShrink: 0 }}
             >
               Payouts
               <span className="bt-info-ic" style={{ display: "inline-flex" }}>
                 <InfoIcon size={13} />
               </span>
             </button>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
-              {synced && (
-                <button
-                  className="bt-refresh-btn"
-                  onClick={league.refresh}
-                  disabled={league.refreshing}
-                  title="Refresh now"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", padding: 0, cursor: league.refreshing ? "default" : "pointer", font: "inherit", fontSize: "10.5px", color: t.textMuted, whiteSpace: "nowrap" }}
-                >
-                  {league.refreshing && <RefreshIcon size={11} spinning />}
-                  {league.refreshing ? "Syncing…" : `Updated ${synced}`}
-                </button>
-              )}
-            </div>
           </div>
           <div className="bt-board" style={{ ...card, marginTop: "14px" }}>
-            <div className="bt-awardpad" style={{ padding: "24px 20px 22px" }}>
+            <div className="bt-awardpad" style={{ padding: "24px 2px 22px" }}>
               <div className="bt-leaders" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
-                {["hr", "avg", "wins", "era"].map(cat => {
+                {["hr", "avg", "wins", "era"].map((cat, i) => {
                   const tied = leaderTeams[cat];
                   return (
-                    <div key={cat} className="bt-award">
+                    <div key={cat} className="bt-award" style={{ animationDelay: `${0.06 + i * 0.07}s` }}>
                       <div style={{ fontSize: "11.5px", fontWeight: "500", color: t.textMuted }}>{catLabel(cat)}</div>
                       <div className="bt-award-num" style={{ fontSize: "42px", fontWeight: "500", color: t.leader, lineHeight: "1.05", letterSpacing: "-0.03em", margin: "8px 0 14px", fontVariantNumeric: "tabular-nums" }}>
                         {leadFmt[cat] ?? "—"}
@@ -576,10 +590,11 @@ export default function BaseballTracker() {
                     return (
                       <tr
                         key={player}
+                        className="bt-row-in"
                         onClick={() => selectTeam(player)}
                         onMouseEnter={() => setHoverRow(player)}
                         onMouseLeave={() => setHoverRow(null)}
-                        style={{ cursor: "pointer", background: bg, transition: "background 0.18s ease" }}
+                        style={{ cursor: "pointer", background: bg, transition: "background 0.18s ease", animationDelay: `${idx * 0.045}s` }}
                       >
                         <td className="bt-c-rank" style={{ ...cell("left"), position: "sticky", left: 0, zIndex: 2, background: solidBg, boxShadow: isSel ? `inset 3px 0 0 ${t.selectedBar}` : "none", color: t.textMuted, fontWeight: "400", fontVariantNumeric: "tabular-nums", fontSize: "14px", transition: "box-shadow 0.18s ease, background 0.18s ease" }}>{idx + 1}</td>
                         <td className="bt-freeze-edge bt-c-team" style={{ ...cell("left"), position: "sticky", left: "30px", zIndex: 2, background: solidBg, transition: "background 0.18s ease" }}>
