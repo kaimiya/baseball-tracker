@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>rake · If Can Can</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Fonts are self-hosted via @fontsource (imported in main.jsx). -->
     <style>
       html, body, #root { margin: 0; height: 100%; }
       /* No -webkit-font-smoothing override: the Rake reference renders with the
@@ -27,6 +22,13 @@
       .bt-pulse { animation: bt-pulse 1.4s ease-in-out infinite; }
 
       /* Data-table horizontal scroll: smooth on touch, refined scrollbar */
+      /* Shared horizontal gutter so the header lockup + headline line up with
+         the page content (36px desktop, 16px mobile). */
+      .bt-gutter { padding-left: 36px; padding-right: 36px; }
+      /* Breakpoint swap: desktop keeps cards, mobile drops them. */
+      .bt-mobile-only { display: none; }
+      /* Light-sand band that separates sections on the cardless mobile surface. */
+      .bt-section-divider { display: none; }
       .bt-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
       .bt-scroll::-webkit-scrollbar { height: 6px; }
       .bt-scroll::-webkit-scrollbar-thumb { background: rgba(140, 140, 140, 0.4); border-radius: 999px; }
@@ -57,6 +59,16 @@
       .bt-rise { animation: bt-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
       @keyframes bt-dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
       .bt-dot-pulse { animation: bt-dot-pulse 1.15s ease-in-out infinite; }
+
+      /* Loading screen: the dot-icon flips in on each swap; the line shimmers. */
+      @keyframes bt-flip { 0% { transform: rotateY(-90deg); opacity: 0; } 55% { opacity: 1; } 100% { transform: rotateY(0); opacity: 1; } }
+      .bt-flip { animation: bt-flip 0.34s cubic-bezier(0.4, 0, 0.2, 1); }
+      @keyframes bt-shimmer { to { background-position: -200% 0; } }
+      .bt-shimmer { background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; animation: bt-shimmer 1.8s linear infinite; }
+      @media (prefers-reduced-motion: reduce) {
+        .bt-flip { animation: none; }
+        .bt-shimmer { animation: none; }
+      }
       .bt-award-team { transition: opacity 0.14s ease, transform 0.14s ease; }
       .bt-award-team:hover { opacity: 0.68; }
       .bt-refresh-btn { transition: color 0.14s ease; }
@@ -102,22 +114,54 @@
       }
 
       @media (max-width: 600px) {
-        .bt-main { padding-left: 16px !important; padding-right: 16px !important; }
-        .bt-headrow { padding-left: 16px !important; padding-right: 16px !important; }
+        .bt-main { padding-left: 16px !important; padding-right: 16px !important; padding-top: 24px !important; }
         .bt-foot { padding-left: 16px !important; padding-right: 16px !important; }
-        .bt-board { border-radius: 14px !important; }
-        .bt-leaders { grid-template-columns: 1fr !important; }
-        .bt-award { border-left: none !important; padding: 16px 0 !important; border-top: 1px solid var(--rk-divider); }
-        .bt-award:first-child { border-top: none; padding-top: 0 !important; }
-        .bt-award:last-child { padding-bottom: 0 !important; }
-        .bt-table { min-width: 0; }
-        .bt-table th, .bt-table td { padding-left: 11px !important; padding-right: 11px !important; }
+        .bt-gutter { padding-left: 16px !important; padding-right: 16px !important; }
+
+        /* Cardless single surface: the whole page becomes the panel color, and
+           every card goes transparent so content sits on one surface — the only
+           sand left is in the hairline dividers. */
+        html, body { background: var(--rk-surface) !important; }
+        .bt-root { background: var(--rk-surface) !important; }
+        .bt-board { background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
+        .bt-awardpad { padding: 2px 0 0 !important; }
+        .bt-desktop-only { display: none !important; }
+        .bt-mobile-only { display: block !important; }
         .bt-hide-mobile { display: none !important; }
-        .bt-team-name { display: inline-block; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
-        /* Stack the header so the full league title shows, controls below */
-        .bt-headrow { flex-direction: column; align-items: flex-start; gap: 12px; }
-        .bt-title { white-space: normal !important; overflow: visible !important; }
-        .bt-headctrls { margin-left: 0 !important; }
+
+        /* Sections flow on one surface, separated by a full-bleed light-sand
+           band; every section aligns to the same 16px gutter as the Awards. */
+        .bt-sec { margin-bottom: 0 !important; }
+        .bt-section-divider { display: block; height: 7px; background: var(--rk-divider); margin: 24px -16px; }
+        .bt-splitshead { padding-left: 0 !important; padding-right: 0 !important; }
+
+        /* Awards as a compact 2×2 grid (dashboard read) instead of a tall stack.
+           Symmetric column padding so both columns are equal width, with a
+           centered vertical hairline between them; smaller hero figures to suit. */
+        .bt-leaders { grid-template-columns: 1fr 1fr !important; column-gap: 0 !important; row-gap: 0 !important; }
+        .bt-award { border: none !important; padding: 0 !important; }
+        .bt-award:nth-child(odd) { padding-right: 20px !important; }
+        .bt-award:nth-child(even) { padding-left: 20px !important; border-left: 1px solid var(--rk-divider) !important; }
+        .bt-award:nth-child(1), .bt-award:nth-child(2) { padding-bottom: 22px !important; }
+        .bt-award:nth-child(3), .bt-award:nth-child(4) { padding-top: 22px !important; border-top: 1px solid var(--rk-divider) !important; }
+        .bt-award-num { font-size: 34px !important; margin: 6px 0 12px !important; }
+
+        /* Standings fits fully on-screen (no h-scroll) and reads at the Weekly
+           Splits scale: fixed layout, tight stat columns, smaller name + logo. */
+        .bt-table { min-width: 0; }
+        .bt-scroll { padding-left: 0 !important; padding-right: 0 !important; }
+        .bt-table th, .bt-table td { padding-left: 10px !important; padding-right: 10px !important; }
+        .bt-standings { table-layout: fixed; }
+        .bt-standings .bt-c-rank { width: 20px; padding-left: 0 !important; }
+        .bt-weekly .bt-c-week { padding-left: 0 !important; }
+        .bt-standings .bt-c-stat { width: 48px; }
+        .bt-standings th, .bt-standings td { padding-left: 6px !important; padding-right: 6px !important; }
+        /* Table fits now, so the frozen rank/team columns aren't needed — turn
+           off sticky so their opaque background can't overlap the HR column. */
+        .bt-standings .bt-c-rank, .bt-standings .bt-c-team { position: static !important; box-shadow: none !important; }
+        .bt-standings tbody .bt-c-rank { font-size: 13px !important; }
+        .bt-standings .bt-teammark { width: 20px !important; height: 20px !important; }
+        .bt-team-name { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; font-size: 13px !important; }
       }
     </style>
   </head>

@@ -4,8 +4,12 @@ import { useLiveToday } from "./useLiveToday.js";
 import { useTheme } from "./theme.js";
 
 const FONT = "'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-// Titles use Sora too (Bricolage read too loud) — just heavier weights of the UI face.
-const DISPLAY = FONT;
+// Titles use Bricolage Grotesque (self-hosted variable font), but small — at
+// reduced sizes its weight reads as premium/characterful rather than overpowering.
+const DISPLAY = "'Bricolage Grotesque Variable', " + FONT;
+// The "rake" wordmark is the one place that keeps its brand face: Bricolage
+// Grotesque 800 with tight negative tracking (per the handoff lockup).
+const WORDMARK = "'Bricolage Grotesque Variable', " + FONT;
 const MAXW = 1120;
 
 // League payout structure (money league config — not from ESPN). $300 buy-in ×
@@ -58,55 +62,23 @@ function ordinal(n) {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-/* --- The Rake mark: a capital R on a 5×7 dot grid (stadium board / box score).
-   Flat, no glow — rebuilt as inline SVG rects rather than the prototype's JS
-   dot generator. Round dots, radius ≈16% of the dot, grid gap ≈12%. --- */
-const R_ROWS = ["11110", "10001", "10001", "11110", "10100", "10010", "10001"];
-function RakeMark({ height = 18, color = "#F6F2E9" }) {
-  const rows = R_ROWS.length, cols = R_ROWS[0].length;
-  const unit = height / (rows + (rows - 1) * 0.12); // dot + gaps fill the height
-  const gap = unit * 0.12;
-  const w = cols * unit + (cols - 1) * gap;
-  const dots = [];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      if (R_ROWS[r][c] !== "1") continue;
-      dots.push(
-        <rect
-          key={`${r}-${c}`}
-          x={c * (unit + gap)}
-          y={r * (unit + gap)}
-          width={unit}
-          height={unit}
-          rx={unit * 0.16}
-          fill={color}
-        />
-      );
-    }
-  }
-  return (
-    <svg width={w} height={height} viewBox={`0 0 ${w} ${height}`} aria-hidden="true" style={{ display: "block" }}>
-      {dots}
-    </svg>
-  );
-}
+/* --- The Rake mark: coarse-cut capital R on a dot grid (the favicon's cut —
+   chunky, legible small). Rendered as inline dots via DotArt so the in-UI mark
+   tile lockup matches the favicon. --- */
+const R_COARSE = ["111", "101", "111", "110", "101"];
 
 function MarkTile({ t, size = 32 }) {
   return (
     <div
       style={{
-        width: size, height: size, borderRadius: size * 0.28,
-        backgroundColor: "#0076B6",
-        // Apple-icon feel: a soft top-left gloss over a blue gradient (lighter
-        // top → deep Honolulu bottom), with edge highlights and a subtle lift.
-        backgroundImage:
-          "radial-gradient(125% 90% at 28% 0%, rgba(255,255,255,0.42), rgba(255,255,255,0) 52%), linear-gradient(157deg, #34A3DB 0%, #0A80BF 46%, #015B8C 100%)",
-        boxShadow:
-          "inset 0 1px 0 rgba(255,255,255,0.38), inset 0 -1.5px 3px rgba(0,0,0,0.14), 0 1px 3px rgba(1,72,110,0.4)",
+        // Flat blue tile — no gradient/gloss. That treatment is reserved for the
+        // favicon app-tile only; in-UI it read too glossy/AI-y.
+        width: size, height: size, borderRadius: size * 0.26,
+        background: t.markTile,
         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
       }}
     >
-      <RakeMark height={size * 0.5} color={t.markDot} />
+      <DotArt rows={R_COARSE} height={size * 0.5} color={t.markDot} />
     </div>
   );
 }
@@ -137,12 +109,66 @@ function DotArt({ rows, height = 18, color = "#0076B6", pulse = false }) {
   return <svg width={w} height={height} viewBox={`0 0 ${w} ${height}`} aria-hidden="true" style={{ display: "block" }}>{cells}</svg>;
 }
 
-// Loader: the R mark on its blue tile, dots lighting up in a diagonal wave
-// like a scoreboard warming up.
-function RakeLoader({ t, size = 72 }) {
+// Loading screen (per the loading handoff): a single dot-icon slot flips through
+// the brand icon set while one witty line shimmers underneath.
+const LOADER_ICONS = [
+  ["00100", "01110", "11111", "01110", "00100"],          // field (diamond)
+  ["01110", "11011", "10101", "11011", "01110"],          // game (baseball)
+  ["00100", "01110", "11111", "00100", "00100"],          // gaining (up arrow)
+  ["11111", "11111", "01110", "00100", "01110", "11111"], // title (trophy)
+];
+const LOADER_DOT = 7; // dot size for the loader icons
+const LOADER_LINES = [
+  "Tallying the dingers…",
+  "Counting who actually paid…",
+  "Auditing the commissioner…",
+  "Doing the math your league won't…",
+  "Following the money…",
+];
+
+// One brand icon rendered at a fixed dot size (dots ~5px, radius 16%, gap 12%).
+function LoaderIcon({ rows, dot = 5, color = "#0076B6" }) {
+  const R = rows.length, C = rows[0].length;
+  const gap = Math.max(1, dot * 0.12);
+  const w = C * dot + (C - 1) * gap;
+  const h = R * dot + (R - 1) * gap;
+  const cells = [];
+  for (let r = 0; r < R; r++) {
+    for (let c = 0; c < C; c++) {
+      if (rows[r][c] !== "1") continue;
+      cells.push(<rect key={`${r}-${c}`} x={c * (dot + gap)} y={r * (dot + gap)} width={dot} height={dot} rx={dot * 0.16} fill={color} />);
+    }
+  }
+  return <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" style={{ display: "block" }}>{cells}</svg>;
+}
+
+function RakeLoading({ t }) {
+  const [i, setI] = useState(0);
+  // One line, chosen at random per load (no mid-load rotation).
+  const line = useMemo(() => LOADER_LINES[Math.floor(Math.random() * LOADER_LINES.length)], []);
+  useEffect(() => {
+    const id = setInterval(() => setI(v => (v + 1) % LOADER_ICONS.length), 620);
+    return () => clearInterval(id);
+  }, []);
   return (
-    <div style={{ width: size, height: size, borderRadius: size * 0.26, background: t.markTile, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <DotArt rows={R_ROWS} height={size * 0.52} color={t.markDot} pulse />
+    <div style={{ fontFamily: FONT, background: t.panel, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "26px", padding: "40px" }}>
+      {/* Fixed-height slot (tallest icon = the 6-row trophy) so shorter icons
+          stay vertically centered and nothing jumps when they swap. */}
+      <div style={{ perspective: "400px", height: `${6 * LOADER_DOT + 5 * Math.max(1, LOADER_DOT * 0.12)}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {/* keyed on the icon index so it remounts + replays the flip each swap */}
+        <div key={i} className="bt-flip" style={{ display: "inline-flex" }}>
+          <LoaderIcon rows={LOADER_ICONS[i]} dot={LOADER_DOT} color={t.leader} />
+        </div>
+      </div>
+      <div
+        className="bt-shimmer"
+        style={{
+          fontFamily: FONT, fontWeight: 400, fontSize: "14px",
+          backgroundImage: `linear-gradient(100deg, ${t.shimmerBase} 0%, ${t.shimmerBase} 40%, ${t.textPrimary} 50%, ${t.shimmerBase} 60%, ${t.shimmerBase} 100%)`,
+        }}
+      >
+        {line}
+      </div>
     </div>
   );
 }
@@ -212,20 +238,20 @@ function TeamMark({ name, logo, size = 24, t }) {
   const [err, setErr] = useState(false);
   const box = { width: size, height: size, flexShrink: 0, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", overflow: "hidden" };
   if (logo && !err) {
-    return <img src={logo} alt="" onError={() => setErr(true)} style={{ ...box, objectFit: "cover", background: t.avatarBg }} />;
+    return <img className="bt-teammark" src={logo} alt="" onError={() => setErr(true)} style={{ ...box, objectFit: "cover", background: t.avatarBg }} />;
   }
   const initial = (name || "?").trim().charAt(0).toUpperCase();
   return (
-    <span style={{ ...box, background: t.avatarBg, color: t.textMuted, fontWeight: 600, fontSize: Math.round(size * 0.42), fontFamily: FONT }}>
+    <span className="bt-teammark" style={{ ...box, background: t.avatarBg, color: t.textMuted, fontWeight: 600, fontSize: Math.round(size * 0.42), fontFamily: FONT }}>
       {initial}
     </span>
   );
 }
 
-function SectionLabel({ t, children, sub, size = "16px", style }) {
+function SectionLabel({ t, children, sub, size = "15px", style }) {
   return (
     <div style={{ margin: "0 0 14px 0", ...style }}>
-      <h2 style={{ fontFamily: DISPLAY, fontSize: size, fontWeight: "600", letterSpacing: "-0.015em", color: t.textPrimary, margin: 0 }}>
+      <h2 style={{ fontFamily: DISPLAY, fontSize: size, fontWeight: "700", letterSpacing: "-0.02em", color: t.textPrimary, margin: 0 }}>
         {children}
       </h2>
       {sub && <div style={{ fontSize: "12px", color: t.textMuted, marginTop: "4px", fontWeight: "400" }}>{sub}</div>}
@@ -269,14 +295,24 @@ export default function BaseballTracker() {
   const [flash, setFlash] = useState({});
   const [stScrolled, setStScrolled] = useState(false);
   const [minLoadDone, setMinLoadDone] = useState(false);
+  const [pageScrolled, setPageScrolled] = useState(false);
   const splitsRef = useRef(null);
+  const splitsTeamRef = useRef(null);
   const prevTotalsRef = useRef(null);
 
   // Hold the loader on screen long enough to actually read, even when the data
   // returns instantly — then let the board fade in.
   useEffect(() => {
-    const id = setTimeout(() => setMinLoadDone(true), 1900);
+    const id = setTimeout(() => setMinLoadDone(true), 2800);
     return () => clearTimeout(id);
+  }, []);
+
+  // Condense the sticky header's league-name headline once the page scrolls.
+  useEffect(() => {
+    const onScroll = () => setPageScrolled(window.scrollY > 28);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   // Season totals = ESPN's exact figures, with today's live in-progress MLB
@@ -332,8 +368,18 @@ export default function BaseballTracker() {
 
   function selectTeam(player) {
     setSelectedPlayer(player);
-    // Bring the splits into view on smaller screens.
-    requestAnimationFrame(() => splitsRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+    // Bring the splits into view, offset by the sticky header's height so its
+    // top (the team name) isn't hidden behind it.
+    // A short delay lets the splits render + lay out (the section grows from the
+    // empty state) before we measure, so the scroll target is correct.
+    setTimeout(() => {
+      const el = splitsTeamRef.current || splitsRef.current;
+      if (!el) return;
+      const header = document.querySelector("header");
+      const headerH = header ? header.getBoundingClientRect().height : 0;
+      const y = window.scrollY + el.getBoundingClientRect().top - headerH - 14;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }, 70);
   }
 
   // ---- Loading / error ----
@@ -341,7 +387,7 @@ export default function BaseballTracker() {
     return <Splash t={t} title="Couldn't load league" sub={league.error} error />;
   }
   if (league.status !== "ready" || !players.length || !minLoadDone) {
-    return <Splash t={t} title="Warming up the scoreboard…" loading />;
+    return <RakeLoading t={t} />;
   }
 
   // Column header + cell styles (Sora, tabular figures, regular weight — blue
@@ -394,35 +440,49 @@ export default function BaseballTracker() {
   const catLabel = (cat) => (cat === "era" ? "Best ERA" : cat === "hr" ? "Home Runs" : cat === "avg" ? "Batting Avg" : "Wins");
 
   return (
-    <div style={{ fontFamily: FONT, background: t.pageBg, minHeight: "100vh", color: t.textPrimary, "--rk-divider": t.divider, "--rk-accent": t.accent, "--rk-icon-hover": t.iconHover }}>
+    <div className="bt-root" style={{ fontFamily: FONT, background: t.pageBg, minHeight: "100vh", color: t.textPrimary, "--rk-divider": t.divider, "--rk-accent": t.accent, "--rk-icon-hover": t.iconHover }}>
 
-      {/* Full-width header bar */}
-      <header style={{ background: t.panel, borderBottom: `1px solid ${t.panelBorder}` }}>
-        <div className="bt-headrow" style={{ maxWidth: MAXW, margin: "0 auto", padding: "20px 36px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
-            <MarkTile t={t} size={32} />
-            <div style={{ minWidth: 0 }}>
-              <h1 className="bt-title" style={{ margin: 0, fontFamily: DISPLAY, fontSize: "15px", fontWeight: "400", letterSpacing: "-0.01em", color: t.textPrimary, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {leagueName}
-              </h1>
-              {metaLine && (
-                <div style={{ fontSize: "12px", color: t.textMuted, marginTop: "2px", fontWeight: "400" }}>{metaLine}</div>
+      {/* Sticky product header: brand lockup on top, league name as the
+          headline below. The headline condenses once the page scrolls. */}
+      <header style={{ position: "sticky", top: 0, zIndex: 30, background: t.panel, borderBottom: `1px solid ${t.panelBorder}` }}>
+        {/* Brand bar */}
+        <div style={{ borderBottom: `1px solid ${t.divider}` }}>
+          <div className="bt-gutter" style={{ maxWidth: MAXW, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "11px", paddingBottom: "11px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+              <MarkTile t={t} size={26} />
+              <span style={{ fontFamily: WORDMARK, fontSize: "19px", fontWeight: "800", letterSpacing: "-0.045em", color: t.textPrimary, lineHeight: 1 }}>rake</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "11px", flexShrink: 0 }}>
+              {live.meta?.gamesLive > 0 && (
+                <span title={`${live.meta.gamesLive} MLB games in progress — live stats folded in`} style={{ display: "inline-flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap" }}>
+                  <span className="bt-pulse" style={{ width: 7, height: 7, borderRadius: "50%", background: t.live, display: "inline-block" }} />
+                  <span style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "0.02em", color: t.live }}>LIVE</span>
+                </span>
               )}
+              <IconButton label={mode === "light" ? "Dark mode" : "Light mode"} onClick={toggle} t={t}>
+                {mode === "light" ? <MoonIcon /> : <SunIcon />}
+              </IconButton>
             </div>
           </div>
-          <div className="bt-headctrls" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
-            <IconButton label={mode === "light" ? "Dark mode" : "Light mode"} onClick={toggle} t={t}>
-              {mode === "light" ? <MoonIcon /> : <SunIcon />}
-            </IconButton>
-          </div>
+        </div>
+        {/* League headline — condenses on scroll */}
+        <div className="bt-gutter" style={{ maxWidth: MAXW, margin: "0 auto", paddingTop: pageScrolled ? "9px" : "14px", paddingBottom: pageScrolled ? "9px" : "16px", transition: "padding 0.22s ease" }}>
+          <h1 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: "700", letterSpacing: "-0.02em", color: t.textPrimary, lineHeight: 1.25, fontSize: pageScrolled ? "13.5px" : "16px", whiteSpace: pageScrolled ? "nowrap" : "normal", overflow: "hidden", textOverflow: "ellipsis", transition: "font-size 0.22s ease" }}>
+            {leagueName}
+          </h1>
+          {metaLine && (
+            <div style={{ fontSize: "12px", color: t.textMuted, overflow: "hidden", maxHeight: pageScrolled ? "0px" : "22px", opacity: pageScrolled ? 0 : 1, marginTop: pageScrolled ? "0px" : "3px", transition: "max-height 0.22s ease, opacity 0.18s ease, margin-top 0.22s ease" }}>
+              {metaLine}
+            </div>
+          )}
         </div>
       </header>
 
       <main className="bt-main bt-rise" style={{ maxWidth: MAXW, margin: "0 auto", padding: "34px 36px 48px" }}>
 
-        {/* King Category Awards — its own card */}
-        <section style={{ marginBottom: "30px" }}>
-          <h2 style={{ fontFamily: DISPLAY, fontSize: "22px", fontWeight: "600", letterSpacing: "-0.015em", color: t.textPrimary, margin: 0 }}>King Category Awards</h2>
+        {/* King Category Awards */}
+        <section className="bt-sec" style={{ marginBottom: "30px" }}>
+          <h2 style={{ fontFamily: DISPLAY, fontSize: "17px", fontWeight: "700", letterSpacing: "-0.02em", color: t.textPrimary, margin: 0 }}>King Category Awards</h2>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginTop: "7px" }}>
             <button
               className="bt-payinfo"
@@ -436,12 +496,6 @@ export default function BaseballTracker() {
               </span>
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
-              {live.meta?.gamesLive > 0 && (
-                <span title={`${live.meta.gamesLive} MLB games in progress — live stats folded in`} style={{ display: "inline-flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap" }}>
-                  <span className="bt-pulse" style={{ width: 7, height: 7, borderRadius: "50%", background: t.live, display: "inline-block" }} />
-                  <span style={{ fontSize: "10.5px", fontWeight: "700", letterSpacing: "0.02em", color: t.live }}>LIVE</span>
-                </span>
-              )}
               {synced && (
                 <button
                   className="bt-refresh-btn"
@@ -457,14 +511,14 @@ export default function BaseballTracker() {
             </div>
           </div>
           <div className="bt-board" style={{ ...card, marginTop: "14px" }}>
-            <div style={{ padding: "24px 20px 22px" }}>
+            <div className="bt-awardpad" style={{ padding: "24px 20px 22px" }}>
               <div className="bt-leaders" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
                 {["hr", "avg", "wins", "era"].map(cat => {
                   const tied = leaderTeams[cat];
                   return (
                     <div key={cat} className="bt-award">
                       <div style={{ fontSize: "11.5px", fontWeight: "500", color: t.textMuted }}>{catLabel(cat)}</div>
-                      <div style={{ fontSize: "42px", fontWeight: "500", color: t.leader, lineHeight: "1.05", letterSpacing: "-0.03em", margin: "8px 0 14px", fontVariantNumeric: "tabular-nums" }}>
+                      <div className="bt-award-num" style={{ fontSize: "42px", fontWeight: "500", color: t.leader, lineHeight: "1.05", letterSpacing: "-0.03em", margin: "8px 0 14px", fontVariantNumeric: "tabular-nums" }}>
                         {leadFmt[cat] ?? "—"}
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
@@ -488,9 +542,14 @@ export default function BaseballTracker() {
           </div>
         </section>
 
-        {/* Standings — its own card */}
-        <section style={{ marginBottom: "30px" }}>
+        <div className="bt-section-divider" />
+
+        {/* Standings */}
+        <section className="bt-sec" style={{ marginBottom: "30px" }}>
           <SectionLabel t={t} sub="Select a team to see its weekly splits">Standings</SectionLabel>
+
+          {/* Aligned columns everywhere. On mobile the card goes transparent
+              (cardless) via CSS, leaving the columns + sand row dividers. */}
           <div className="bt-board" style={{ ...card, overflow: "hidden" }}>
             <div className={"bt-scroll" + (stScrolled ? " bt-scrolled" : "")} style={{ padding: "4px 12px 12px" }} onScroll={e => { const v = e.currentTarget.scrollLeft > 1; setStScrolled(p => (p === v ? p : v)); }}>
               <table className="bt-table bt-standings" style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -543,12 +602,14 @@ export default function BaseballTracker() {
           </div>
         </section>
 
-        {/* Weekly Splits — its own card */}
+        <div className="bt-section-divider" />
+
+        {/* Weekly Splits */}
         <section ref={splitsRef}>
           <SectionLabel t={t} sub="Finished weeks match ESPN exactly. The current week is live — its AVG/ERA update as games play and may differ from ESPN until all of the week's games are final.">Weekly Splits</SectionLabel>
           {sel && selWeeks ? (
             <div className="bt-board" style={{ ...card, overflow: "hidden" }}>
-              <div style={{ padding: "18px 26px 16px", borderBottom: `1px solid ${t.divider}`, display: "flex", alignItems: "center", gap: "13px" }}>
+              <div ref={splitsTeamRef} className="bt-splitshead" style={{ padding: "18px 26px 16px", borderBottom: `1px solid ${t.divider}`, display: "flex", alignItems: "center", gap: "13px" }}>
                 <TeamMark name={sel} logo={logos[sel]} size={34} t={t} />
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: "16px", fontWeight: "600", color: t.textPrimary }}>{sel}</div>
@@ -625,7 +686,7 @@ export default function BaseballTracker() {
         <div className="bt-foot" style={{ maxWidth: MAXW, margin: "0 auto", padding: "24px 36px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
             <MarkTile t={t} size={24} />
-            <span style={{ fontFamily: DISPLAY, fontSize: "14px", fontWeight: "600", letterSpacing: "-0.02em", color: t.textSecondary }}>rake</span>
+            <span style={{ fontFamily: WORDMARK, fontSize: "17px", fontWeight: "800", letterSpacing: "-0.04em", color: t.textSecondary }}>rake</span>
           </div>
           <div style={{ fontSize: "10.5px", color: t.textMuted, lineHeight: 1.5 }}>
             Live category standings · data from ESPN Fantasy &amp; MLB
@@ -697,18 +758,15 @@ function PayoutsModal({ t, onClose }) {
   );
 }
 
-function Splash({ t, title, sub, error, loading }) {
+// Error state only (the loading state uses RakeLoading).
+function Splash({ t, title, sub }) {
   return (
     <div style={{ fontFamily: FONT, background: t.pageBg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: t.textPrimary, padding: "40px" }}>
       <div style={{ textAlign: "center", maxWidth: "440px" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
-          {loading ? <RakeLoader t={t} size={72} /> : (
-            <span style={{ color: t.live }}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>
-            </span>
-          )}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px", color: t.live }}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>
         </div>
-        <div style={{ fontFamily: DISPLAY, fontSize: "17px", fontWeight: "600", color: error ? t.live : t.textPrimary }}>{title}</div>
+        <div style={{ fontFamily: DISPLAY, fontSize: "17px", fontWeight: "600", color: t.live }}>{title}</div>
         {sub && <div style={{ marginTop: "8px", fontSize: "13px", lineHeight: "1.6", color: t.textMuted, wordBreak: "break-word" }}>{sub}</div>}
       </div>
     </div>

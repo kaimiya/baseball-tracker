@@ -6,10 +6,10 @@ import { useCallback, useEffect, useState } from "react";
 // a true ink surface (no navy), blue lifted to #4FA6D4 for legibility on ink.
 export const THEMES = {
   light: {
-    pageBg: "#EDEAE3",       // warm light greige — complements the cream cards
+    pageBg: "#F5F2EB",       // soft light off-white (drops the heavy sand feel)
     panel: "#FBFAF6",        // off-white card surface
-    panelBorder: "#E7E0D2",  // board edge
-    divider: "#EFEADD",      // hairline row/column dividers
+    panelBorder: "#EAE3D5",  // board edge
+    divider: "#E7E0D1",      // sand hairline dividers (the structure lives here)
     textPrimary: "#1A1611",  // ink
     textSecondary: "#544D3F",// row values / body
     textMuted: "#8A7F68",    // warm grey meta
@@ -38,6 +38,7 @@ export const THEMES = {
     dotTexture: "rgba(26,22,17,0.09)", // faint dot-matrix motif (echoes the R mark)
     glass: "rgba(251,250,246,0.5)",    // translucent card (frosted over the page)
     glassEdge: "inset 0 1px 0 rgba(255,255,255,0.6)",
+    shimmerBase: "#BDB4A1",            // loader shimmer base (glint = textPrimary)
   },
   dark: {
     pageBg: "#100E0B",       // deep ink page — cards sit on this
@@ -72,6 +73,7 @@ export const THEMES = {
     dotTexture: "rgba(246,242,233,0.05)",
     glass: "rgba(26,22,17,0.45)",
     glassEdge: "inset 0 1px 0 rgba(255,255,255,0.08)",
+    shimmerBase: "#6E6656",
   },
 };
 
@@ -91,9 +93,12 @@ export function useTheme() {
       /* ignore */
     }
     // Theme the document itself so overscroll/initial paint never flashes.
-    const bg = (THEMES[mode] || THEMES.light).pageBg;
-    document.documentElement.style.background = bg;
-    document.body.style.background = bg;
+    const th = THEMES[mode] || THEMES.light;
+    document.documentElement.style.background = th.pageBg;
+    document.body.style.background = th.pageBg;
+    // Mobile drops the cards and sits on one surface (the panel color); expose
+    // it as a var so CSS can swap the page background at the mobile breakpoint.
+    document.documentElement.style.setProperty("--rk-surface", th.panel);
   }, [mode]);
 
   const toggle = useCallback(() => {
