@@ -703,8 +703,10 @@ export default function BaseballTracker() {
             <MarkTile t={t} size={24} />
             <span style={{ fontFamily: WORDMARK, fontSize: "17px", fontWeight: "800", letterSpacing: "-0.04em", color: t.textSecondary }}>rake</span>
           </div>
-          <div style={{ fontSize: "10.5px", color: t.textMuted, lineHeight: 1.5 }}>
+          <div style={{ fontSize: "10.5px", color: t.textMuted, lineHeight: 1.5, textAlign: "right" }}>
             Live category standings · data from ESPN Fantasy &amp; MLB
+            <br />
+            Not affiliated with ESPN or MLB.
           </div>
         </div>
       </footer>
