@@ -106,7 +106,7 @@ function MarkTile({ t, size = 32 }) {
         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
       }}
     >
-      <RakeMark height={size * 0.56} color={t.markDot} />
+      <RakeMark height={size * 0.5} color={t.markDot} />
     </div>
   );
 }
