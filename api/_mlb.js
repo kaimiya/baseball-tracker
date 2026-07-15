@@ -31,7 +31,12 @@ function ipToOuts(ip) {
 // Build today's per-player live stat line, keyed by normalized name.
 export async function fetchLiveToday(date) {
   const sch = await j(`${MLB}/schedule?sportId=1&date=${date}`);
-  const games = (sch.dates && sch.dates[0] && sch.dates[0].games) || [];
+  const allGames = (sch.dates && sch.dates[0] && sch.dates[0].games) || [];
+  // Only REGULAR-SEASON games count toward fantasy. The MLB schedule also lists
+  // the All-Star Game (gameType "A"), spring training ("S"), and exhibitions
+  // ("E") — ESPN Fantasy ignores those, so folding them in over-counts (e.g. an
+  // All-Star Game HR/win that never actually counts). Keep gameType "R" only.
+  const games = allGames.filter((g) => g.gameType === "R");
   // Count today's games that have produced stats: IN-PROGRESS *and* FINAL.
   // ESPN's public feed lags on both — it does NOT absorb a game the instant it
   // ends (a just-final HR shows in ESPN's own app but not yet in lm-api-reads),

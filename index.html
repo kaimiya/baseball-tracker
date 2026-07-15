@@ -3,20 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fantasy Baseball League</title>
+    <title>rake · If Can Can</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <style>
       html, body, #root { margin: 0; height: 100%; }
+      /* No -webkit-font-smoothing override: the Rake reference renders with the
+         browser default (subpixel), which gives Sora/Bricolage their intended
+         weight/heft. Forcing "antialiased" made the same weights look too thin. */
       body {
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
-        background: #f1f2f4;
+        background: #FBFAF6;
       }
       * { box-sizing: border-box; }
       @keyframes bt-spin { to { transform: rotate(360deg); } }
@@ -37,11 +38,47 @@
       .bt-table .bt-c-team { padding-left: 7px !important; }
       .bt-scrolled .bt-freeze-edge { box-shadow: 2px 0 6px -2px rgba(0, 0, 0, 0.13) !important; }
 
-      /* Flash a stat cell when its value changes on refresh (green up, red down) */
-      @keyframes bt-flash-up { 0% { background-color: rgba(22, 163, 74, 0.30); } 100% { background-color: transparent; } }
-      @keyframes bt-flash-down { 0% { background-color: rgba(220, 38, 38, 0.30); } 100% { background-color: transparent; } }
+      /* Flash a stat cell when its value changes on refresh (blue up, red down) */
+      @keyframes bt-flash-up { 0% { background-color: rgba(0, 118, 182, 0.18); } 100% { background-color: transparent; } }
+      @keyframes bt-flash-down { 0% { background-color: rgba(185, 74, 46, 0.18); } 100% { background-color: transparent; } }
       .bt-flash-up { animation: bt-flash-up 1.4s ease-out; }
       .bt-flash-down { animation: bt-flash-down 1.4s ease-out; }
+
+      /* Rake board: floating off-white surface on warm sand. Awards columns are
+         divided by a hairline border-left (--rk-divider set per theme in JS). */
+      .bt-award { border-left: 1px solid var(--rk-divider); padding: 0 13px; min-width: 0; }
+      .bt-award:first-child { border-left: none; padding-left: 0; }
+      .bt-award:last-child { padding-right: 0; }
+
+      /* Motion: a soft entrance for the content, and a subtle lift on the
+         clickable leader teams. Respects reduced-motion. */
+      @keyframes bt-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+      .bt-rise { animation: bt-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+      @keyframes bt-dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+      .bt-dot-pulse { animation: bt-dot-pulse 1.15s ease-in-out infinite; }
+      .bt-award-team { transition: opacity 0.14s ease, transform 0.14s ease; }
+      .bt-award-team:hover { opacity: 0.68; }
+      .bt-refresh-btn { transition: color 0.14s ease; }
+      .bt-refresh-btn:hover:not(:disabled) { color: var(--rk-accent) !important; }
+      .bt-payouts-btn { transition: background 0.12s ease; }
+      .bt-payouts-btn:hover { background: var(--rk-icon-hover); }
+      /* Payouts trigger: only the info glyph tints blue on hover, not the label. */
+      .bt-info-ic { transition: color 0.14s ease; }
+      .bt-payinfo:hover .bt-info-ic { color: var(--rk-accent); }
+      /* Kill all transitions for the frame the light/dark theme swaps (no flash). */
+      .bt-no-transition * { transition: none !important; }
+
+      /* Payouts: two columns divided by a hairline; stacks on mobile. */
+      .bt-payouts { display: grid; grid-template-columns: 1fr 1fr; }
+      .bt-pay-col + .bt-pay-col { border-left: 1px solid var(--rk-divider); }
+      @media (max-width: 600px) {
+        .bt-payouts { grid-template-columns: 1fr; }
+        .bt-pay-col + .bt-pay-col { border-left: none; border-top: 1px solid var(--rk-divider); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .bt-rise { animation: none; }
+        .bt-dot-pulse { animation: none; opacity: 0.85; }
+      }
 
       /* Desktop: lock BOTH tables to the same fixed column geometry so the
          HR/AVG/Wins/ERA columns line up vertically between Standings and Weekly
@@ -51,10 +88,12 @@
       @media (min-width: 601px) {
         .bt-standings, .bt-weekly { table-layout: fixed; }
         .bt-standings .bt-c-rank { width: 4%; }
-        .bt-standings .bt-c-team { width: 20%; }
-        /* Record sits right after Team; its wide column is mostly the reading
-           gap that pushes the four stat columns over to the right. */
-        .bt-standings .bt-c-record { width: 40%; }
+        /* Team is the wide, flexible column (Rake: names never truncate on
+           desktop); Record is narrow and sits right after it. Together with the
+           4% rank they fill 64%, so the four 9% stat columns start at the same x
+           as Weekly Splits' stat columns (bt-c-week is 64%). */
+        .bt-standings .bt-c-team { width: 40%; }
+        .bt-standings .bt-c-record { width: 20%; }
         .bt-weekly .bt-c-week { width: 64%; }
         /* Tight stat columns grouped on the right so they're easy to scan, and
            they start at the same x (64%) in both tables. */
@@ -62,8 +101,14 @@
       }
 
       @media (max-width: 600px) {
-        .bt-main { padding-left: 14px !important; padding-right: 14px !important; }
+        .bt-main { padding-left: 16px !important; padding-right: 16px !important; }
+        .bt-headrow { padding-left: 16px !important; padding-right: 16px !important; }
+        .bt-foot { padding-left: 16px !important; padding-right: 16px !important; }
+        .bt-board { border-radius: 14px !important; }
         .bt-leaders { grid-template-columns: 1fr !important; }
+        .bt-award { border-left: none !important; padding: 16px 0 !important; border-top: 1px solid var(--rk-divider); }
+        .bt-award:first-child { border-top: none; padding-top: 0 !important; }
+        .bt-award:last-child { padding-bottom: 0 !important; }
         .bt-table { min-width: 0; }
         .bt-table th, .bt-table td { padding-left: 11px !important; padding-right: 11px !important; }
         .bt-hide-mobile { display: none !important; }
