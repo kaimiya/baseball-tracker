@@ -268,8 +268,16 @@ export default function BaseballTracker() {
   const [hoverRow, setHoverRow] = useState(null);
   const [flash, setFlash] = useState({});
   const [stScrolled, setStScrolled] = useState(false);
+  const [minLoadDone, setMinLoadDone] = useState(false);
   const splitsRef = useRef(null);
   const prevTotalsRef = useRef(null);
+
+  // Hold the loader on screen long enough to actually read, even when the data
+  // returns instantly — then let the board fade in.
+  useEffect(() => {
+    const id = setTimeout(() => setMinLoadDone(true), 1900);
+    return () => clearTimeout(id);
+  }, []);
 
   // Season totals = ESPN's exact figures, with today's live in-progress MLB
   // stats folded into all four categories so awards + standings reflect live games.
@@ -332,7 +340,7 @@ export default function BaseballTracker() {
   if (league.status === "error") {
     return <Splash t={t} title="Couldn't load league" sub={league.error} error />;
   }
-  if (league.status !== "ready" || !players.length) {
+  if (league.status !== "ready" || !players.length || !minLoadDone) {
     return <Splash t={t} title="Warming up the scoreboard…" loading />;
   }
 
