@@ -432,7 +432,7 @@ export default function BaseballTracker() {
   });
   // Each section is its own card: off-white surface on the neutral page, rounded,
   // a hairline border and a soft lift. Awards/Standings/Splits each get one.
-  const card = { background: t.panel, borderRadius: "18px", border: `1px solid ${t.panelBorder}`, boxShadow: "none" };
+  const card = { background: t.panel, borderRadius: "12px", border: `1px solid ${t.panelBorder}`, boxShadow: "none" };
   // Today's live per-team gains (HR/Wins). Only widen the HR/Wins columns for
   // the delta slot on days when something has actually moved.
   const liveTeams = live.teams || {};
@@ -683,7 +683,7 @@ export default function BaseballTracker() {
             </div>
           ) : (
             <div className="bt-board" style={{ ...card, background: t.glass, backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", boxShadow: t.glassEdge, padding: "56px 24px", textAlign: "center" }}>
-              <div style={{ display: "inline-flex", padding: "14px", borderRadius: "14px", background: t.avatarBg, marginBottom: "18px" }}>
+              <div style={{ display: "inline-flex", padding: "14px", borderRadius: "10px", background: t.avatarBg, marginBottom: "18px" }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={t.textMuted} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4.5" width="18" height="15" rx="2.5" />
                   <line x1="3" y1="9.5" x2="21" y2="9.5" />
@@ -745,7 +745,7 @@ function PayoutsModal({ t, onClose }) {
         aria-label="Payouts"
         onClick={(e) => e.stopPropagation()}
         className="bt-rise"
-        style={{ background: t.panel, borderRadius: "18px", border: `1px solid ${t.panelBorder}`, boxShadow: t.boardShadow, width: "100%", maxWidth: "560px", maxHeight: "88vh", overflow: "auto" }}
+        style={{ background: t.panel, borderRadius: "12px", border: `1px solid ${t.panelBorder}`, boxShadow: t.boardShadow, width: "100%", maxWidth: "560px", maxHeight: "88vh", overflow: "auto" }}
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "20px 24px 14px", borderBottom: `1px solid ${t.divider}` }}>
           <div>
