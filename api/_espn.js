@@ -24,6 +24,12 @@ const PALETTE = [
 const SEASON_YEAR = 2026;
 const WEEK1 = { start: [2, 25], end: [3, 5] }; // [monthIndex, day]
 const WEEK2_START = [3, 6];
+// The MLB All-Star break lands inside week 15, so ESPN scores it as a single
+// two-week matchup period (Jul 6 – Jul 19) instead of a normal 7-day week.
+// The label for that week is fixed, and every week after it shifts a week later
+// than the linear 7-day model would otherwise predict.
+const ALL_STAR_WEEK = 15;
+const ALL_STAR_RANGE = { start: [6, 6], end: [6, 19] }; // [monthIndex, day] -> Jul 6 – Jul 19
 
 // SWID is normally wrapped in braces, e.g. {ABCD-...}. Accept it either way.
 export function normalizeSwid(swid) {
@@ -144,8 +150,14 @@ function weekLabel(n) {
   if (n === 1) {
     return `${fmtDate(utc(...WEEK1.start))} – ${fmtDate(utc(...WEEK1.end))}`;
   }
+  if (n === ALL_STAR_WEEK) {
+    return `${fmtDate(utc(...ALL_STAR_RANGE.start))} – ${fmtDate(utc(...ALL_STAR_RANGE.end))}`;
+  }
   const start = utc(...WEEK2_START);
-  start.setUTCDate(start.getUTCDate() + (n - 2) * 7);
+  // Weeks after the All-Star break run a week later than the linear model: that
+  // break consumed an extra 7 days as one two-week matchup period.
+  const breakShift = n > ALL_STAR_WEEK ? 7 : 0;
+  start.setUTCDate(start.getUTCDate() + (n - 2) * 7 + breakShift);
   const end = new Date(start);
   end.setUTCDate(end.getUTCDate() + 6);
   return `${fmtDate(start)} – ${fmtDate(end)}`;
