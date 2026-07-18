@@ -99,6 +99,9 @@ export function useTheme() {
     // Mobile drops the cards and sits on one surface (the panel color); expose
     // it as a var so CSS can swap the page background at the mobile breakpoint.
     document.documentElement.style.setProperty("--rk-surface", th.panel);
+    // The desktop page background — used for the soft full-bleed section bands
+    // on mobile (a gentle tonal step down from the panel surface, not heavy sand).
+    document.documentElement.style.setProperty("--rk-page", th.pageBg);
   }, [mode]);
 
   const toggle = useCallback(() => {
