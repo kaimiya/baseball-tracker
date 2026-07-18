@@ -484,7 +484,7 @@ export default function BaseballTracker() {
             bottom-right, baseline-aligned with the season/teams meta line. */}
         <div className="bt-gutter" style={{ maxWidth: MAXW, margin: "0 auto", paddingTop: pageScrolled ? "9px" : "14px", paddingBottom: pageScrolled ? "9px" : "16px", transition: "padding 0.22s ease", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "16px" }}>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: "400", letterSpacing: "-0.02em", color: t.textPrimary, lineHeight: 1.25, fontSize: pageScrolled ? "13px" : "15px", whiteSpace: pageScrolled ? "nowrap" : "normal", overflow: "hidden", textOverflow: "ellipsis", transition: "font-size 0.22s ease" }}>
+            <h1 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: "400", letterSpacing: "-0.02em", color: t.textPrimary, lineHeight: 1.25, fontSize: pageScrolled ? "12px" : "13px", whiteSpace: pageScrolled ? "nowrap" : "normal", overflow: "hidden", textOverflow: "ellipsis", transition: "font-size 0.22s ease" }}>
               {leagueName}
             </h1>
             {metaLine && (
