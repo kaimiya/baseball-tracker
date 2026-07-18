@@ -18,7 +18,7 @@ export const THEMES = {
     accentHover: "#015B8C",
     accentText: "#ffffff",
     leader: "#0076B6",       // leading/winning figure
-    delta: "#0076B6",        // today's live gain (+N)
+    delta: "#2E9E5B",        // today's live gain (+N) — green, distinct from the blue leader figures
     live: "#D23B22",         // LIVE badge dot + label
     rowHover: "#F2ECDE",
     rowSelected: "#E9F2F8",  // soft blue tint — selected/active team
@@ -53,7 +53,7 @@ export const THEMES = {
     accentHover: "#7CC3E8",
     accentText: "#0B0C0F",
     leader: "#4FA6D4",
-    delta: "#4FA6D4",
+    delta: "#5FC98A",        // today's live gain (+N) — green, brighter for dark bg
     live: "#E1543B",
     rowHover: "#221D15",
     rowSelected: "rgba(79,166,212,0.12)",

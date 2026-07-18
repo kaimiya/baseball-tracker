@@ -4,9 +4,10 @@ import { useLiveToday } from "./useLiveToday.js";
 import { useTheme } from "./theme.js";
 
 const FONT = "'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-// Titles use Bricolage Grotesque (self-hosted variable font), but small — at
-// reduced sizes its weight reads as premium/characterful rather than overpowering.
-const DISPLAY = "'Bricolage Grotesque Variable', " + FONT;
+// Headings/titles use the same Sora family as the body — just heavier. Bricolage
+// is reserved exclusively for the "rake" wordmark (WORDMARK) so the brand face
+// is a single, deliberate accent rather than spread across every title.
+const DISPLAY = FONT;
 // The "rake" wordmark is the one place that keeps its brand face: Bricolage
 // Grotesque 800 with tight negative tracking (per the handoff lockup).
 const WORDMARK = "'Bricolage Grotesque Variable', " + FONT;
@@ -264,7 +265,7 @@ function TeamMark({ name, logo, size = 24, t }) {
 function SectionLabel({ t, children, sub, size = "15px", style }) {
   return (
     <div style={{ margin: "0 0 14px 0", ...style }}>
-      <h2 style={{ fontFamily: DISPLAY, fontSize: size, fontWeight: "700", letterSpacing: "-0.02em", color: t.textPrimary, margin: 0 }}>
+      <h2 style={{ fontFamily: DISPLAY, fontSize: size, fontWeight: "600", letterSpacing: "-0.02em", color: t.textPrimary, margin: 0 }}>
         {children}
       </h2>
       {sub && <div style={{ fontSize: "12px", color: t.textMuted, marginTop: "4px", fontWeight: "400" }}>{sub}</div>}
@@ -272,16 +273,17 @@ function SectionLabel({ t, children, sub, size = "15px", style }) {
   );
 }
 
-// A standings figure with today's live gain shown in a fixed-width slot to its
-// right, so the column's numbers stay right-aligned whether or not a delta is
-// present. The +N delta is absolutely positioned just past the number's right
-// edge so it never shifts the figure out of alignment.
+// A standings figure with today's live gain tucked directly BENEATH the number
+// (not beside it). Stacking below keeps the stat columns tight so the +N never
+// collides with the next column on narrow/mobile layouts, and because the delta
+// is absolutely positioned (out of flow) the four numbers stay vertically
+// aligned across the row whether or not a delta is present.
 function StatWithDelta({ value, delta, color }) {
   return (
     <span style={{ position: "relative", whiteSpace: "nowrap" }}>
       {value}
       {delta ? (
-        <span style={{ position: "absolute", left: "100%", top: "50%", transform: "translateY(-50%)", marginLeft: "4px", fontSize: "10px", fontWeight: "700", color, fontVariantNumeric: "tabular-nums" }}>+{delta}</span>
+        <span style={{ position: "absolute", left: 0, top: "100%", marginTop: "3px", fontSize: "10px", fontWeight: "500", lineHeight: 1, color, fontVariantNumeric: "tabular-nums" }}>+{delta}</span>
       ) : null}
     </span>
   );
@@ -482,7 +484,7 @@ export default function BaseballTracker() {
             bottom-right, baseline-aligned with the season/teams meta line. */}
         <div className="bt-gutter" style={{ maxWidth: MAXW, margin: "0 auto", paddingTop: pageScrolled ? "9px" : "14px", paddingBottom: pageScrolled ? "9px" : "16px", transition: "padding 0.22s ease", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "16px" }}>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: "700", letterSpacing: "-0.02em", color: t.textPrimary, lineHeight: 1.25, fontSize: pageScrolled ? "13.5px" : "16px", whiteSpace: pageScrolled ? "nowrap" : "normal", overflow: "hidden", textOverflow: "ellipsis", transition: "font-size 0.22s ease" }}>
+            <h1 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: "400", letterSpacing: "-0.02em", color: t.textPrimary, lineHeight: 1.25, fontSize: pageScrolled ? "13px" : "15px", whiteSpace: pageScrolled ? "nowrap" : "normal", overflow: "hidden", textOverflow: "ellipsis", transition: "font-size 0.22s ease" }}>
               {leagueName}
             </h1>
             {metaLine && (
@@ -511,7 +513,7 @@ export default function BaseballTracker() {
         {/* King Category Awards */}
         <section className="bt-sec" style={{ marginBottom: "30px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-            <h2 style={{ fontFamily: DISPLAY, fontSize: "17px", fontWeight: "700", letterSpacing: "-0.02em", color: t.textPrimary, margin: 0 }}>King Category Awards</h2>
+            <h2 style={{ fontFamily: DISPLAY, fontSize: "17px", fontWeight: "600", letterSpacing: "-0.02em", color: t.textPrimary, margin: 0 }}>King Category Awards</h2>
             <button
               className="bt-payinfo"
               onClick={() => setPayoutsOpen(true)}
@@ -703,7 +705,7 @@ export default function BaseballTracker() {
             <MarkTile t={t} size={24} />
             <span style={{ fontFamily: WORDMARK, fontSize: "17px", fontWeight: "800", letterSpacing: "-0.04em", color: t.textSecondary }}>rake</span>
           </div>
-          <div style={{ fontSize: "10.5px", color: t.textMuted, lineHeight: 1.5, textAlign: "right" }}>
+          <div style={{ fontSize: "10.5px", color: t.textMuted, lineHeight: 1.5, textAlign: "left" }}>
             Live category standings · data from ESPN Fantasy &amp; MLB
             <br />
             Not affiliated with ESPN or MLB.
