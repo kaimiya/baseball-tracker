@@ -55,6 +55,15 @@
       .bt-flash-up { animation: bt-flash-up 2.6s ease-out; }
       .bt-flash-down { animation: bt-flash-down 2.6s ease-out; }
       .bt-no-transition * { transition: none !important; }
+      /* Theme flip: a single cross-fade of the whole page (see startViewTransition
+         in theme.js). Slightly slower than the browser default so it reads as a
+         deliberate dissolve rather than a blink. */
+      ::view-transition-old(root),
+      ::view-transition-new(root) { animation-duration: .32s; animation-timing-function: cubic-bezier(.4, 0, .2, 1); }
+      @media (prefers-reduced-motion: reduce) {
+        ::view-transition-old(root),
+        ::view-transition-new(root) { animation: none; }
+      }
       @media (prefers-reduced-motion: reduce) {
         .bt-flip, .bt-shimmer, .bt-rise { animation: none; }
         .bt-dot-pulse { animation: none; opacity: 0.85; }
@@ -238,8 +247,10 @@
          label size so it can't compete with the four award figures, which are
          the only numbers in this section meant to carry weight. Accent on the
          count alone, consistent with blue marking what's live or at stake. */
-      .rk-countdown { display: flex; align-items: baseline; gap: 7px; margin-top: 26px; font: 400 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
-      .rk-countdown-n { font: 700 12px/1 var(--rk-font); color: var(--rk-accent); font-variant-numeric: tabular-nums; }
+      .rk-countdown { display: flex; align-items: baseline; gap: 7px; margin-top: 18px; font: 400 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
+      /* Ink, not accent: blue is reserved for what's live or leading, and a
+         countdown is neither — it's context. Weight alone carries it. */
+      .rk-countdown-n { font: 700 12px/1 var(--rk-font); color: var(--rk-title); font-variant-numeric: tabular-nums; }
       .rk-award-team span:last-child { min-width: 0; }
       /* How far clear the leader is, and over whom — quiet, below the team. */
       /* margin-top:auto pins this to the bottom of the cell, so the four lines
@@ -360,9 +371,9 @@
            screen, so trim their vertical padding and the wordmark. */
         .rk-brandbar { padding-top: 9px !important; padding-bottom: 9px !important; }
         .rk-wordmark-top { font-size: 20px !important; }
-        .rk-navbar { padding-top: 10px !important; padding-bottom: 10px !important; }
+        .rk-navbar { padding-top: 13px !important; padding-bottom: 13px !important; }
         .rk-nav { font-size: 12.5px; }
-        .rk-identity { padding-top: 12px !important; padding-bottom: 12px !important; }
+        .rk-identity { padding-top: 15px !important; padding-bottom: 15px !important; }
         /* 2×2 on mobile: vertical hairline between the columns, horizontal between the rows. */
         .rk-awards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .rk-award { padding: 0 0 0 16px; }

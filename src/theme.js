@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 
 // Rake 2.0 type & surface system (handoff 2026-07-30). Neue Haas Unica, one
 // Honolulu blue reserved for live/leading/winning, everything else neutral.
@@ -50,17 +51,22 @@ export const THEMES = {
     espnFilter: "none",
   },
   dark: {
-    pageBg: "#14171C",       // ground = card (no separate frame), matches the white-on-white light ground
-    panel: "#14171C",        // paper — dark card ground
-    panelBorder: "#23272E",  // line
-    divider: "#23272E",
-    textPrimary: "#FFFFFF",  // title — pure white
-    textSecondary: "#E9ECF1",// ink
-    textMuted: "#A5ACB8",    // grey
-    textFaint: "#7A828E",    // muted — 4.63:1 on the #14171C ground (was
-                             // #6E7682 at 3.91:1, under the 4.5:1 AA floor).
-                             // Still a clear step below textMuted (#A5ACB8),
-                             // so the grey hierarchy survives the bump.
+    // Neutral near-black, not slate: the previous #14171C carried a blue cast
+    // that read as "software dark" and softened the contrast white type needs
+    // to snap. These greys are hue-free (R=G=B) so nothing tints the ground.
+    pageBg: "#0A0A0A",       // ground = card (no separate frame)
+    panel: "#0A0A0A",        // paper — dark card ground
+    panelBorder: "#1F1F1F",  // line
+    divider: "#1F1F1F",
+    // NOT pure white. #FFF on this ground is ~19.8:1, which causes halation —
+    // the glow/bleed around bold type that makes dark mode feel harsh. #EDEDED
+    // still sits at 16.9:1, over 3x the AA floor, with none of the buzz.
+    textPrimary: "#EDEDED",  // title
+    textSecondary: "#D4D4D4",// ink
+    textMuted: "#A8A8A8",    // grey
+    textFaint: "#7C7C7C",    // muted — 4.62:1 on the #0A0A0A ground, clearing
+                             // the 4.5:1 AA floor while staying a clear step
+                             // below textMuted so the grey hierarchy survives.
     accent: "#4FA6D4",
     accentHover: "#7CC3E8",
     accentText: "#0B0C0F",
@@ -68,24 +74,24 @@ export const THEMES = {
     delta: "#5FC98A",        // green, brighter for dark bg
     live: "#4FA6D4",
     danger: "#EF5A44",
-    rowHover: "#181C22",
-    rowSelected: "#181C22",  // same soft tone the hover state uses
+    rowHover: "#161616",
+    rowSelected: "#161616",  // same soft tone the hover state uses
     selectedBar: "#4FA6D4",
-    tableHeadText: "#6E7682",
-    iconColor: "#A5ACB8",
-    iconHover: "#181C22",
-    iconBorder: "#23272E",
+    tableHeadText: "#7C7C7C",
+    iconColor: "#A8A8A8",
+    iconHover: "#161616",
+    iconBorder: "#1F1F1F",
     boardShadow: "none",
     cardShadow: "none",
-    numberColor: "#E9ECF1",
-    avatarBg: "#23272E",
+    numberColor: "#EDEDED",
+    avatarBg: "#1F1F1F",
     currentChipBg: "rgba(79,166,212,0.14)",
     currentChipText: "#7CC3E8",
     markTile: "#0076B6",
     markDot: "#F6F2E9",
     well: "rgba(255,255,255,0.05)",
-    dotTexture: "rgba(233,236,241,0.05)",
-    glass: "rgba(20,23,28,0.6)",
+    dotTexture: "rgba(255,255,255,0.05)",
+    glass: "rgba(10,10,10,0.6)",
     glassEdge: "none",
     shimmerBase: "#545C68",
     espnFilter: "invert(1)",
@@ -131,15 +137,27 @@ export function useTheme() {
   }, [mode]);
 
   const toggle = useCallback(() => {
-    // Suppress transitions for the frame the theme swaps, so elements with a
-    // background/box-shadow transition (the sticky standings columns) don't
-    // animate light→dark and flash out of step with everything else.
+    const swap = () => setMode((m) => (m === "light" ? "dark" : "light"));
+
+    // Cross-fade the whole page as a single frame. Per-property CSS transitions
+    // can't do this convincingly — every element animates on its own timing and
+    // the page visibly comes apart mid-swap, which is why the fallback below
+    // suppresses transitions entirely rather than trying to stagger them.
+    // flushSync is required: startViewTransition snapshots the DOM when its
+    // callback returns, so a normal (async) React update would be missed.
+    if (typeof document !== "undefined" && typeof document.startViewTransition === "function") {
+      document.startViewTransition(() => flushSync(swap));
+      return;
+    }
+
+    // No View Transitions support: swap instantly with transitions suppressed
+    // for the frame, so nothing animates light→dark out of step.
     if (typeof document !== "undefined") {
       const el = document.documentElement;
       el.classList.add("bt-no-transition");
       requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove("bt-no-transition")));
     }
-    setMode((m) => (m === "light" ? "dark" : "light"));
+    swap();
   }, []);
 
   return { mode, t: THEMES[mode] || THEMES.light, toggle };
