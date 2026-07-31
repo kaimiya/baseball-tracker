@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>rake · If Can Can</title>
+
+    <!-- Link preview. Without these a shared URL renders as a bare card in
+         iMessage/Slack/Discord, which is most of how this app gets opened.
+         og:image must be an ABSOLUTE url — scrapers don't resolve relative
+         paths — and 1200x630 is the ratio every platform crops toward. -->
+    <meta name="description" content="Live category standings for a fantasy baseball money league — home runs, batting average, wins and ERA." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="rake" />
+    <meta property="og:title" content="If Can Can, No Can Garbage Can" />
+    <meta property="og:description" content="Live category standings — home runs, batting average, wins and ERA." />
+    <meta property="og:url" content="https://if-can-can.vercel.app/" />
+    <meta property="og:image" content="https://if-can-can.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="If Can Can, No Can Garbage Can" />
+    <meta name="twitter:description" content="Live category standings — home runs, batting average, wins and ERA." />
+    <meta name="twitter:image" content="https://if-can-can.vercel.app/og.png" />
+    <!-- Tints the browser chrome on mobile to match the app's ground. -->
+    <meta name="theme-color" content="#FFFFFF" />
+
     <!-- Modern browsers use the crisp SVG; the PNG is a fallback for those that
          don't support SVG favicons; apple-touch-icon covers iOS home screen. -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

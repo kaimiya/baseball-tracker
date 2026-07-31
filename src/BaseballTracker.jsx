@@ -573,7 +573,7 @@ export default function BaseballTracker() {
 
   // ---- Loading / error ----
   if (league.status === "error") {
-    return <Splash t={t} title="Couldn't load league" sub={league.error} error />;
+    return <Splash t={t} error={league.error} onRetry={league.refresh} retrying={league.refreshing} />;
   }
   if (league.status !== "ready" || !players.length || !minLoadDone) {
     return <RakeLoading t={t} />;
@@ -986,15 +986,35 @@ function PayoutsModal({ t, onClose }) {
 }
 
 // Error state only (the loading state uses RakeLoading).
-function Splash({ t, title, sub }) {
+// Error screen. Anyone with the link can land here — most of them can't fix
+// anything and didn't set the league up — so it leads with what's happening in
+// plain terms and keeps the raw ESPN message tucked away for whoever did.
+// Expired credentials get their own copy because that's the failure this app
+// will actually hit: ESPN's cookies lapse periodically and every viewer sees it
+// at once, with no idea it's temporary.
+function Splash({ t, error, onRetry, retrying }) {
+  const raw = String(error || "");
+  const isAuth = /401|cookie|espn_s2|swid/i.test(raw);
+  const title = isAuth ? "Standings are paused" : "Can't reach the standings";
+  const body = isAuth
+    ? "The league's ESPN connection needs renewing — it expires every so often. The numbers come straight back once it's reconnected; nothing has been lost."
+    : "ESPN didn't respond just now. This is usually brief — try again in a moment.";
   return (
     <div style={{ fontFamily: FONT, background: t.pageBg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: t.textPrimary, padding: "40px" }}>
-      <div style={{ textAlign: "center", maxWidth: "440px" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px", color: t.danger }}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>
+      <div style={{ textAlign: "center", maxWidth: "380px" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "18px" }}>
+          <MarkTile t={t} size={30} />
         </div>
-        <div className="rk-section-head" style={{ color: t.danger }}>{title}</div>
-        {sub && <div className="rk-caveat" style={{ marginTop: "8px", wordBreak: "break-word" }}>{sub}</div>}
+        <div className="rk-section-head" style={{ whiteSpace: "normal" }}>{title}</div>
+        <div className="rk-caveat" style={{ marginTop: "10px", marginLeft: "auto", marginRight: "auto" }}>{body}</div>
+        <button className="rk-btn" style={{ marginTop: "22px" }} onClick={onRetry} disabled={retrying}>
+          {retrying ? "Retrying…" : "Try again"}
+        </button>
+        {raw && (
+          <div className="rk-eyebrow" style={{ marginTop: "26px", color: t.textFaint, wordBreak: "break-word", textTransform: "none", letterSpacing: 0, lineHeight: 1.5 }}>
+            {raw}
+          </div>
+        )}
       </div>
     </div>
   );
