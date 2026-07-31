@@ -9,175 +9,338 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <!-- Fonts are self-hosted via @fontsource (imported in main.jsx). -->
+    <!-- Neue Haas Unica (UI) is @font-face'd below from public/fonts; Bricolage
+         (wordmark) is imported via @fontsource in main.jsx. -->
     <style>
+      /* ---- Neue Haas Unica Pro — self-hosted (Google CDN blocked here) ---- */
+      @font-face { font-family:'Neue Haas Unica'; src:url('/fonts/neue-haas/NeueHaasUnicaPro-Light.ttf') format('truetype'); font-weight:300; font-style:normal; font-display:swap; }
+      @font-face { font-family:'Neue Haas Unica'; src:url('/fonts/neue-haas/NeueHaasUnicaPro-Regular.ttf') format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
+      @font-face { font-family:'Neue Haas Unica'; src:url('/fonts/neue-haas/NeueHaasUnicaPro-Medium.ttf') format('truetype'); font-weight:500; font-style:normal; font-display:swap; }
+      @font-face { font-family:'Neue Haas Unica'; src:url('/fonts/neue-haas/NeueHaasUnicaPro-Bold.ttf') format('truetype'); font-weight:700; font-style:normal; font-display:swap; }
+
       html, body, #root { margin: 0; height: 100%; }
-      /* No -webkit-font-smoothing override: the Rake reference renders with the
-         browser default (subpixel), which gives Sora/Bricolage their intended
-         weight/heft. Forcing "antialiased" made the same weights look too thin. */
-      body {
-        text-rendering: optimizeLegibility;
-        background: #FBFAF6;
-      }
+      body { text-rendering: optimizeLegibility; background: #F3F4F6; }
       * { box-sizing: border-box; }
+
+      :root {
+        --rk-font: 'Neue Haas Unica', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        --rk-font-wordmark: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', sans-serif;
+        /* Hairlines run edge-to-edge while content stays centred in a 1040px
+           column: sections pad by this gutter, and full-bleed rows cancel it
+           with an equal negative margin. */
+        --rk-gutter: max(22px, calc((100vw - 1040px) / 2));
+      }
+
+      /* ---- Loader + change-flash animations ---- */
       @keyframes bt-spin { to { transform: rotate(360deg); } }
       .bt-spin { animation: bt-spin 0.8s linear infinite; }
-      @keyframes bt-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
-      .bt-pulse { animation: bt-pulse 1.4s ease-in-out infinite; }
-
-      /* Data-table horizontal scroll: smooth on touch, refined scrollbar */
-      /* Shared horizontal gutter so the header lockup + headline line up with
-         the page content (36px desktop, 16px mobile). */
-      .bt-gutter { padding-left: 36px; padding-right: 36px; }
-      /* Breakpoint swap: desktop keeps cards, mobile drops them. */
-      .bt-mobile-only { display: none; }
-      /* Light-sand band that separates sections on the cardless mobile surface. */
-      .bt-section-divider { display: none; }
-      .bt-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
-      .bt-scroll::-webkit-scrollbar { height: 6px; }
-      .bt-scroll::-webkit-scrollbar-thumb { background: rgba(140, 140, 140, 0.4); border-radius: 999px; }
-      .bt-scroll::-webkit-scrollbar-track { background: transparent; }
-      .bt-table { min-width: 600px; }
-      .bt-headrow { display: flex; align-items: center; gap: 16px; }
-
-      /* Frozen rank/team columns: tight padding; divider shadow only while scrolling */
-      .bt-table .bt-c-rank { padding-left: 11px !important; padding-right: 3px !important; }
-      .bt-table .bt-c-team { padding-left: 7px !important; }
-      .bt-scrolled .bt-freeze-edge { box-shadow: 2px 0 6px -2px rgba(0, 0, 0, 0.13) !important; }
-
-      /* Flash a stat cell when its value changes on refresh (blue up, red down) */
-      @keyframes bt-flash-up { 0% { background-color: rgba(0, 118, 182, 0.18); } 100% { background-color: transparent; } }
-      @keyframes bt-flash-down { 0% { background-color: rgba(185, 74, 46, 0.18); } 100% { background-color: transparent; } }
-      .bt-flash-up { animation: bt-flash-up 1.4s ease-out; }
-      .bt-flash-down { animation: bt-flash-down 1.4s ease-out; }
-
-      /* Rake board: floating off-white surface on warm sand. Awards columns are
-         divided by a hairline border-left (--rk-divider set per theme in JS).
-         Symmetric side padding on every column (the outer edge inset comes from
-         the board's own padding) so all four read as exactly equal width. */
-      .bt-award { border-left: 1px solid var(--rk-divider); padding: 0 18px; min-width: 0; animation: bt-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
-      .bt-award:first-child { border-left: none; }
-
-      /* Motion: a soft entrance for the content, and a subtle lift on the
-         clickable leader teams. Respects reduced-motion. */
-      @keyframes bt-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-      .bt-rise { animation: bt-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
-      /* Staggered entrances: award columns rise in sequence; standings rows fade
-         in one after another (opacity-only so the sticky rank/team cells never
-         glitch). Per-item delay is set inline in JS. */
-      @keyframes bt-fade-up { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
-      @keyframes bt-row-in { from { opacity: 0; } to { opacity: 1; } }
-      .bt-row-in { animation: bt-row-in 0.45s ease both; }
       @keyframes bt-dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
       .bt-dot-pulse { animation: bt-dot-pulse 1.15s ease-in-out infinite; }
-
-      /* Loading screen: the dot-icon flips in on each swap; the line shimmers. */
       @keyframes bt-flip { 0% { transform: rotateY(-90deg); opacity: 0; } 55% { opacity: 1; } 100% { transform: rotateY(0); opacity: 1; } }
       .bt-flip { animation: bt-flip 0.34s cubic-bezier(0.4, 0, 0.2, 1); }
       @keyframes bt-shimmer { to { background-position: -200% 0; } }
       .bt-shimmer { background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; animation: bt-shimmer 1.8s linear infinite; }
-      @media (prefers-reduced-motion: reduce) {
-        .bt-flip { animation: none; }
-        .bt-shimmer { animation: none; }
-      }
-      .bt-award-team { transition: opacity 0.14s ease, transform 0.16s cubic-bezier(0.16, 1, 0.3, 1); }
-      .bt-award-team:hover { opacity: 0.72; transform: translateY(-1px); }
-      .bt-award-team:active { transform: translateY(0) scale(0.98); }
-      /* Press feedback on the header action buttons + payouts trigger. */
-      .bt-iconbtn:active:not(:disabled) { transform: scale(0.9); }
-      .bt-payinfo { transition: transform 0.12s ease; }
-      .bt-payinfo:active { transform: scale(0.96); }
-      .bt-refresh-btn { transition: color 0.14s ease; }
-      .bt-refresh-btn:hover:not(:disabled) { color: var(--rk-accent) !important; }
-      .bt-payouts-btn { transition: background 0.12s ease; }
-      .bt-payouts-btn:hover { background: var(--rk-icon-hover); }
-      /* Payouts trigger: only the info glyph tints blue on hover, not the label. */
-      .bt-info-ic { transition: color 0.14s ease; }
-      .bt-payinfo:hover .bt-info-ic { color: var(--rk-accent); }
-      /* Kill all transitions for the frame the light/dark theme swaps (no flash). */
+      @keyframes bt-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+      .bt-rise { animation: bt-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+      /* Hold the tint at full strength for the first third, THEN fade. It used
+         to start fading from frame one, so a change that happened while you
+         were reading elsewhere on the page was easy to miss entirely. */
+      @keyframes bt-flash-up { 0%, 34% { background-color: rgba(0,118,182,.18); } 100% { background-color: transparent; } }
+      @keyframes bt-flash-down { 0%, 34% { background-color: rgba(194,59,34,.18); } 100% { background-color: transparent; } }
+      /* The flashed cells are grid children in a row set to align-items:center,
+         so they're sized to their TEXT height — the tint painted a thin band
+         instead of filling the cell. Stretching to the row height (and
+         re-centring the content inside) makes the flash fill the full cell. */
+      .bt-flash-up, .bt-flash-down { align-self: stretch; display: flex; align-items: center; justify-content: center; }
+      .bt-flash-up { animation: bt-flash-up 2.6s ease-out; }
+      .bt-flash-down { animation: bt-flash-down 2.6s ease-out; }
       .bt-no-transition * { transition: none !important; }
-
-      /* Payouts: two columns divided by a hairline; stacks on mobile. */
-      .bt-payouts { display: grid; grid-template-columns: 1fr 1fr; }
-      .bt-pay-col + .bt-pay-col { border-left: 1px solid var(--rk-divider); }
-      @media (max-width: 600px) {
-        .bt-payouts { grid-template-columns: 1fr; }
-        .bt-pay-col + .bt-pay-col { border-left: none; border-top: 1px solid var(--rk-divider); }
-      }
       @media (prefers-reduced-motion: reduce) {
-        .bt-rise, .bt-award, .bt-row-in { animation: none; }
+        .bt-flip, .bt-shimmer, .bt-rise { animation: none; }
         .bt-dot-pulse { animation: none; opacity: 0.85; }
       }
 
-      /* Desktop: lock BOTH tables to the same fixed column geometry so the
-         HR/AVG/Wins/ERA columns line up vertically between Standings and Weekly
-         Splits. The left block (#+Team+Record in Standings, Week in Weekly) is
-         33%, leaving four equal 16.75% stat columns that start at the same x in
-         both. On mobile these rules don't apply: tables stay auto + scroll. */
-      @media (min-width: 601px) {
-        .bt-standings, .bt-weekly { table-layout: fixed; }
-        .bt-standings .bt-c-rank { width: 4%; }
-        /* Team is the wide, flexible column (Rake: names never truncate on
-           desktop); Record is narrow and sits right after it. Together with the
-           4% rank they fill 64%, so the four 9% stat columns start at the same x
-           as Weekly Splits' stat columns (bt-c-week is 64%). */
-        .bt-standings .bt-c-team { width: 40%; }
-        .bt-standings .bt-c-record { width: 20%; }
-        .bt-weekly .bt-c-week { width: 64%; }
-        /* Tight stat columns grouped on the right so they're easy to scan, and
-           they start at the same x (64%) in both tables. */
-        .bt-c-stat { width: 9%; }
-      }
+      /* ==========================================================================
+         Rake 2.0 — type & surface system. Colours come from CSS vars set per theme
+         in theme.js, so every class stays light⇄dark aware. Zero radius, no shadows.
+         ========================================================================== */
+      /* ---- Type scale ----------------------------------------------------
+         Every text role in the app maps to exactly ONE of these. Before this
+         pass, roles that are functionally identical (a "name", a "label", a
+         "caption") had each invented their own one-off size — 9, 9.5, 10,
+         10.5, 11, 11.5, 12, 12.5, 13, 13.5, 15, 16, 17, 18px all in play for
+         maybe 6 real jobs. That drift is what read as messy. Fixed sizes below;
+         do not add a new one-off — reuse a role.
 
-      @media (max-width: 600px) {
-        .bt-main { padding-left: 16px !important; padding-right: 16px !important; padding-top: 24px !important; }
-        .bt-foot { padding-left: 16px !important; padding-right: 16px !important; }
-        .bt-gutter { padding-left: 16px !important; padding-right: 16px !important; }
+         wordmark   25px  Bricolage 800   — brand only, not part of this scale
+         title      17px  Medium 500      — the league name (page identity)
+         section    15px  Bold 700        — "Leaders" / "Standings" / etc.
+         name       14px  Medium 500      — team name in a table row
+         name-sm    12.5px Medium 500     — team name in a dense list (picker,
+                                             dropdown, award list, empty chips)
+         body       14px  Regular 400     — data cells, prompts
+         figure     34px  Bold 700 accent — hero stat numbers
+         caption    12px  Regular 400     — supporting notes (caveats, margins)
+         label      10.5px Bold 700 caps  — eyebrows, column headers, payout
+                                             line, modal section labels
+         label-lt   10.5px Medium 500 caps — column headers specifically: same
+                                             size as label, one step lighter
+                                             (bold column headers on every row
+                                             read as too heavy; but 400 read as
+                                             not enough of a header at all)
+         micro      9px   Bold 700 caps   — small inline badges (LIVE, Current)
+         ---------------------------------------------------------------- */
+      .rk-league-title { font: 500 17px/1.15 var(--rk-font); letter-spacing: 0; color: var(--rk-title); overflow: visible; transition: font-size .2s ease; }
+      .rk-league-title.is-condensed { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      /* Same bold-caps language as the nav tabs (just bigger) — the two now
+         read as one family of "structural heading" instead of two different
+         typographic ideas. Markup stays title-case ("Leaders"); this
+         transforms the display only. */
+      .rk-section-head { font: 700 15px/1.2 var(--rk-font); letter-spacing: .02em; text-transform: uppercase; color: var(--rk-title); white-space: nowrap; }
+      .rk-body { font: 400 14px/1.4 var(--rk-font); color: var(--rk-grey); }
+      .rk-caveat { font: 400 12px/1.5 var(--rk-font); color: var(--rk-grey); max-width: 520px; }
+      .rk-nav { font: 500 12.5px/1 var(--rk-font); letter-spacing: .04em; text-transform: uppercase; color: var(--rk-grey); background: none; border: 0; padding: 0; cursor: pointer; transition: color .14s ease; }
+      .rk-nav:hover { color: var(--rk-title); }
+      .rk-nav.is-active { color: var(--rk-title); }
+      .rk-eyebrow { font: 700 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
+      /* The "2026 SEASON · 8 TEAMS · UPDATED …" line under the title. Its own
+         class (not a blanket .rk-eyebrow override, which also styles Leaders
+         labels and the payout line) so it can be tuned to actually fit one line. */
+      .rk-meta-line { gap: 7px; margin-top: 7px; }
+      /* Medium: heavier than the 400 data cells so headers read as headers,
+         but lighter than the 700 label role — a full bold row of column
+         headers over every row was what read as "too bold" for the table. */
+      .rk-colhead { font: 500 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
+      .rk-figure { font: 700 34px/.95 var(--rk-font); letter-spacing: -.008em; color: var(--rk-accent); font-variant-numeric: tabular-nums; }
+      .rk-team-name { font: 500 14px/1.2 var(--rk-font); letter-spacing: .018em; color: var(--rk-title); }
+      /* Compact team name — dropdown trigger/options, empty-state chips, the
+         award-list under each Leaders figure. One size for all four instead of
+         four near-identical one-offs (12 / 12.5 / 13 / 13). */
+      .rk-team-name-sm { font: 500 12.5px/1.25 var(--rk-font); letter-spacing: .012em; color: var(--rk-ink); }
+      /* Regular for values; the leader is already marked by accent blue, so it
+         only needs Medium — Bold on top of blue was double-marking. */
+      .rk-data { font: 400 14px/1 var(--rk-font); letter-spacing: 0; color: var(--rk-ink); font-variant-numeric: tabular-nums; }
+      .rk-data.is-leader { font-weight: 500; color: var(--rk-accent); }
+      .rk-data.is-record { color: var(--rk-grey); }
+      .rk-data.is-rank   { color: var(--rk-title); }
 
-        /* Cardless single surface: the whole page becomes the panel color, and
-           every card goes transparent so content sits on one surface — the only
-           sand left is in the hairline dividers. */
-        html, body { background: var(--rk-surface) !important; }
-        .bt-root { background: var(--rk-surface) !important; }
-        .bt-board { background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
-        .bt-awardpad { padding: 2px 0 0 !important; }
-        .bt-desktop-only { display: none !important; }
-        .bt-mobile-only { display: block !important; }
-        .bt-hide-mobile { display: none !important; }
+      /* Controls — hairline outlined, square, never filled */
+      .rk-btn { font: 700 10.5px/1 var(--rk-font); letter-spacing: .05em; text-transform: uppercase; color: var(--rk-title); background: none; border: 1px solid var(--rk-title); padding: 9px 14px; white-space: nowrap; cursor: pointer; transition: background .14s ease, color .14s ease; }
+      .rk-btn:hover { background: var(--rk-title); color: var(--rk-paper); }
+      .rk-badge-live { display: inline-flex; align-items: center; gap: 5px; font: 700 9px/1 var(--rk-font); letter-spacing: .07em; text-transform: uppercase; color: var(--rk-accent); border: 1px solid var(--rk-accent); padding: 3px 6px; white-space: nowrap; }
+      /* Team picker trigger — a real button now (was a native <select>, which
+         couldn't show a team logo and read as stock browser chrome). */
+      .rk-team-select { display: inline-flex; align-items: center; color: var(--rk-title); background: var(--rk-paper); border: 1px solid var(--rk-line); padding: 9px 30px 9px 12px; cursor: pointer; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%239AA0AA' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M1 1l4 4 4-4'/></svg>"); background-repeat: no-repeat; background-position: right 11px center; max-width: 220px; transition: border-color .14s ease; }
+      .rk-team-select:hover { border-color: var(--rk-grey); }
+      .rk-team-select:focus-visible { outline: none; border-color: var(--rk-accent); }
 
-        /* Sections flow on one surface, separated by a full-bleed light-sand
-           band; every section aligns to the same 16px gutter as the Awards. */
-        .bt-sec { margin-bottom: 0 !important; }
-        .bt-section-divider { display: block; height: 7px; background: var(--rk-page); margin: 24px -16px; }
-        .bt-splitshead { padding-left: 0 !important; padding-right: 0 !important; }
+      /* Team picker dropdown list */
+      .rk-team-listbox { position: absolute; z-index: 10; top: calc(100% + 4px); right: 0; min-width: 220px; max-height: 320px; overflow-y: auto; margin: 0; padding: 4px; list-style: none; background: var(--rk-paper); border: 1px solid var(--rk-line); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+      .rk-team-option { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 9px; background: none; border: 0; text-align: left; cursor: pointer; }
+      .rk-team-option:hover { background: var(--rk-hover); }
+      .rk-team-option.is-sel { background: var(--rk-sel); color: var(--rk-title); }
 
-        /* Awards as a compact 2×2 grid (dashboard read) instead of a tall stack.
-           Symmetric column padding so both columns are equal width, with a
-           centered vertical hairline between them; smaller hero figures to suit. */
-        .bt-leaders { grid-template-columns: 1fr 1fr !important; column-gap: 0 !important; row-gap: 0 !important; }
-        .bt-award { border: none !important; padding: 0 !important; }
-        .bt-award:nth-child(odd) { padding-right: 20px !important; }
-        .bt-award:nth-child(even) { padding-left: 20px !important; border-left: 1px solid var(--rk-divider) !important; }
-        .bt-award:nth-child(1), .bt-award:nth-child(2) { padding-bottom: 22px !important; }
-        .bt-award:nth-child(3), .bt-award:nth-child(4) { padding-top: 22px !important; border-top: 1px solid var(--rk-divider) !important; }
-        .bt-award-num { font-size: 34px !important; margin: 6px 0 12px !important; }
+      /* Empty state as a picker — a grid of tappable team chips instead of a
+         generic icon + "no data" copy. */
+      /* Fixed 2 columns, not auto-fill — auto-fill produced 3 columns at this
+         width, and 8 teams into 3 columns leaves a dangling empty 9th cell (a
+         visible blank hole, since this container's own line-colored
+         background shows through any unfilled grid track. That grid-of-boxes
+         approach was replaced below with an open row of logos — no boxes,
+         no dangling-cell risk since it just wraps.) */
+      /* Orbit picker — no card, no box, floats directly on the page.
+         Coverflow: size/opacity/desaturation are driven CONTINUOUSLY off each
+         circle's live pixel-distance from the track's centre (direct inline
+         style from the scroll handler in BaseballTracker.jsx). Max-width caps
+         the window to about 5 circles regardless of how wide the desktop
+         column is, so it always reads as a focused fan, not a sprawling row. */
+      /* The wrapper carries the max-width, NOT the scroll track itself. The
+         track's `padding: calc(50% - 26px)` resolves its 50% against its
+         PARENT's width — so putting max-width on the track produced 397px of
+         padding per side (794px total) that could never fit inside 380px, and
+         the constraint was silently ignored. With the cap on the wrapper, the
+         50% resolves against 380px and the centring padding works. */
+      .rk-team-orbit-wrap { max-width: 440px; margin: 0 auto; }
+      .rk-orbit-hint { font: 400 9px/1 var(--rk-font); letter-spacing: .09em; text-transform: uppercase; color: var(--rk-title); text-align: center; margin-top: 4px; }
+      .rk-team-orbit { position: relative; display: flex; align-items: center; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 18px calc(50% - 26px) 40px; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, transparent, black 14%, black 86%, transparent); mask-image: linear-gradient(to right, transparent, black 14%, black 86%, transparent); }
+      .rk-team-orbit::-webkit-scrollbar { display: none; }
+      .rk-team-orb { position: relative; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; background: none; border: 0; padding: 4px; cursor: pointer; scroll-snap-align: center; }
+      /* Default (pre-JS-measure) state only — the scroll handler overrides
+         transform/opacity/filter inline every frame once mounted. */
+      /* Hairline ring — gives each mark a defined edge so logos with white or
+         transparent backgrounds don't bleed into the page. Outset (not inset):
+         an inset shadow doesn't paint on replaced elements like <img>. */
+      .rk-team-orb .bt-teammark, .rk-team-orb img { filter: grayscale(.7); opacity: .55; transform: scale(.75); box-shadow: 0 0 0 1px var(--rk-line); }
+      /* Dot-matrix backdrop — the brand's own dot-grid motif (same language as
+         the logo/loader), in the single app accent blue (not a per-team
+         colour), revealed on hover. The radial mask fades the dot circle's
+         OWN edge to nothing, so it blends into the page instead of a hard
+         circular cutoff. */
+      .rk-team-orb-avatar { position: relative; display: flex; align-items: center; justify-content: center; }
+      /* Brand dot language: ROUNDED SQUARES on a grid (same construction as
+         DotArt in BaseballTracker.jsx — square dots, ~12% gap, 16% corner
+         radius), not generic round CSS dots. Drawn as a tiled SVG so the
+         corner radius survives. Grey, faded radially at its own edge. */
+      /* Tile/dot ratio mirrors DotArt's own construction in BaseballTracker.jsx
+         (gap ≈ 12–30% of the dot, corner radius ≈ 16%) so this reads as the
+         same dot-matrix as the logo. The previous 8px tile with a 3.2px dot
+         left gaps 1.5× the dot size — far too airy to match the mark. */
+      .rk-team-orb-dots { position: absolute; inset: -35%; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='5' height='5'><rect x='0' y='0' width='3.9' height='3.9' rx='0.62' fill='%239AA0AA'/></svg>"); background-size: 5px 5px; -webkit-mask-image: radial-gradient(circle, black 28%, transparent 70%); mask-image: radial-gradient(circle, black 28%, transparent 70%); opacity: 0; transform: scale(.85); transition: opacity .22s ease, transform .22s ease; pointer-events: none; }
+      .rk-team-orb:hover .rk-team-orb-dots, .rk-team-orb:focus-visible .rk-team-orb-dots { opacity: .45; transform: scale(1); }
+      /* Absolutely positioned so the (hidden) names of INACTIVE circles don't
+         set each button's width — otherwise every orb was as wide as its team
+         name and the circles were pushed far apart. Out of flow, so spacing is
+         driven purely by the 52px avatars. */
+      .rk-team-orb-name { position: absolute; top: calc(100% + 4px); left: 50%; font: 700 13px/1.15 var(--rk-font); letter-spacing: .02em; text-transform: uppercase; color: var(--rk-grey); opacity: 0; transform: translateX(-50%) translateY(-2px); transition: opacity .18s ease, transform .18s ease, color .18s ease; max-width: 150px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+      .rk-team-orb.is-active .rk-team-orb-name { opacity: 1; transform: translateX(-50%); color: var(--rk-title); font-weight: 800; }
+      .rk-iconbtn { display: inline-flex; align-items: center; justify-content: center; background: none; border: 0; padding: 4px; color: var(--rk-grey); cursor: pointer; transition: color .14s ease, transform .1s ease; }
+      .rk-iconbtn:hover:not(:disabled) { color: var(--rk-title); }
+      .rk-iconbtn:active:not(:disabled) { transform: scale(0.9); }
+      .rk-updated { background: none; border: 0; padding: 0; cursor: pointer; color: inherit; font: inherit; transition: color .14s ease; }
+      .rk-updated:hover:not(:disabled) { color: var(--rk-accent); }
 
-        /* Standings fits fully on-screen (no h-scroll) and reads at the Weekly
-           Splits scale: fixed layout, tight stat columns, smaller name + logo. */
-        .bt-table { min-width: 0; }
-        .bt-scroll { padding-left: 0 !important; padding-right: 0 !important; }
-        .bt-table th, .bt-table td { padding-left: 10px !important; padding-right: 10px !important; }
-        .bt-standings { table-layout: fixed; }
-        .bt-standings .bt-c-rank { width: 20px; padding-left: 0 !important; }
-        .bt-weekly .bt-c-week { padding-left: 0 !important; }
-        .bt-standings .bt-c-stat { width: 48px; }
-        .bt-standings th, .bt-standings td { padding-left: 6px !important; padding-right: 6px !important; }
-        /* Table fits now, so the frozen rank/team columns aren't needed — turn
-           off sticky so their opaque background can't overlap the HR column. */
-        .bt-standings .bt-c-rank, .bt-standings .bt-c-team { position: static !important; box-shadow: none !important; }
-        .bt-standings tbody .bt-c-rank { font-size: 13px !important; }
-        .bt-standings .bt-teammark { width: 20px !important; height: 20px !important; }
-        .bt-team-name { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; font-size: 13px !important; }
+      /* Surfaces */
+      .rk-shell { padding: 8px 0 24px; }
+      .rk-card { background: var(--rk-paper); }
+      /* Sticky app bar — the nav + shrinking league title stay pinned to the top. */
+      .rk-sticky { position: sticky; top: 0; z-index: 20; background: var(--rk-paper); border-top: 1px solid var(--rk-line); border-bottom: 1px solid var(--rk-line); }
+      .rk-section + .rk-section { border-top: 1px solid var(--rk-line); }
+      .rk-section + .rk-section.rk-flush { border-top: 0; }
+      .rk-pad { padding: 32px var(--rk-gutter) 34px; }
+      .rk-wordmark { font-family: var(--rk-font-wordmark); font-weight: 800; letter-spacing: -.04em; color: var(--rk-ink); line-height: 1; }
+
+      /* Awards — 4 across, full hairline grid. minmax(0,1fr)+min-width:0 stops nowrap
+         team names from pushing the grid past the card (see handoff grid rule). */
+      /* Un-boxed: 4 columns on white, divided by vertical hairlines only. */
+      .rk-awards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .rk-award { min-width: 0; padding: 0 18px; border-left: 1px solid var(--rk-line); display: flex; flex-direction: column; gap: 9px; }
+      .rk-award:first-child { border-left: 0; padding-left: 0; }
+      .rk-award-team { display: flex; align-items: center; gap: 7px; min-width: 0; margin-top: 1px; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; width: 100%; }
+      .rk-award-team span:last-child { min-width: 0; }
+      /* How far clear the leader is, and over whom — quiet, below the team. */
+      /* margin-top:auto pins this to the bottom of the cell, so the four lines
+         stay level even when a tie makes one cell list 2–3 teams. */
+      /* margin-top:auto (not extra padding on top of the flex gap, which
+         doubled the visual space) pins this to the bottom so all four cells
+         stay level even when a tie lists 2-3 teams. */
+      .rk-margin { font: 400 12px/1.4 var(--rk-font); color: var(--rk-grey); margin-top: auto; }
+
+      /* Payout line — dashed rule marking the last paid finishing spot. */
+      .rk-payout-line { display: flex; align-items: center; gap: 10px; margin: 0; padding: 9px 0; }
+      .rk-payout-line span { font: 700 9px/1 var(--rk-font); letter-spacing: .07em; text-transform: uppercase; color: var(--rk-muted); white-space: nowrap; }
+      .rk-payout-line::after { content: ""; flex: 1; border-top: 1px dashed var(--rk-line); }
+
+      /* Standings + splits rows — full-bleed grids divided by hairlines */
+      .rk-row { display: grid; align-items: center; gap: 9px; }
+      /* Four EVEN stat columns, wide enough to hold "239 +1" side by side. Both
+         tables use the same four widths so HR/AVG/Wins/ERA line up vertically
+         between Standings and Weekly Splits. */
+      .rk-standings-row { grid-template-columns: 22px minmax(0,1fr) 84px repeat(4, 58px); }
+      /* Week | Dates | stats — parallel to Standings' Team | Record | stats.
+         The stat block anchors to the row's right edge regardless of what's
+         in front of it, so this doesn't need to match Standings column-for-
+         column to keep HR/AVG/Wins/ERA aligned between the two tables. */
+      .rk-splits-row     { grid-template-columns: minmax(0,1fr) 92px repeat(4, 58px); }
+      /* Table hairlines stay inside the content column — only SECTION dividers
+         run edge-to-edge. Hence no negative gutter margin on these. */
+      .rk-head { margin: 18px 0 0; padding: 0 0 11px; border-bottom: 1px solid var(--rk-line); }
+      /* Every data row is the same height — a fixed min-height with vertically
+         centred content, so a stacked live delta or a two-line week label can't
+         make one row taller than its neighbours. */
+      .rk-trow { margin: 0; padding: 6px 0; min-height: 58px; border-bottom: 1px solid var(--rk-line); cursor: pointer; transition: background .16s ease; }
+      .rk-trow:hover { background: var(--rk-hover); }
+      /* Selected = a slightly deeper neutral fill than hover. No accent bar —
+         the fill alone carries it. */
+      .rk-trow.is-sel { background: var(--rk-sel); }
+      .rk-trow.is-last { border-bottom: 0; }
+      /* The dashed payout line below already separates this row — don't double up. */
+      .rk-trow.is-prepay { border-bottom: 0; }
+      .rk-splits-row.rk-head { margin-top: 16px; }
+      .rk-splits-trow { margin: 0; padding: 6px 0; min-height: 58px; border-bottom: 1px solid var(--rk-line); }
+      .rk-splits-total { margin: 0; padding: 13px 0; border-top: 2px solid var(--rk-line); }
+      /* Current-week marker — a single accent dot after the week label. */
+      .rk-week-live { width: 6px; height: 6px; border-radius: 50%; background: var(--rk-accent); flex-shrink: 0; display: inline-block; }
+      /* Left-aligned to the table's own grid (it was centred, floating free of
+         every other row), and set in the same bold-caps control language as
+         the nav/eyebrows so it reads as a control rather than a stray line of
+         body text. The caret gives it an explicit expand/collapse affordance. */
+      /* Right-aligned, underlined text link in the title colour — reads as a
+         deliberate action rather than a stray caption. Wrapper handles the
+         right alignment so the underline hugs the text, not the full row. */
+      .rk-view-all-row { display: flex; justify-content: flex-end; margin-top: 14px; }
+      .rk-view-all { display: inline-flex; align-items: center; gap: 6px; padding: 0; font: 500 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-title); background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; transition: opacity .14s ease; }
+      .rk-view-all:hover { opacity: .6; }
+      /* Stat columns centre their copy — headers and values alike, in both
+         tables, so the four categories read as one aligned block. */
+      .rk-cell-num { text-align: center; }
+      /* The delta must NOT be part of what gets centered — if "239 +1" centers
+         as one cluster, the "239" itself sits left of true-center (to make
+         room for the +1), so the number wanders off the column's centerline
+         on any row that has a delta, while plain numbers stay dead-center.
+         That mismatch is what read as "uneven columns": position:absolute
+         takes the delta out of flow entirely, so .rk-cell-num's text-align:
+         center always centers the number ALONE, in the exact same spot,
+         delta or no delta. The delta then hangs off the number's own right
+         edge without shifting it. */
+      .rk-stat { position: relative; display: inline-block; }
+      .rk-stat-delta { position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 4px; font: 500 10px/1 var(--rk-font); font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .rk-team { display: flex; align-items: center; gap: 9px; min-width: 0; }
+      .rk-team-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+      /* Empty state — recedes on several axes (well fill + grey + opacity) */
+      /* Sized to its content — a tall empty box reads as a loading failure. */
+      /* No opacity dim — this state is a real picker (tappable team chips), not
+         a passive placeholder, so it shouldn't read as inactive/disabled. */
+
+      /* Payouts modal — two columns divided by a hairline; stacks on mobile */
+      .rk-payouts { display: grid; grid-template-columns: 1fr 1fr; }
+      .rk-pay-col + .rk-pay-col { border-left: 1px solid var(--rk-line); }
+
+      /* ---- Mobile (≈390px): section heads shrink, awards go 2×2, record hides ---- */
+      @media (max-width: 560px) {
+        /* Tighter page gutter buys back ~12px of row width for team names. */
+        :root { --rk-gutter: 16px; }
+        .rk-shell { padding: 6px 0 16px; }
+        .rk-section-head { white-space: normal; }
+        .rk-league-title { font-size: 12.5px; white-space: nowrap; }
+        /* Smaller + tighter so "2026 SEASON · 8 TEAMS · UPDATED 2:02 PM" reliably
+           fits one line on a 375px screen — verified with real headroom, not a
+           knife's-edge fit. */
+        .rk-meta-line { font-size: 10.5px; letter-spacing: .025em; gap: 6px; margin-top: 6px; }
+        .rk-body { font-size: 13px; }
+        .rk-caveat { font-size: 11.5px; }
+        .rk-figure { font-size: 30px; }
+        /* Condensed header: the three stacked bars cost ~210px of an 812px
+           screen, so trim their vertical padding and the wordmark. */
+        .rk-brandbar { padding-top: 9px !important; padding-bottom: 9px !important; }
+        .rk-wordmark-top { font-size: 20px !important; }
+        .rk-navbar { padding-top: 10px !important; padding-bottom: 10px !important; }
+        .rk-nav { font-size: 11.5px; }
+        .rk-identity { padding-top: 12px !important; padding-bottom: 12px !important; }
+        /* 2×2 on mobile: vertical hairline between the columns, horizontal between the rows. */
+        .rk-awards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .rk-award { padding: 0 0 0 16px; }
+        .rk-award:nth-child(odd) { border-left: 0; padding-left: 0; }
+        .rk-award:nth-child(even) { border-left: 1px solid var(--rk-line); }
+        .rk-award:nth-child(1), .rk-award:nth-child(2) { padding-bottom: 18px; }
+        .rk-award:nth-child(3), .rk-award:nth-child(4) { border-top: 1px solid var(--rk-line); padding-top: 18px; }
+        /* Tighter stat columns + smaller name so full team names fit unclipped. */
+        .rk-standings-row { grid-template-columns: 16px minmax(0,1fr) repeat(4, 38px); gap: 6px; }
+        .rk-splits-row { grid-template-columns: minmax(0,1fr) repeat(4, 38px); gap: 6px; }
+        .rk-team-name { font-size: 13px; letter-spacing: .01em; }
+        .rk-data { font-size: 13px; }
+        .rk-trow, .rk-splits-trow { min-height: 52px; }
+        /* Narrow columns: tuck the live gain under the figure instead of beside it. */
+        /* Narrow columns: tuck the live gain under the number instead of beside
+           it. Same principle as desktop — absolute, so it never shifts the
+           number off the column's centerline. */
+        .rk-stat-delta { left: 50%; top: 100%; transform: translateX(-50%); margin-left: 0; margin-top: 2px; }
+        .rk-is-record { display: none !important; }
+        /* No room for a fixed Dates column at 375px — same trade-off as
+           hiding Record in Standings above. */
+        .rk-is-dates { display: none !important; }
+        .rk-payouts { grid-template-columns: 1fr; }
+        .rk-pay-col + .rk-pay-col { border-left: 0; border-top: 1px solid var(--rk-line); }
       }
     </style>
   </head>

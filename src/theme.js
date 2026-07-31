@@ -1,79 +1,91 @@
 import { useCallback, useEffect, useState } from "react";
 
-// Rake brand system. Warm paper, deep ink, one confident Honolulu blue — blue
-// is reserved for what's live, leading, or winning; everything else is sand +
-// ink. Editorial emphasis: hairline dividers, not boxed/bordered cards. Dark is
-// a true ink surface (no navy), blue lifted to #4FA6D4 for legibility on ink.
+// Rake 2.0 type & surface system (handoff 2026-07-30). Neue Haas Unica, one
+// Honolulu blue reserved for live/leading/winning, everything else neutral.
+// Zero radius, NO shadows — structure comes from 1px hairlines. Titles + team
+// names are PURE black (off-black reads faded at title sizes). Dark is a cool
+// slate adaptation of the same system (the spec ships light only).
 export const THEMES = {
   light: {
-    pageBg: "#F4F5F7",       // cool light grey page (crisp, modern)
-    panel: "#FFFFFF",        // clean white card surface
-    panelBorder: "#E6E8EC",  // board edge
-    divider: "#ECEDF0",      // cool hairline dividers
-    textPrimary: "#0D1117",  // near-black ink — high contrast
-    textSecondary: "#3A414C",// row values / body
-    textMuted: "#656C78",    // cool grey meta
-    textFaint: "#99A0AB",    // micro labels
-    accent: "#0076B6",       // Honolulu blue — THE accent
+    pageBg: "#FFFFFF",       // white ground
+    panel: "#FFFFFF",        // paper — card ground
+    panelBorder: "#E3E3E3",  // line — every hairline/border
+    divider: "#E3E3E3",      // line
+    textPrimary: "#000000",  // title — titles + team names, pure black
+    textSecondary: "#16181D",// ink — body / stat data
+    textMuted: "#6E7480",    // grey — secondary text, record, deks
+    textFaint: "#9AA0AA",    // muted — eyebrows, column heads, rank, legal
+    accent: "#0076B6",       // Honolulu blue — live/leading/winning ONLY
     accentHover: "#015B8C",
     accentText: "#ffffff",
     leader: "#0076B6",       // leading/winning figure
-    delta: "#2E9E5B",        // today's live gain (+N) — green, distinct from the blue leader figures
-    live: "#D23B22",         // LIVE badge dot + label
+    delta: "#2E9E5B",        // today's live gain (+N) — green, distinct from the blue leaders
+    live: "#0076B6",         // LIVE badge — accent blue, hairline-outlined
+    danger: "#C23B22",       // error state only
     rowHover: "#F5F6F8",
-    rowSelected: "#EAF2FB",  // soft blue tint — selected/active team
+    rowSelected: "#EDEEF1",  // neutral grey — one step deeper than rowHover
     selectedBar: "#0076B6",
-    tableHeadText: "#99A0AB",
-    iconColor: "#656C78",
+    tableHeadText: "#9AA0AA",
+    iconColor: "#6E7480",
     iconHover: "#F0F1F4",
-    iconBorder: "#E6E8EC",
-    boardShadow: "0 30px 70px rgba(15,17,23,.18)",
-    cardShadow: "0 4px 16px rgba(15,17,23,.06), 0 1px 2px rgba(15,17,23,.05)",
-    numberColor: "#3A414C",
-    avatarBg: "#EDEFF2",
-    currentChipBg: "#EAF2FB",
+    iconBorder: "#E3E3E3",
+    boardShadow: "none",
+    cardShadow: "none",
+    numberColor: "#16181D",  // ink
+    avatarBg: "#E3E3E3",
+    currentChipBg: "rgba(0,118,182,0.10)",
     currentChipText: "#0076B6",
     markTile: "#0076B6",
     markDot: "#F6F2E9",
-    dotTexture: "rgba(13,17,23,0.07)", // faint dot-matrix motif (echoes the R mark)
-    glass: "rgba(255,255,255,0.6)",    // translucent card (frosted over the page)
-    glassEdge: "inset 0 1px 0 rgba(255,255,255,0.8)",
-    shimmerBase: "#C6CAD2",            // loader shimmer base (glint = textPrimary)
+    well: "rgba(0,0,0,0.05)",           // inactive / empty container fill
+    dotTexture: "rgba(0,0,0,0.09)",
+    glass: "rgba(255,255,255,0.6)",
+    glassEdge: "none",
+    shimmerBase: "#C4C9D2",             // loader shimmer base
+    // espn-fantasy.svg is a flat black mark loaded via <img>, so its paths
+    // can't be recoloured by CSS — invert it wholesale on dark ground.
+    espnFilter: "none",
   },
   dark: {
-    pageBg: "#0B0D10",       // cool near-black slate page — cards sit on this
-    panel: "#14171C",        // cool dark card surface
-    panelBorder: "#23272E",
-    divider: "#20242B",
-    textPrimary: "#E9ECF1",  // cool off-white
-    textSecondary: "#A5ACB8",
-    textMuted: "#6E7682",
-    textFaint: "#545C68",
+    pageBg: "#14171C",       // ground = card (no separate frame), matches the white-on-white light ground
+    panel: "#14171C",        // paper — dark card ground
+    panelBorder: "#23272E",  // line
+    divider: "#23272E",
+    textPrimary: "#FFFFFF",  // title — pure white
+    textSecondary: "#E9ECF1",// ink
+    textMuted: "#A5ACB8",    // grey
+    textFaint: "#7A828E",    // muted — 4.63:1 on the #14171C ground (was
+                             // #6E7682 at 3.91:1, under the 4.5:1 AA floor).
+                             // Still a clear step below textMuted (#A5ACB8),
+                             // so the grey hierarchy survives the bump.
     accent: "#4FA6D4",
     accentHover: "#7CC3E8",
     accentText: "#0B0C0F",
     leader: "#4FA6D4",
-    delta: "#5FC98A",        // today's live gain (+N) — green, brighter for dark bg
-    live: "#EF5A44",
+    delta: "#5FC98A",        // green, brighter for dark bg
+    live: "#4FA6D4",
+    danger: "#EF5A44",
     rowHover: "#181C22",
-    rowSelected: "rgba(79,166,212,0.12)",
+    rowSelected: "#232830",  // neutral — one step deeper than rowHover
     selectedBar: "#4FA6D4",
-    tableHeadText: "#545C68",
+    tableHeadText: "#6E7682",
     iconColor: "#A5ACB8",
     iconHover: "#181C22",
     iconBorder: "#23272E",
-    boardShadow: "0 30px 70px rgba(0,0,0,.5)",
-    cardShadow: "0 4px 16px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.4)",
-    numberColor: "#A5ACB8",
+    boardShadow: "none",
+    cardShadow: "none",
+    numberColor: "#E9ECF1",
     avatarBg: "#23272E",
     currentChipBg: "rgba(79,166,212,0.14)",
     currentChipText: "#7CC3E8",
     markTile: "#0076B6",
     markDot: "#F6F2E9",
+    well: "rgba(255,255,255,0.05)",
     dotTexture: "rgba(233,236,241,0.05)",
-    glass: "rgba(20,23,28,0.45)",
-    glassEdge: "inset 0 1px 0 rgba(255,255,255,0.08)",
+    glass: "rgba(20,23,28,0.6)",
+    glassEdge: "none",
     shimmerBase: "#545C68",
+    espnFilter: "invert(1)",
   },
 };
 
@@ -96,12 +108,23 @@ export function useTheme() {
     const th = THEMES[mode] || THEMES.light;
     document.documentElement.style.background = th.pageBg;
     document.body.style.background = th.pageBg;
-    // Mobile drops the cards and sits on one surface (the panel color); expose
-    // it as a var so CSS can swap the page background at the mobile breakpoint.
-    document.documentElement.style.setProperty("--rk-surface", th.panel);
-    // The desktop page background — used for the soft full-bleed section bands
-    // on mobile (a gentle tonal step down from the panel surface, not heavy sand).
-    document.documentElement.style.setProperty("--rk-page", th.pageBg);
+    // Expose the palette as CSS custom properties so the type/surface classes in
+    // index.html stay theme-aware (light ⇄ dark) without duplicating hexes.
+    const root = document.documentElement.style;
+    root.setProperty("--rk-surface", th.panel);
+    root.setProperty("--rk-page", th.pageBg);
+    root.setProperty("--rk-paper", th.panel);
+    root.setProperty("--rk-line", th.divider);
+    root.setProperty("--rk-title", th.textPrimary);
+    root.setProperty("--rk-ink", th.textSecondary);
+    root.setProperty("--rk-grey", th.textMuted);
+    root.setProperty("--rk-muted", th.textFaint);
+    root.setProperty("--rk-accent", th.accent);
+    root.setProperty("--rk-well", th.well);
+    root.setProperty("--rk-hover", th.rowHover);
+    root.setProperty("--rk-sel", th.rowSelected);
+    root.setProperty("--rk-icon-hover", th.iconHover);
+    root.setProperty("--rk-glass", th.glass);
   }, [mode]);
 
   const toggle = useCallback(() => {
