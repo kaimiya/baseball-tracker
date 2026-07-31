@@ -622,11 +622,13 @@ export default function BaseballTracker() {
   // Compared as local calendar days so it ticks over at the viewer's midnight
   // rather than UTC's, and never goes negative once the season is done.
   const [dY, dM, dD] = REGULAR_SEASON_END;
+  const seasonEnd = new Date(dY, dM - 1, dD);
   const now = new Date();
   const daysLeft = Math.max(
     0,
-    Math.round((new Date(dY, dM - 1, dD) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000)
+    Math.round((seasonEnd - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000)
   );
+  const seasonEndLabel = seasonEnd.toLocaleDateString([], { month: "short", day: "numeric" });
 
 
   // Metadata reads as caps: "2026 SEASON · 8 TEAMS · UPDATED 7:38 AM" — the
@@ -727,9 +729,12 @@ export default function BaseballTracker() {
                 </div>
               ))}
             </div>
+            {/* One quiet caption, not a headline: the four figures above are the
+                only numbers meant to carry weight here. Date derived from the
+                same constant as the count so the two can't drift apart. */}
             <div className="rk-countdown">
               <span className="rk-countdown-n">{daysLeft}</span>
-              <span>{daysLeft === 1 ? "day" : "days"} left to take a category</span>
+              <span>{daysLeft === 1 ? "day" : "days"} left · through {seasonEndLabel}</span>
             </div>
           </div>
 
