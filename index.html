@@ -206,8 +206,30 @@
          (gap ≈ 12–30% of the dot, corner radius ≈ 16%) so this reads as the
          same dot-matrix as the logo. The previous 8px tile with a 3.2px dot
          left gaps 1.5× the dot size — far too airy to match the mark. */
-      .rk-team-orb-dots { position: absolute; inset: -35%; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='5' height='5'><rect x='0' y='0' width='3.9' height='3.9' rx='0.62' fill='%239AA0AA'/></svg>"); background-size: 5px 5px; -webkit-mask-image: radial-gradient(circle, black 28%, transparent 70%); mask-image: radial-gradient(circle, black 28%, transparent 70%); opacity: 0; transform: scale(.85); transition: opacity .22s ease, transform .22s ease; pointer-events: none; }
-      .rk-team-orb:hover .rk-team-orb-dots, .rk-team-orb:focus-visible .rk-team-orb-dots { opacity: .45; transform: scale(1); }
+      /* Drawn as a MASK rather than a background-image so the colour lives in
+         CSS and can follow the theme — with the dots baked into an SVG fill they
+         were stuck one grey and couldn't tint on hover. Two mask layers, the dot
+         grid intersected with a radial fade so the motif dissolves at its edge. */
+      .rk-team-orb-dots {
+        position: absolute; inset: -35%;
+        background-color: var(--rk-muted);
+        -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='5' height='5'><rect x='0' y='0' width='3.9' height='3.9' rx='0.62' fill='%23000'/></svg>"), radial-gradient(circle, black 28%, transparent 70%);
+        mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='5' height='5'><rect x='0' y='0' width='3.9' height='3.9' rx='0.62' fill='%23000'/></svg>"), radial-gradient(circle, black 28%, transparent 70%);
+        -webkit-mask-size: 5px 5px, 100% 100%; mask-size: 5px 5px, 100% 100%;
+        -webkit-mask-composite: source-in; mask-composite: intersect;
+        opacity: 0; transform: scale(.85);
+        transition: opacity .22s ease, transform .22s ease, background-color .22s ease;
+        pointer-events: none;
+      }
+      .rk-team-orb:hover .rk-team-orb-dots, .rk-team-orb:focus-visible .rk-team-orb-dots { opacity: .45; transform: scale(1); background-color: var(--rk-accent); }
+      /* Touch has no hover, so the motif would never appear on mobile. Tie it to
+         the centred orb instead — scroll position is the "pointer" there. Both
+         conditions: (hover:none) catches real phones at any width, max-width
+         catches narrow viewports (and is what's testable in a desktop browser,
+         which reports hover:hover even when emulating a phone size). */
+      @media (hover: none), (max-width: 560px) {
+        .rk-team-orb.is-active .rk-team-orb-dots { opacity: .45; transform: scale(1); }
+      }
       /* Absolutely positioned so the (hidden) names of INACTIVE circles don't
          set each button's width — otherwise every orb was as wide as its team
          name and the circles were pushed far apart. Out of flow, so spacing is
