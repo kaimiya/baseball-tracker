@@ -344,9 +344,11 @@
         :root { --rk-gutter: 12px; }
         .rk-shell { padding: 6px 0 16px; }
         .rk-section-head { white-space: normal; }
-        /* Bold on mobile: at 12.5px in a dense header the league name needs the
-           weight to hold its own as the page's subject. */
-        .rk-league-title { font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+        /* Bold, and a step above the 13px team names: the league is the page's
+           subject, so it shouldn't sit smaller than the items inside it. Kept
+           well under the 19px section heads (and the ~18px one-line ceiling)
+           since this lives in the sticky header, which stays compact. */
+        .rk-league-title { font-size: 14.5px; font-weight: 700; white-space: nowrap; }
         /* Smaller + tighter so "2026 SEASON · 8 TEAMS · UPDATED 2:02 PM" reliably
            fits one line on a 375px screen — verified with real headroom, not a
            knife's-edge fit. */
