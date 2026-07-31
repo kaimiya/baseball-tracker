@@ -96,21 +96,28 @@
          read as one family of "structural heading" instead of two different
          typographic ideas. Markup stays title-case ("Leaders"); this
          transforms the display only. */
-      .rk-section-head { font: 700 15px/1.2 var(--rk-font); letter-spacing: .02em; text-transform: uppercase; color: var(--rk-title); white-space: nowrap; }
+      .rk-section-head { font: 700 19px/1.2 var(--rk-font); letter-spacing: .02em; text-transform: uppercase; color: var(--rk-title); white-space: nowrap; }
       .rk-body { font: 400 14px/1.4 var(--rk-font); color: var(--rk-grey); }
       .rk-caveat { font: 400 12px/1.5 var(--rk-font); color: var(--rk-grey); max-width: 520px; }
       .rk-nav { font: 500 12.5px/1 var(--rk-font); letter-spacing: .04em; text-transform: uppercase; color: var(--rk-grey); background: none; border: 0; padding: 0; cursor: pointer; transition: color .14s ease; }
       .rk-nav:hover { color: var(--rk-title); }
       .rk-nav.is-active { color: var(--rk-title); }
-      .rk-eyebrow { font: 700 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
+      .rk-eyebrow { font: 400 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-title); }
       /* The "2026 SEASON · 8 TEAMS · UPDATED …" line under the title. Its own
          class (not a blanket .rk-eyebrow override, which also styles Leaders
          labels and the payout line) so it can be tuned to actually fit one line. */
-      .rk-meta-line { gap: 7px; margin-top: 7px; }
+      /* Not bold: now that this grey is darker, Bold made the metadata compete
+         with the league title directly above it. Medium keeps it legible while
+         letting the title lead. */
+      .rk-meta-line { gap: 7px; margin-top: 7px; font-weight: 500; }
       /* Medium: heavier than the 400 data cells so headers read as headers,
          but lighter than the 700 label role — a full bold row of column
          headers over every row was what read as "too bold" for the table. */
-      .rk-colhead { font: 500 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
+      /* Black and Regular like the eyebrows, but a step smaller with slightly
+         wider tracking: sitting directly above 13px data, a same-size header
+         row read at nearly equal weight and the table went flat. Size does the
+         hierarchy here so the labels can stay black rather than going grey. */
+      .rk-colhead { font: 400 9.5px/1 var(--rk-font); letter-spacing: .05em; text-transform: uppercase; color: var(--rk-title); }
       .rk-figure { font: 700 34px/.95 var(--rk-font); letter-spacing: -.008em; color: var(--rk-accent); font-variant-numeric: tabular-nums; }
       .rk-team-name { font: 500 14px/1.2 var(--rk-font); letter-spacing: .018em; color: var(--rk-title); }
       /* Compact team name — dropdown trigger/options, empty-state chips, the
@@ -227,8 +234,12 @@
 
       /* Payout line — dashed rule marking the last paid finishing spot. */
       .rk-payout-line { display: flex; align-items: center; gap: 10px; margin: 0; padding: 9px 0; }
-      .rk-payout-line span { font: 700 9px/1 var(--rk-font); letter-spacing: .07em; text-transform: uppercase; color: var(--rk-muted); white-space: nowrap; }
-      .rk-payout-line::after { content: ""; flex: 1; border-top: 1px dashed var(--rk-line); }
+      /* Same type treatment as the eyebrows/column heads (Regular 10.5px caps,
+         .03em) but in the accent — this line marks who's in the money, which is
+         exactly what blue is reserved for. */
+      .rk-payout-line span { font: 400 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-accent); white-space: nowrap; }
+      /* Dashes softened so the rule reads as a divider, not a second headline. */
+      .rk-payout-line::after { content: ""; flex: 1; border-top: 1px dashed var(--rk-accent); opacity: .4; }
 
       /* Standings + splits rows — full-bleed grids divided by hairlines */
       .rk-row { display: grid; align-items: center; gap: 9px; }
@@ -328,13 +339,22 @@
         .rk-standings-row { grid-template-columns: 16px minmax(0,1fr) repeat(4, 38px); gap: 6px; }
         .rk-splits-row { grid-template-columns: minmax(0,1fr) repeat(4, 38px); gap: 6px; }
         .rk-team-name { font-size: 13px; letter-spacing: .01em; }
-        .rk-data { font-size: 13px; }
+        /* At 13px the stat figures — the actual content of this app — read thin
+           at Regular. Step the whole numeric stack up one weight on mobile, and
+           make the two that anchor a row (rank, category leader) genuinely bold
+           so there's a clear hierarchy instead of a uniformly light table. */
+        .rk-data { font-size: 13px; font-weight: 500; }
+        .rk-data.is-leader { font-weight: 700; }
+        .rk-data.is-rank { font-weight: 700; }
         .rk-trow, .rk-splits-trow { min-height: 52px; }
-        /* Narrow columns: tuck the live gain under the figure instead of beside it. */
-        /* Narrow columns: tuck the live gain under the number instead of beside
-           it. Same principle as desktop — absolute, so it never shifts the
-           number off the column's centerline. */
-        .rk-stat-delta { left: 50%; top: 100%; transform: translateX(-50%); margin-left: 0; margin-top: 2px; }
+        /* Narrow columns can't fit "227 +4" side by side, so the gain stacks
+           beneath. It sits IN FLOW (not absolute) in a fixed-height slot that
+           every cell reserves — so all four figures share a baseline and every
+           row is exactly the same height, gain or no gain. Absolute positioning
+           let it hang into the row's whitespace, which is what made rows with a
+           live gain look taller and unevenly spaced. */
+        .rk-stat { display: inline-flex; flex-direction: column; align-items: center; }
+        .rk-stat-delta { position: static; transform: none; margin: 1px 0 0; height: 11px; line-height: 11px; font-size: 9.5px; }
         .rk-is-record { display: none !important; }
         /* No room for a fixed Dates column at 375px — same trade-off as
            hiding Record in Standings above. */

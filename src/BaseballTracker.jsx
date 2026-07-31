@@ -325,6 +325,11 @@ function TeamPicker({ players, logos, value, onChange, t }) {
 // A figure with today's live gain. Desktop puts the gain inline to the right
 // ("239 +1"); on mobile CSS re-positions it beneath so the narrow stat columns
 // don't get crowded. Both layouts live in .rk-stat / .rk-stat-delta.
+// The gain is only rendered when it exists — no reserved empty slot. The row is
+// a fixed height with align-items:center, so a cell with just a figure centres
+// that figure, and a cell with a figure + gain centres the pair as a group.
+// (Reserving the slot unconditionally pushed lone figures upward and left dead
+// space under them, which made gain-less rows read as top-aligned.)
 function StatWithDelta({ value, delta, color }) {
   return (
     <span className="rk-stat">
@@ -401,8 +406,16 @@ export default function BaseballTracker() {
     // runway both ways before the first wrap), but on a RANDOM team each load
     // rather than always the same one — otherwise every visit opens on an
     // identical screen.
-    const startIndex = n + Math.floor(Math.random() * n);
-    el.children[startIndex]?.scrollIntoView({ inline: "center", block: "nearest", behavior: "auto" });
+    // NB: set scrollLeft directly rather than scrollIntoView — even with
+    // block:"nearest", scrollIntoView also scrolls ANCESTORS, so on mount it
+    // dragged the whole page down to the picker and the app opened
+    // mid-document instead of at the top.
+    const centerChild = (i, behavior = "auto") => {
+      const c = el.children[i];
+      if (!c) return;
+      el.scrollTo({ left: c.offsetLeft + c.offsetWidth / 2 - el.clientWidth / 2, behavior });
+    };
+    centerChild(n + Math.floor(Math.random() * n));
     const measure = () => {
       raf = null;
       // Re-park into the middle copy before measuring, so the wrap never
@@ -425,7 +438,13 @@ export default function BaseballTracker() {
         if (mark) {
           mark.style.transform = `scale(${1 - norm * 0.38})`;
           mark.style.opacity = String(1 - norm * 0.5);
-          mark.style.filter = norm > 0.04 ? `grayscale(${norm})` : "none";
+          // Colour ramps out ~3x faster than the size/opacity falloff, so only
+          // the circle actually at centre keeps its colour and everything else
+          // reads clearly greyed — the same binary active/inactive language as
+          // the nav tabs. Sharing the gentle falloff curve left the immediate
+          // neighbours only ~30% desaturated, i.e. still visibly in colour.
+          const gray = Math.min(norm * 3.2, 1);
+          mark.style.filter = gray > 0.04 ? `grayscale(${gray})` : "none";
         }
       });
       setOrbitActive(closest);
@@ -517,7 +536,12 @@ export default function BaseballTracker() {
   function scrollToRef(ref) {
     const el = ref?.current;
     if (!el) return;
-    const y = window.scrollY + el.getBoundingClientRect().top - 16;
+    // Offset by the sticky bar's real height, measured live — a flat 16px was
+    // far less than the bar is tall, so nav jumps parked the section heading
+    // underneath it and it read as cut off.
+    const bar = document.querySelector(".rk-sticky");
+    const barH = bar ? bar.getBoundingClientRect().height : 0;
+    const y = window.scrollY + el.getBoundingClientRect().top - barH - 12;
     window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
   }
 
@@ -533,8 +557,13 @@ export default function BaseballTracker() {
   // Tapping a circle in the orbit picker centres it (so it becomes the large,
   // full-colour "active" one) in addition to loading its data below.
   function selectOrbitTeam(player, index) {
-    const child = orbitRef.current?.children[index];
-    child?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    // Horizontal-only centring (same reason as the mount case above:
+    // scrollIntoView would also scroll the page, not just this track).
+    const el = orbitRef.current;
+    const child = el?.children[index];
+    if (el && child) {
+      el.scrollTo({ left: child.offsetLeft + child.offsetWidth / 2 - el.clientWidth / 2, behavior: "smooth" });
+    }
     selectTeam(player);
   }
 
@@ -716,9 +745,9 @@ export default function BaseballTracker() {
                       <span className="rk-team-name">{player}</span>
                     </div>
                     <span className="rk-data is-record rk-is-record">{records[player] || "—"}</span>
-                    <span className={statCls("hr")}>{showDeltas ? <StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} color={t.delta} /> : tot.hr}</span>
+                    <span className={statCls("hr")}><StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} color={t.delta} /></span>
                     <span className={statCls("avg")}>{fmtAvg(tot.avg)}</span>
-                    <span className={statCls("wins")}>{showDeltas ? <StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} color={t.delta} /> : tot.wins}</span>
+                    <span className={statCls("wins")}><StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} color={t.delta} /></span>
                     <span className={statCls("era")}>{fmtERA(tot.era)}</span>
                   </div>
                   {idx + 1 === paidSpots && !isLast && (

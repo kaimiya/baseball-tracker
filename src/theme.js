@@ -13,8 +13,11 @@ export const THEMES = {
     divider: "#E3E3E3",      // line
     textPrimary: "#000000",  // title — titles + team names, pure black
     textSecondary: "#16181D",// ink — body / stat data
-    textMuted: "#6E7480",    // grey — secondary text, record, deks
-    textFaint: "#9AA0AA",    // muted — eyebrows, column heads, rank, legal
+    textMuted: "#565C66",    // grey — secondary text, record, deks
+    // muted — eyebrows, column heads, legal. Was #9AA0AA, which sat at 2.63:1
+    // on white (well under the 4.5:1 AA floor) and read washed out; this is
+    // 4.69:1 while staying a clear step lighter than textMuted above.
+    textFaint: "#6E7480",
     accent: "#0076B6",       // Honolulu blue — live/leading/winning ONLY
     accentHover: "#015B8C",
     accentText: "#ffffff",
