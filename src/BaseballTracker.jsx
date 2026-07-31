@@ -10,6 +10,11 @@ const WORDMARK = "'Bricolage Grotesque Variable', 'Bricolage Grotesque', sans-se
 // The screen is a single ~640px editorial column centered on the ground.
 const MAXW = 680;
 
+// Last day of THIS LEAGUE's regular season (Aug 30, 2026) — after it the
+// playoffs begin, so it's the deadline for the four King category awards.
+// Hardcoded deliberately: derived league config, not something read from ESPN.
+const REGULAR_SEASON_END = [2026, 8, 30]; // [year, month (1-12), day]
+
 // League payout structure (money league config — not from ESPN). $300 buy-in ×
 // 8 teams = $2,400 pot. Four King categories pay $100 to the season leader (ties
 // split evenly); the rest ($2,000) is the playoff pool: 1st $1,100, 2nd $600,
@@ -613,6 +618,17 @@ export default function BaseballTracker() {
 
   const catLabel = (cat) => (cat === "era" ? "Best ERA" : cat === "hr" ? "Home Runs" : cat === "avg" ? "Batting Avg" : "Wins");
 
+  // Days until the regular season ends — how long is left to take a category.
+  // Compared as local calendar days so it ticks over at the viewer's midnight
+  // rather than UTC's, and never goes negative once the season is done.
+  const [dY, dM, dD] = REGULAR_SEASON_END;
+  const now = new Date();
+  const daysLeft = Math.max(
+    0,
+    Math.round((new Date(dY, dM - 1, dD) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000)
+  );
+
+
   // Metadata reads as caps: "2026 SEASON · 8 TEAMS · UPDATED 7:38 AM" — the
   // Updated segment doubles as the refresh trigger.
   const metaNodes = metaParts.map((p) => <span key={p}>{p}</span>);
@@ -710,6 +726,10 @@ export default function BaseballTracker() {
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="rk-countdown">
+              <span className="rk-countdown-n">{daysLeft}</span>
+              <span>{daysLeft === 1 ? "day" : "days"} left to take a category</span>
             </div>
           </div>
 
@@ -879,7 +899,10 @@ export default function BaseballTracker() {
           </div>
 
           {/* Footer — the dot-R mark lives here */}
-          <div className="rk-section" style={{ display: "grid", gridTemplateColumns: "auto 1fr", alignItems: "center", gap: "12px", padding: "18px var(--rk-gutter)" }}>
+          {/* marginTop sets the space ABOVE the footer's divider, separating it
+              from the last content section without touching the shared 38px
+              section rhythm. */}
+          <div className="rk-section" style={{ display: "grid", gridTemplateColumns: "auto 1fr", alignItems: "center", gap: "12px", padding: "18px var(--rk-gutter)", marginTop: "48px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
               <MarkTile t={t} size={26} />
               <span className="rk-wordmark" style={{ fontSize: "19px" }}>rake</span>

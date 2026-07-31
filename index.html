@@ -232,6 +232,10 @@
       .rk-award { min-width: 0; padding: 0 18px; border-left: 1px solid var(--rk-line); display: flex; flex-direction: column; gap: 9px; }
       .rk-award:first-child { border-left: 0; padding-left: 0; }
       .rk-award-team { display: flex; align-items: center; gap: 7px; min-width: 0; margin-top: 1px; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; width: 100%; }
+      /* Countdown under the categories: the number takes the accent (it's a
+         money deadline), the label stays quiet caps like every other eyebrow. */
+      .rk-countdown { display: flex; align-items: baseline; gap: 8px; margin-top: 30px; font: 400 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
+      .rk-countdown-n { font: 700 15px/1 var(--rk-font); letter-spacing: -.01em; color: var(--rk-accent); font-variant-numeric: tabular-nums; }
       .rk-award-team span:last-child { min-width: 0; }
       /* How far clear the leader is, and over whom — quiet, below the team. */
       /* margin-top:auto pins this to the bottom of the cell, so the four lines
@@ -298,7 +302,7 @@
       /* Right-aligned, underlined text link in the title colour — reads as a
          deliberate action rather than a stray caption. Wrapper handles the
          right alignment so the underline hugs the text, not the full row. */
-      .rk-view-all-row { display: flex; justify-content: flex-end; margin-top: 14px; margin-bottom: -20px; }
+      .rk-view-all-row { display: flex; justify-content: flex-end; margin-top: 14px; }
       .rk-view-all { display: inline-flex; align-items: center; gap: 6px; padding: 0; font: 500 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-title); background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; transition: opacity .14s ease; }
       .rk-view-all:hover { opacity: .6; }
       /* Stat columns centre their copy — headers and values alike, in both
