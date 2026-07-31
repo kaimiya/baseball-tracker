@@ -325,16 +325,17 @@ function TeamPicker({ players, logos, value, onChange, t }) {
 // A figure with today's live gain. Desktop puts the gain inline to the right
 // ("239 +1"); on mobile CSS re-positions it beneath so the narrow stat columns
 // don't get crowded. Both layouts live in .rk-stat / .rk-stat-delta.
-// The gain is only rendered when it exists — no reserved empty slot. The row is
-// a fixed height with align-items:center, so a cell with just a figure centres
-// that figure, and a cell with a figure + gain centres the pair as a group.
-// (Reserving the slot unconditionally pushed lone figures upward and left dead
-// space under them, which made gain-less rows read as top-aligned.)
-function StatWithDelta({ value, delta, color }) {
+// `reserve` is decided PER ROW, not globally: a row keeps the gain's slot in
+// every one of its cells as soon as any single stat in that row has a gain.
+// That way all four figures in a row share one baseline instead of the gaining
+// one riding high while its neighbours stay centred — and rows with no gain at
+// all skip the slot entirely, so they centre cleanly with no dead space under
+// them. Row height is fixed either way, so the table's rhythm doesn't change.
+function StatWithDelta({ value, delta, color, reserve }) {
   return (
     <span className="rk-stat">
       <span>{value}</span>
-      {delta ? <span className="rk-stat-delta" style={{ color }}>+{delta}</span> : null}
+      {reserve ? <span className="rk-stat-delta" style={{ color }}>{delta ? `+${delta}` : ""}</span> : null}
     </span>
   );
 }
@@ -733,6 +734,9 @@ export default function BaseballTracker() {
               const isLast = idx === standingsSorted.length - 1;
               const fcls = (cat) => { const d = flash[`${player}-${cat}`]; return d ? ` bt-flash-${d}` : ""; };
               const statCls = (cat) => "rk-data rk-cell-num" + (isLeader(cat, player) ? " is-leader" : "") + fcls(cat);
+              // If anything in this row gained today, every cell in the row
+              // reserves the gain slot so the four figures stay on one baseline.
+              const rowHasDelta = Boolean(liveTeams[player]?.hr || liveTeams[player]?.w);
               return (
                 <Fragment key={player}>
                   <div
@@ -745,10 +749,10 @@ export default function BaseballTracker() {
                       <span className="rk-team-name">{player}</span>
                     </div>
                     <span className="rk-data is-record rk-is-record">{records[player] || "—"}</span>
-                    <span className={statCls("hr")}><StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} color={t.delta} /></span>
-                    <span className={statCls("avg")}>{fmtAvg(tot.avg)}</span>
-                    <span className={statCls("wins")}><StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} color={t.delta} /></span>
-                    <span className={statCls("era")}>{fmtERA(tot.era)}</span>
+                    <span className={statCls("hr")}><StatWithDelta value={tot.hr} delta={liveTeams[player]?.hr} color={t.delta} reserve={rowHasDelta} /></span>
+                    <span className={statCls("avg")}><StatWithDelta value={fmtAvg(tot.avg)} reserve={rowHasDelta} /></span>
+                    <span className={statCls("wins")}><StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} color={t.delta} reserve={rowHasDelta} /></span>
+                    <span className={statCls("era")}><StatWithDelta value={fmtERA(tot.era)} reserve={rowHasDelta} /></span>
                   </div>
                   {idx + 1 === paidSpots && !isLast && (
                     <div className="rk-payout-line" aria-hidden="true"><span>Payout line</span></div>
