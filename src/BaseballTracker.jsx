@@ -280,7 +280,10 @@ function TeamPicker({ players, logos, value, onChange, t }) {
   }, [open]);
 
   return (
-    <div ref={rootRef} style={{ position: "relative" }}>
+    // inline-flex, not block: as a block the wrapper picked up inline
+    // line-height leading around the button, so centring it against the team
+    // name centred the WRAPPER while the button itself sat off-centre.
+    <div ref={rootRef} style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
       <button
         type="button"
         className="rk-team-select rk-team-name-sm"
@@ -288,12 +291,7 @@ function TeamPicker({ players, logos, value, onChange, t }) {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        {value ? (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "7px", minWidth: 0 }}>
-            <TeamMark name={value} logo={logos[value]} size={16} t={t} />
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</span>
-          </span>
-        ) : "SELECT TEAM"}
+        {value ? "Change" : "Select team"}
       </button>
       {open && (
         <ul className="rk-team-listbox" role="listbox">
@@ -596,7 +594,6 @@ export default function BaseballTracker() {
     leaderTeams[cat] = list;
   });
   // Teams finishing above this line take a playoff payout (1st/2nd/3rd).
-  const paidSpots = PAYOUTS.playoffs.length;
   // Today's live per-team gains (HR/Wins). Only widen the HR/Wins columns for
   // the delta slot on days when something has actually moved.
   const liveTeams = live.teams || {};
@@ -741,7 +738,7 @@ export default function BaseballTracker() {
                 <Fragment key={player}>
                   <div
                     onClick={() => selectTeam(player)}
-                    className={"rk-row rk-standings-row rk-trow" + (isSel ? " is-sel" : "") + (isLast ? " is-last" : "") + (idx + 1 === paidSpots && !isLast ? " is-prepay" : "")}
+                    className={"rk-row rk-standings-row rk-trow" + (isSel ? " is-sel" : "") + (isLast ? " is-last" : "")}
                   >
                     <span className="rk-data is-rank">{idx + 1}</span>
                     <div className="rk-team">
@@ -754,9 +751,6 @@ export default function BaseballTracker() {
                     <span className={statCls("wins")}><StatWithDelta value={tot.wins} delta={liveTeams[player]?.w} color={t.delta} reserve={rowHasDelta} /></span>
                     <span className={statCls("era")}><StatWithDelta value={fmtERA(tot.era)} reserve={rowHasDelta} /></span>
                   </div>
-                  {idx + 1 === paidSpots && !isLast && (
-                    <div className="rk-payout-line" aria-hidden="true"><span>Payout line</span></div>
-                  )}
                 </Fragment>
               );
             })}
@@ -766,30 +760,25 @@ export default function BaseballTracker() {
           <div ref={splitsRef} className="rk-section rk-pad">
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
               <div className="rk-section-head">Weekly Splits</div>
-              {/* Only shown once a team is picked (to switch teams without
-                  scrolling back to the orbit) — on the empty state the orbit
-                  picker below is already the team selector, so a second one
-                  here was redundant. */}
-              {sel && (
-                <TeamPicker
-                  players={standingsSorted}
-                  logos={logos}
-                  value={sel}
-                  onChange={selectTeam}
-                  t={t}
-                />
-              )}
             </div>
             {sel && selWeeks ? (
               <div ref={splitsTeamRef}>
                 {/* This caveat is about the live table below, so it only shows once
                     there's a table to explain — otherwise it read as a stray line
                     of text floating above the empty state. */}
-                <div className="rk-caveat" style={{ margin: "8px 0 18px" }}>Finished weeks match ESPN exactly. The current week is live, so AVG and ERA move as games play.</div>
+                {/* Kept short enough to sit on one line within .rk-caveat's
+                    520px readable-measure cap. */}
+                <div className="rk-caveat" style={{ margin: "8px 0 18px" }}>Finished weeks match ESPN. The live week's AVG and ERA still move.</div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "2px" }}>
                   <TeamMark name={sel} logo={logos[sel]} size={30} t={t} />
                   <div style={{ minWidth: 0 }}>
-                    <div className="rk-team-name">{sel}</div>
+                    {/* "Change" sits right beside the name it changes, instead of
+                        a separate boxed dropdown in the section header — the
+                        control is where the thing it edits already is. */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+                      <span className="rk-team-name">{sel}</span>
+                      <TeamPicker players={standingsSorted} logos={logos} value={sel} onChange={selectTeam} t={t} />
+                    </div>
                     <div className="rk-eyebrow" style={{ marginTop: "3px", fontVariantNumeric: "tabular-nums" }}>
                       {[records[sel] && `${records[sel]}${seeds[sel] ? ` · ${ordinal(seeds[sel])} of ${league.meta?.teamCount || players.length}` : ""}`, managers[sel]].filter(Boolean).join("  ·  ")}
                     </div>
@@ -856,7 +845,10 @@ export default function BaseballTracker() {
               // active/inactive language as the nav tabs above); everything
               // else shrinks and desaturates. Scroll/swipe to bring a
               // different team to centre, tap any circle to jump straight to it.
-              <div className="rk-team-orbit-wrap" style={{ marginTop: "18px" }}>
+              // marginTop is a touch more than the 18px heading→content gap the
+              // text sections use: a row of 52px crests needs more optical air
+              // under a heading than a line of column labels does.
+              <div className="rk-team-orbit-wrap" style={{ marginTop: "28px" }}>
                 <div className="rk-team-orbit" ref={setOrbitRef}>
                   {/* Roster repeated ORBIT_COPIES times so the track can wrap
                       seamlessly — see the loop logic in the scroll effect. */}

@@ -26,7 +26,7 @@ export const THEMES = {
     live: "#0076B6",         // LIVE badge — accent blue, hairline-outlined
     danger: "#C23B22",       // error state only
     rowHover: "#F5F6F8",
-    rowSelected: "#EDEEF1",  // neutral grey — one step deeper than rowHover
+    rowSelected: "#F5F6F8",  // same soft grey the hover state uses
     selectedBar: "#0076B6",
     tableHeadText: "#9AA0AA",
     iconColor: "#6E7480",
@@ -69,7 +69,7 @@ export const THEMES = {
     live: "#4FA6D4",
     danger: "#EF5A44",
     rowHover: "#181C22",
-    rowSelected: "#232830",  // neutral — one step deeper than rowHover
+    rowSelected: "#181C22",  // same soft tone the hover state uses
     selectedBar: "#4FA6D4",
     tableHeadText: "#6E7682",
     iconColor: "#A5ACB8",

@@ -99,7 +99,7 @@
       .rk-section-head { font: 700 19px/1.2 var(--rk-font); letter-spacing: .02em; text-transform: uppercase; color: var(--rk-title); white-space: nowrap; }
       .rk-body { font: 400 14px/1.4 var(--rk-font); color: var(--rk-grey); }
       .rk-caveat { font: 400 12px/1.5 var(--rk-font); color: var(--rk-grey); max-width: 520px; }
-      .rk-nav { font: 500 12.5px/1 var(--rk-font); letter-spacing: .04em; text-transform: uppercase; color: var(--rk-grey); background: none; border: 0; padding: 0; cursor: pointer; transition: color .14s ease; }
+      .rk-nav { font: 500 13.5px/1 var(--rk-font); letter-spacing: .04em; text-transform: uppercase; color: var(--rk-grey); background: none; border: 0; padding: 0; cursor: pointer; transition: color .14s ease; }
       .rk-nav:hover { color: var(--rk-title); }
       .rk-nav.is-active { color: var(--rk-title); }
       .rk-eyebrow { font: 400 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-title); }
@@ -137,9 +137,14 @@
       .rk-badge-live { display: inline-flex; align-items: center; gap: 5px; font: 700 9px/1 var(--rk-font); letter-spacing: .07em; text-transform: uppercase; color: var(--rk-accent); border: 1px solid var(--rk-accent); padding: 3px 6px; white-space: nowrap; }
       /* Team picker trigger — a real button now (was a native <select>, which
          couldn't show a team logo and read as stock browser chrome). */
-      .rk-team-select { display: inline-flex; align-items: center; color: var(--rk-title); background: var(--rk-paper); border: 1px solid var(--rk-line); padding: 9px 30px 9px 12px; cursor: pointer; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%239AA0AA' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M1 1l4 4 4-4'/></svg>"); background-repeat: no-repeat; background-position: right 11px center; max-width: 220px; transition: border-color .14s ease; }
-      .rk-team-select:hover { border-color: var(--rk-grey); }
-      .rk-team-select:focus-visible { outline: none; border-color: var(--rk-accent); }
+      /* Same language as "All 17 weeks" — an underlined caps text control, not a
+         boxed form field. The bordered select was the only input-looking chrome
+         left on a page that otherwise has none. */
+      /* A plain accent-blue text action beside the team name — no box, no
+         chevron. Blue already means "actionable/live" everywhere else here. */
+      .rk-team-select { display: inline-flex; align-items: center; padding: 0; font: 500 9px/1 var(--rk-font); letter-spacing: .05em; text-transform: uppercase; color: var(--rk-accent); background: none; border: 0; cursor: pointer; flex-shrink: 0; transition: opacity .14s ease; }
+      .rk-team-select:hover { opacity: .6; }
+      .rk-team-select:focus-visible { outline: 1px solid var(--rk-accent); outline-offset: 3px; }
 
       /* Team picker dropdown list */
       .rk-team-listbox { position: absolute; z-index: 10; top: calc(100% + 4px); right: 0; min-width: 220px; max-height: 320px; overflow-y: auto; margin: 0; padding: 4px; list-style: none; background: var(--rk-paper); border: 1px solid var(--rk-line); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
@@ -207,13 +212,17 @@
       .rk-updated:hover:not(:disabled) { color: var(--rk-accent); }
 
       /* Surfaces */
-      .rk-shell { padding: 8px 0 24px; }
+      /* 18px matches the footer's own padding, so the space below the mark is
+         the same as above it instead of the footer's 18px plus a trailing 24. */
+      .rk-shell { padding: 8px 0 18px; }
       .rk-card { background: var(--rk-paper); }
       /* Sticky app bar — the nav + shrinking league title stay pinned to the top. */
       .rk-sticky { position: sticky; top: 0; z-index: 20; background: var(--rk-paper); border-top: 1px solid var(--rk-line); border-bottom: 1px solid var(--rk-line); }
       .rk-section + .rk-section { border-top: 1px solid var(--rk-line); }
       .rk-section + .rk-section.rk-flush { border-top: 0; }
-      .rk-pad { padding: 32px var(--rk-gutter) 34px; }
+      /* Symmetric: sections sit between two dividers, so an uneven top/bottom
+         (was 32/34) made the content look fractionally high in its own band. */
+      .rk-pad { padding: 38px var(--rk-gutter); }
       .rk-wordmark { font-family: var(--rk-font-wordmark); font-weight: 800; letter-spacing: -.04em; color: var(--rk-ink); line-height: 1; }
 
       /* Awards — 4 across, full hairline grid. minmax(0,1fr)+min-width:0 stops nowrap
@@ -246,12 +255,23 @@
       /* Four EVEN stat columns, wide enough to hold "239 +1" side by side. Both
          tables use the same four widths so HR/AVG/Wins/ERA line up vertically
          between Standings and Weekly Splits. */
-      .rk-standings-row { grid-template-columns: 22px minmax(0,1fr) 84px repeat(4, 58px); }
+      /* Four EVEN stat columns, each narrower than Record — a stat is 2–4 chars,
+         a record is up to 9 ("125-58-9"). Team stays flexible so it absorbs the
+         row's slack; the stat block therefore anchors to the right edge, which
+         is what keeps it aligned with Weekly Splits below. */
+      /* Team is fixed and RECORD absorbs the row's slack. Record's text is
+         left-aligned in its column, so it sits right beside the team name
+         instead of drifting out next to the stats — while the stat block still
+         anchors to the right edge, keeping it aligned with Weekly Splits. */
+      .rk-standings-row { grid-template-columns: 22px 260px minmax(84px,1fr) repeat(4, 72px); }
       /* Week | Dates | stats — parallel to Standings' Team | Record | stats.
          The stat block anchors to the row's right edge regardless of what's
          in front of it, so this doesn't need to match Standings column-for-
          column to keep HR/AVG/Wins/ERA aligned between the two tables. */
-      .rk-splits-row     { grid-template-columns: minmax(0,1fr) 92px repeat(4, 58px); }
+      /* Same construction as Standings: Week fixed, DATES absorbs the slack so
+         it sits beside the week label. 291 + 9 == 22 + 260 + 9 + 9, so Dates
+         starts at the same x as Record above. */
+      .rk-splits-row     { grid-template-columns: 291px minmax(92px,1fr) repeat(4, 72px); }
       /* Table hairlines stay inside the content column — only SECTION dividers
          run edge-to-edge. Hence no negative gutter margin on these. */
       .rk-head { margin: 18px 0 0; padding: 0 0 11px; border-bottom: 1px solid var(--rk-line); }
@@ -278,7 +298,7 @@
       /* Right-aligned, underlined text link in the title colour — reads as a
          deliberate action rather than a stray caption. Wrapper handles the
          right alignment so the underline hugs the text, not the full row. */
-      .rk-view-all-row { display: flex; justify-content: flex-end; margin-top: 14px; }
+      .rk-view-all-row { display: flex; justify-content: flex-end; margin-top: 14px; margin-bottom: -20px; }
       .rk-view-all { display: inline-flex; align-items: center; gap: 6px; padding: 0; font: 500 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-title); background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; transition: opacity .14s ease; }
       .rk-view-all:hover { opacity: .6; }
       /* Stat columns centre their copy — headers and values alike, in both
@@ -309,8 +329,11 @@
 
       /* ---- Mobile (≈390px): section heads shrink, awards go 2×2, record hides ---- */
       @media (max-width: 560px) {
-        /* Tighter page gutter buys back ~12px of row width for team names. */
-        :root { --rk-gutter: 16px; }
+        /* Gutter, row gaps and the team avatar all give up a few px so the stat
+           columns can widen enough to hold "227 +4" on ONE line. Harvesting the
+           space here rather than from the name column means only the longest
+           name clips — taking it all from the name truncated 7 of 8. */
+        :root { --rk-gutter: 12px; }
         .rk-shell { padding: 6px 0 16px; }
         .rk-section-head { white-space: normal; }
         .rk-league-title { font-size: 12.5px; white-space: nowrap; }
@@ -320,13 +343,13 @@
         .rk-meta-line { font-size: 10.5px; letter-spacing: .025em; gap: 6px; margin-top: 6px; }
         .rk-body { font-size: 13px; }
         .rk-caveat { font-size: 11.5px; }
-        .rk-figure { font-size: 30px; }
+        .rk-figure { font-size: 36px; }
         /* Condensed header: the three stacked bars cost ~210px of an 812px
            screen, so trim their vertical padding and the wordmark. */
         .rk-brandbar { padding-top: 9px !important; padding-bottom: 9px !important; }
         .rk-wordmark-top { font-size: 20px !important; }
         .rk-navbar { padding-top: 10px !important; padding-bottom: 10px !important; }
-        .rk-nav { font-size: 11.5px; }
+        .rk-nav { font-size: 12.5px; }
         .rk-identity { padding-top: 12px !important; padding-bottom: 12px !important; }
         /* 2×2 on mobile: vertical hairline between the columns, horizontal between the rows. */
         .rk-awards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -335,10 +358,15 @@
         .rk-award:nth-child(even) { border-left: 1px solid var(--rk-line); }
         .rk-award:nth-child(1), .rk-award:nth-child(2) { padding-bottom: 18px; }
         .rk-award:nth-child(3), .rk-award:nth-child(4) { border-top: 1px solid var(--rk-line); padding-top: 18px; }
-        /* Tighter stat columns + smaller name so full team names fit unclipped. */
-        .rk-standings-row { grid-template-columns: 16px minmax(0,1fr) repeat(4, 38px); gap: 6px; }
-        .rk-splits-row { grid-template-columns: minmax(0,1fr) repeat(4, 38px); gap: 6px; }
+        /* 46px columns fit figure + inline gain; 4px gaps and an 18px avatar pay
+           for most of it, so the name column only gives up ~8px. */
+        /* 14px rank: every name came up exactly 1px short of its natural width
+           (sub-pixel rounding, not a real shortfall) and ellipsised for it. */
+        .rk-standings-row { grid-template-columns: 14px minmax(0,1fr) repeat(4, 46px); gap: 4px; }
+        .rk-splits-row { grid-template-columns: minmax(0,1fr) repeat(4, 46px); gap: 4px; }
         .rk-team-name { font-size: 13px; letter-spacing: .01em; }
+        .rk-team { gap: 5px; }
+        .rk-trow .bt-teammark { width: 18px !important; height: 18px !important; }
         /* At 13px the stat figures — the actual content of this app — read thin
            at Regular. Step the whole numeric stack up one weight on mobile, and
            make the two that anchor a row (rank, category leader) genuinely bold
@@ -347,14 +375,11 @@
         .rk-data.is-leader { font-weight: 700; }
         .rk-data.is-rank { font-weight: 700; }
         .rk-trow, .rk-splits-trow { min-height: 52px; }
-        /* Narrow columns can't fit "227 +4" side by side, so the gain stacks
-           beneath. It sits IN FLOW (not absolute) in a fixed-height slot that
-           every cell reserves — so all four figures share a baseline and every
-           row is exactly the same height, gain or no gain. Absolute positioning
-           let it hang into the row's whitespace, which is what made rows with a
-           live gain look taller and unevenly spaced. */
-        .rk-stat { display: inline-flex; flex-direction: column; align-items: center; }
-        .rk-stat-delta { position: static; transform: none; margin: 1px 0 0; height: 11px; line-height: 11px; font-size: 9.5px; }
+        /* Columns are now wide enough for the gain to sit INLINE, so rows stay
+           single-line and can never shift vertically. It stays absolutely
+           positioned off the figure's right edge — in flow it would push the
+           figure off the column's centreline on gaining rows only. */
+        .rk-stat-delta { font-size: 9px; margin-left: 3px; }
         .rk-is-record { display: none !important; }
         /* No room for a fixed Dates column at 375px — same trade-off as
            hiding Record in Standings above. */
