@@ -254,15 +254,13 @@
         transition: opacity .22s ease, transform .22s ease, background-color .22s ease;
         pointer-events: none;
       }
+      /* The centred orb carries the motif in grey on EVERY device — it marks
+         what's selected, which is true whether or not a pointer exists. (This
+         was previously scoped to touch only, so desktop showed nothing until
+         you happened to hover.) */
+      .rk-team-orb.is-active .rk-team-orb-dots { opacity: .45; transform: scale(1); }
+      /* Hover is the extra layer on top: same motif, tinted to the accent. */
       .rk-team-orb:hover .rk-team-orb-dots, .rk-team-orb:focus-visible .rk-team-orb-dots { opacity: .45; transform: scale(1); background-color: var(--rk-accent); }
-      /* Touch has no hover, so the motif would never appear on mobile. Tie it to
-         the centred orb instead — scroll position is the "pointer" there. Both
-         conditions: (hover:none) catches real phones at any width, max-width
-         catches narrow viewports (and is what's testable in a desktop browser,
-         which reports hover:hover even when emulating a phone size). */
-      @media (hover: none), (max-width: 560px) {
-        .rk-team-orb.is-active .rk-team-orb-dots { opacity: .45; transform: scale(1); }
-      }
       /* Absolutely positioned so the (hidden) names of INACTIVE circles don't
          set each button's width — otherwise every orb was as wide as its team
          name and the circles were pushed far apart. Out of flow, so spacing is
