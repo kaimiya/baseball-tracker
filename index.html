@@ -286,7 +286,7 @@
       .rk-section + .rk-section.rk-flush { border-top: 0; }
       /* Symmetric: sections sit between two dividers, so an uneven top/bottom
          (was 32/34) made the content look fractionally high in its own band. */
-      .rk-pad { padding: 38px var(--rk-gutter); }
+      .rk-pad { padding: 76px var(--rk-gutter); }
       .rk-wordmark { font-family: var(--rk-font-wordmark); font-weight: 800; letter-spacing: -.04em; color: var(--rk-ink); line-height: 1; }
 
       /* Awards — 4 across, full hairline grid. minmax(0,1fr)+min-width:0 stops nowrap
@@ -428,6 +428,10 @@
         /* Steps down from 62px, but stays the largest thing on the screen —
            the 2×2 grid only gives each figure about half the width. */
         .rk-figure { font-size: 46px; }
+        /* Desktop's 76px surrounds four full-width figures, so it reads as
+           composition; in a narrow column the same value is just a dead band
+           above the heading. Scale the air with the content it frames. */
+        .rk-pad { padding: 52px var(--rk-gutter); }
         /* Condensed header: the three stacked bars cost ~210px of an 812px
            screen, so trim their vertical padding and the wordmark. */
         .rk-brandbar { padding-top: 9px !important; padding-bottom: 9px !important; }
