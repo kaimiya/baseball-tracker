@@ -704,6 +704,7 @@ export default function BaseballTracker() {
               </div>
               {live.meta?.gamesLive > 0 && (
                 <span className="rk-badge-live" title={`${live.meta.gamesLive} MLB games in progress — live stats folded in`}>
+                  <span className="rk-live-dot" aria-hidden="true" />
                   Live
                 </span>
               )}
@@ -712,7 +713,9 @@ export default function BaseballTracker() {
 
           {/* Leaders */}
           <div ref={leadersRef} className="rk-section rk-pad">
-            <div className="rk-section-head" style={{ marginBottom: "20px" }}>Leaders</div>
+            {/* Scales with the head — 20px was set when it was 19px, which left
+                the gap smaller than the type once it grew to 27px. */}
+            <div className="rk-section-head" style={{ marginBottom: "28px" }}>Leaders</div>
             <div className="rk-awards">
               {["hr", "avg", "wins", "era"].map((cat) => (
                 <div key={cat} className="rk-award">

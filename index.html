@@ -126,7 +126,11 @@
          read as one family of "structural heading" instead of two different
          typographic ideas. Markup stays title-case ("Leaders"); this
          transforms the display only. */
-      .rk-section-head { font: 700 19px/1.2 var(--rk-font); letter-spacing: .02em; text-transform: uppercase; color: var(--rk-title); white-space: nowrap; }
+      /* Bold 700 is the ceiling in this family, so loudness comes from size and
+         tracking instead. Caps get POSITIVE tracking at label sizes for
+         legibility, but at display size that same spacing reads timid — pulling
+         it negative is what makes big caps feel set rather than typed. */
+      .rk-section-head { font: 700 27px/1.05 var(--rk-font); letter-spacing: -.012em; text-transform: uppercase; color: var(--rk-title); white-space: nowrap; }
       .rk-body { font: 400 14px/1.4 var(--rk-font); color: var(--rk-grey); }
       .rk-caveat { font: 400 12px/1.5 var(--rk-font); color: var(--rk-grey); max-width: 520px; }
       .rk-nav { font: 500 13.5px/1 var(--rk-font); letter-spacing: .04em; text-transform: uppercase; color: var(--rk-grey); background: none; border: 0; padding: 0; cursor: pointer; transition: color .14s ease; }
@@ -148,7 +152,11 @@
          row read at nearly equal weight and the table went flat. Size does the
          hierarchy here so the labels can stay black rather than going grey. */
       .rk-colhead { font: 400 9.5px/1 var(--rk-font); letter-spacing: .05em; text-transform: uppercase; color: var(--rk-title); }
-      .rk-figure { font: 700 34px/.95 var(--rk-font); letter-spacing: -.008em; color: var(--rk-accent); font-variant-numeric: tabular-nums; }
+      /* The hero. These four numbers are the one thing on the page allowed to be
+         genuinely large — everything else is label or table. Tracking goes more
+         negative as the size climbs (digits close up faster than letters), and
+         line-height drops below 1 so the figure sits tight in its cell. */
+      .rk-figure { font: 700 62px/.88 var(--rk-font); letter-spacing: -.022em; color: var(--rk-accent); font-variant-numeric: tabular-nums; }
       .rk-team-name { font: 500 14px/1.2 var(--rk-font); letter-spacing: .018em; color: var(--rk-title); }
       /* Compact team name — dropdown trigger/options, empty-state chips, the
          award-list under each Leaders figure. One size for all four instead of
@@ -164,7 +172,11 @@
       /* Controls — hairline outlined, square, never filled */
       .rk-btn { font: 700 10.5px/1 var(--rk-font); letter-spacing: .05em; text-transform: uppercase; color: var(--rk-title); background: none; border: 1px solid var(--rk-title); padding: 9px 14px; white-space: nowrap; cursor: pointer; transition: background .14s ease, color .14s ease; }
       .rk-btn:hover { background: var(--rk-title); color: var(--rk-paper); }
-      .rk-badge-live { display: inline-flex; align-items: center; gap: 5px; font: 700 9px/1 var(--rk-font); letter-spacing: .07em; text-transform: uppercase; color: var(--rk-accent); border: 1px solid var(--rk-accent); padding: 3px 6px; white-space: nowrap; }
+      /* A single dot from the mark's own matrix, rather than an outlined pill —
+         one less box on a page built from hairlines, and it ties the live state
+         back to the logo. Radius is 16% of the square, matching DotArt's rx. */
+      .rk-badge-live { display: inline-flex; align-items: center; gap: 6px; font: 700 10px/1 var(--rk-font); letter-spacing: .08em; text-transform: uppercase; color: var(--rk-accent); white-space: nowrap; }
+      .rk-live-dot { width: 9px; height: 9px; border-radius: 1.44px; background: var(--rk-accent); flex-shrink: 0; }
       /* Team picker trigger — a real button now (was a native <select>, which
          couldn't show a team logo and read as stock browser chrome). */
       /* Same language as "All 17 weeks" — an underlined caps text control, not a
@@ -336,7 +348,9 @@
       .rk-splits-row     { grid-template-columns: 291px minmax(92px,1fr) repeat(4, 72px); }
       /* Table hairlines stay inside the content column — only SECTION dividers
          run edge-to-edge. Hence no negative gutter margin on these. */
-      .rk-head { margin: 18px 0 0; padding: 0 0 11px; border-bottom: 1px solid var(--rk-line); }
+      /* 28px matches the gap under the Leaders head — both sit directly beneath
+         a 27px section head, so they should breathe the same. */
+      .rk-head { margin: 28px 0 0; padding: 0 0 11px; border-bottom: 1px solid var(--rk-line); }
       /* Every data row is the same height — a fixed min-height with vertically
          centred content, so a stacked live delta or a two-line week label can't
          make one row taller than its neighbours. */
@@ -397,7 +411,9 @@
            name clips — taking it all from the name truncated 7 of 8. */
         :root { --rk-gutter: 12px; }
         .rk-shell { padding: 6px 0 16px; }
-        .rk-section-head { white-space: normal; }
+        /* Steps down from 27px, but stays well above the old 19px so the heads
+           read as display type on mobile too. */
+        .rk-section-head { font-size: 23px; white-space: normal; }
         /* Bold, and a step above the 13px team names: the league is the page's
            subject, so it shouldn't sit smaller than the items inside it. Kept
            well under the 19px section heads (and the ~18px one-line ceiling)
@@ -409,7 +425,9 @@
         .rk-meta-line { font-size: 10.5px; letter-spacing: .025em; gap: 6px; margin-top: 6px; }
         .rk-body { font-size: 13px; }
         .rk-caveat { font-size: 11.5px; }
-        .rk-figure { font-size: 36px; }
+        /* Steps down from 62px, but stays the largest thing on the screen —
+           the 2×2 grid only gives each figure about half the width. */
+        .rk-figure { font-size: 46px; }
         /* Condensed header: the three stacked bars cost ~210px of an 812px
            screen, so trim their vertical padding and the wordmark. */
         .rk-brandbar { padding-top: 9px !important; padding-bottom: 9px !important; }
