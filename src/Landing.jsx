@@ -220,6 +220,11 @@ export default function Landing() {
       {/* Request access — a ruled line, matching the product's unfilled controls */}
       <section className="rk-lp-request" id="request">
         <div className="rk-lp-request-head">Request access</div>
+        {/* Names the next season rather than the current one — baseball is
+            already running, so the thing to sign up FOR is football. */}
+        <p className="rk-lp-request-sub">
+          Want to start tracking your league's side bets for the upcoming football season?
+        </p>
         <form className="rk-lp-form" onSubmit={submit}>
           {sent ? (
             <div className="rk-lp-sent">You're on the list — we'll be in touch.</div>
@@ -237,7 +242,6 @@ export default function Landing() {
               <button type="submit" className="rk-lp-submit">Request access →</button>
             </div>
           )}
-          <div className="rk-lp-fine">One email either way. Nothing else, ever.</div>
         </form>
       </section>
 
