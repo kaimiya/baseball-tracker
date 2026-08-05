@@ -60,12 +60,6 @@ export default function Landing() {
   const [sent, setSent] = useState(false);
   // Which category is in the spotlight. Rotating one leader at a time reads as
   // live and keeps the section to a single idea; the full table lives in the club.
-  const [spot, setSpot] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => setSpot((v) => (v + 1) % CATS.length), 3400);
-    return () => clearInterval(id);
-  }, []);
 
   const fmtAvg = (v) => v.toFixed(3).replace("0.", ".");
   const fmtERA = (v) => v.toFixed(2);
@@ -91,6 +85,18 @@ export default function Landing() {
   // Standings exactly as the club orders them, trimmed to what fits. Showing the
   // board is the only thing that answers "what is this" — four figures alone
   // were a row torn out of a table.
+  // Order for the category in the spotlight. Each category ranks the league
+  // differently, so when it changes the rows genuinely reshuffle — that
+  // reordering IS the animation.
+  const activeCat = CATS.find((c) => c.key === "avg");
+  const ranked = ready
+    ? [...league.players]
+        .map((p) => ({ team: p, logo: league.logos[p], v: (league.seasonTotals[p] || {})[activeCat.key] }))
+        .filter((r) => r.v != null)
+        .sort((a, b) => (activeCat.key === "era" ? a.v - b.v : b.v - a.v))
+    : [];
+  const fmtCat = (key, v) => (key === "avg" ? fmtAvg(v) : key === "era" ? fmtERA(v) : String(v));
+
   const standings = ready
     ? [...league.players]
         .sort((a, b) => (league.seeds[a] || 999) - (league.seeds[b] || 999))
@@ -165,38 +171,27 @@ export default function Landing() {
           <Link to={`/${DEMO_SLUG}`} className="rk-lp-board-open">Open the full club &rarr;</Link>
         </div>
 
-        {(() => {
-          const c = CATS[spot];
-          const l = leaders[c.key];
-          return (
-            <div className="rk-lp-spot">
-              {/* keyed so each rotation replays the entrance */}
-              <div className="rk-lp-spot-inner" key={spot}>
-                <div className="rk-lp-spot-label">{c.label}</div>
-                <div className="rk-lp-spot-value">{ready ? (l?.value ?? "\u2014") : "\u2014"}</div>
-                <div className="rk-lp-spot-team">
-                  {ready && l?.team && league.logos[l.team] && (
-                    <img src={league.logos[l.team]} alt="" className="rk-lp-spot-crest" />
-                  )}
-                  <span>{ready ? (l?.team ?? "\u2014") : "\u00a0"}</span>
-                  <span className="rk-lp-spot-stake">${PER_CATEGORY}</span>
-                </div>
-              </div>
-              <div className="rk-lp-spot-nav">
-                {CATS.map((cc, i) => (
-                  <button
-                    key={cc.key}
-                    type="button"
-                    className={"rk-lp-spot-tab" + (i === spot ? " is-on" : "")}
-                    onClick={() => setSpot(i)}
-                  >
-                    {cc.short}
-                  </button>
-                ))}
-              </div>
+        {/* Every team holds its own row; only the row's vertical position
+            changes when the category does. Rows are keyed by team so React
+            never remounts them, which is what lets the transform transition
+            instead of snapping. */}
+        <div className="rk-lp-card">
+        <div className="rk-lp-race" style={{ height: `${ranked.length * 50}px` }}>
+          {ranked.map((row, i) => (
+            <div
+              key={row.team}
+              className={"rk-lp-racerow" + (i === 0 ? " is-first" : "")}
+              style={{ transform: `translateY(${i * 50}px)` }}
+            >
+              <span className="rk-lp-racerank">{i + 1}</span>
+              {row.logo && <img src={row.logo} alt="" className="rk-lp-racecrest" />}
+              <span className="rk-lp-racename">{row.team}</span>
+              <span className="rk-lp-racevalue">{fmtCat(activeCat.key, row.v)}</span>
             </div>
-          );
-        })()}
+          ))}
+        </div>
+
+        </div>
 
         {/* What those columns are worth — the reason it's a club, not a spreadsheet. */}
         <div className="rk-lp-stakes">
