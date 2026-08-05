@@ -58,6 +58,24 @@ export default function Landing() {
   const league = useLeagueData();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  // Matches the club's nav: the item for the section you're looking at is
+  // marked, rather than every item sitting inert until clicked.
+  const [activeNav, setActiveNav] = useState("");
+  useEffect(() => {
+    const ids = ["how", "request"];
+    const onScroll = () => {
+      const line = window.innerHeight * 0.35;
+      let current = "";
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= line) current = id;
+      });
+      setActiveNav(current);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   // Which category is in the spotlight. Rotating one leader at a time reads as
   // live and keeps the section to a single idea; the full table lives in the club.
 
@@ -94,6 +112,7 @@ export default function Landing() {
         .map((p) => ({ team: p, logo: league.logos[p], v: (league.seasonTotals[p] || {})[activeCat.key] }))
         .filter((r) => r.v != null)
         .sort((a, b) => (activeCat.key === "era" ? a.v - b.v : b.v - a.v))
+        .slice(0, 4)
     : [];
   const fmtCat = (key, v) => (key === "avg" ? fmtAvg(v) : key === "era" ? fmtERA(v) : String(v));
 
@@ -139,8 +158,8 @@ export default function Landing() {
       {/* On-page anchors first, then the way out to a real club last — it's the
           only item that leaves the page, so it reads as the destination. */}
       <nav className="rk-lp-navbar">
-        <a href="#how" className="rk-nav">How It Works</a>
-        <a href="#request" className="rk-nav">Request Access</a>
+        <a href="#how" className={"rk-nav" + (activeNav === "how" ? " is-active" : "")}>How It Works</a>
+        <a href="#request" className={"rk-nav" + (activeNav === "request" ? " is-active" : "")}>Request Access</a>
         <Link to={`/${DEMO_SLUG}`} className="rk-nav">View a Live Club</Link>
       </nav>
 
@@ -201,7 +220,6 @@ export default function Landing() {
               <span className="rk-lp-stake-amt">${PER_CATEGORY}</span>
             </span>
           ))}
-          <span className="rk-lp-stake-total">${TOTAL_ON_THE_LINE} on the line &middot; settled automatically</span>
         </div>
       </section>
 

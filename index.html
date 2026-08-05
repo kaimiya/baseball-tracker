@@ -329,7 +329,8 @@
          category leader — so the landing shows the product instead of
          describing it. */
       .rk-lp-board { border-top: 1px solid var(--rk-line); padding: 60px var(--lp-gutter) 68px; }
-      .rk-lp-board-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 34px; }
+      .rk-lp-board-head { text-align: center; }
+      .rk-lp-board-head { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 30px; text-align: center; }
       .rk-lp-board-eyebrow { font: 400 10.5px/1 var(--rk-font); letter-spacing: .09em; text-transform: uppercase; color: var(--rk-accent); }
       .rk-lp-board-name { font: 700 clamp(22px, 2.4vw, 32px)/1.1 var(--rk-font); letter-spacing: -.018em;
                           text-transform: uppercase; color: var(--rk-title); margin-top: 12px; }
@@ -344,9 +345,9 @@
          cut-off is the reason to open the club. */
       /* Bounded, not full-bleed — a leaderboard stretched across a wide screen
          opens a void between each name and its figure. */
-      .rk-lp-card { position: relative; border: 1px solid var(--rk-line); padding: 16px 22px 0; overflow: hidden; max-width: 560px; }
-      .rk-lp-card::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 110px;
-                           pointer-events: none; background: linear-gradient(to bottom, transparent, var(--rk-paper) 88%); }
+      .rk-lp-card { position: relative; border: 1px solid var(--rk-line); padding: 16px 22px 0; overflow: hidden; max-width: 560px; margin: 0 auto; }
+      .rk-lp-card::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 96px;
+                           pointer-events: none; background: linear-gradient(to bottom, transparent, var(--rk-paper) 90%); }
 
       /* The race. Rows are absolutely positioned and moved only by transform,
          so switching category slides each team to its new rank instead of
@@ -375,13 +376,11 @@
       .rk-lp-spot-tab.is-on { color: var(--rk-title); border-bottom-color: var(--rk-accent); }
       .rk-lp-spot-tab:hover { color: var(--rk-title); }
 
-      .rk-lp-stakes { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 30px; margin-top: 30px;
-                      padding-top: 24px; border-top: 1px solid var(--rk-line); }
+      .rk-lp-stakes { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 10px 30px;
+                      margin: 30px auto 0; padding-top: 24px; border-top: 1px solid var(--rk-line); max-width: 560px; }
       .rk-lp-stake-item { display: inline-flex; align-items: baseline; gap: 8px;
                           font: 400 10.5px/1 var(--rk-font); letter-spacing: .05em; text-transform: uppercase; color: var(--rk-muted); }
       .rk-lp-stake-amt { font-weight: 700; color: var(--rk-accent); }
-      .rk-lp-stake-total { margin-left: auto; font: 400 10.5px/1 var(--rk-font); letter-spacing: .05em;
-                           text-transform: uppercase; color: var(--rk-muted); }
 
       /* Sport breadth. Same column rhythm as the board, hairline-divided. The
          running sport is marked; the others are the same machinery unstarted. */
@@ -440,7 +439,6 @@
            everywhere" is the product's premise, so dropping two here broke the
            one rule the club never breaks. Columns tighten instead. */
         .rk-lp-stakes { gap: 8px 18px; }
-        .rk-lp-stake-total { margin-left: 0; }
         .rk-lp-sports { padding: 52px var(--lp-gutter) 0; }
         .rk-lp-sports-grid { grid-template-columns: 1fr; margin-top: 34px; }
         .rk-lp-sport { padding: 26px var(--lp-gutter) 34px 0; padding-left: var(--lp-gutter); }
