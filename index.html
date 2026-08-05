@@ -337,41 +337,30 @@
                           color: var(--rk-accent); text-decoration: none; white-space: nowrap; }
       .rk-lp-board-open:hover { text-decoration: underline; }
 
-      /* Preview card: enough rows to read the shape of the thing, then a fade
-         so the board is teased rather than dumped. The fade is also the reason
-         to open the club. Hairline, no radius, no shadow — a card here means a
-         bordered container, consistent with the rest of the system. */
-      .rk-lp-card { position: relative; border: 1px solid var(--rk-line); padding: 20px 26px 0;
-                    max-height: 330px; overflow: hidden; }
-      /* Just the gradient. A blur was tried here and read as a rendering fault —
-         smeared, half-legible rows rather than a deliberate reveal. A clean
-         fade to the page colour is both calmer and more obviously intentional. */
-      .rk-lp-card::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 150px;
-                           pointer-events: none; background: linear-gradient(to bottom, transparent, var(--rk-paper) 88%); }
 
-      /* Capped so the flexible Team column can't open a void between the name
-         and its figures on a wide card — the club's table is bounded by its own
-         1040px shell, this one isn't. */
-      .rk-lp-table { max-width: 880px; }
-      .rk-lp-tr { display: grid; grid-template-columns: 26px minmax(0,1fr) repeat(4, 70px) 84px; align-items: center; gap: 10px;
-                  padding: 15px 0; border-bottom: 1px solid var(--rk-line); }
-      .rk-lp-thead { padding: 0 0 11px; font: 400 10px/1 var(--rk-font); letter-spacing: .05em;
-                     text-transform: uppercase; color: var(--rk-muted); }
-      .rk-lp-tr:last-child { border-bottom: 0; }
-      .rk-lp-rank { font: 700 14px/1 var(--rk-font); color: var(--rk-title); font-variant-numeric: tabular-nums; }
-      .rk-lp-tname { display: flex; align-items: center; gap: 11px; min-width: 0;
-                     font: 500 15px/1.2 var(--rk-font); letter-spacing: .012em; color: var(--rk-title); }
-      .rk-lp-tname-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .rk-lp-crest { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; object-fit: cover; background: var(--rk-line); }
-      .rk-lp-num-cell { text-align: center; font: 500 15px/1 var(--rk-font); color: var(--rk-ink); font-variant-numeric: tabular-nums; }
-      .rk-lp-num-cell.is-leader { font-weight: 700; color: var(--rk-accent); }
-      /* The money column is the point of the table — set heavier than the stats
-         it's derived from, and greyed out entirely for teams taking nothing. */
-      .rk-lp-money { text-align: right; font: 700 15px/1 var(--rk-font); color: var(--rk-muted);
-                     font-variant-numeric: tabular-nums; }
-      .rk-lp-money.is-winning { color: var(--rk-title); }
 
       /* The stakes, stated once under the table. */
+      /* One leader at a time, rotating. A six-row table read as a spreadsheet;
+         a single figure that changes every few seconds reads as something
+         happening. Tabs let you take manual control. */
+      .rk-lp-spot { position: relative; min-height: 260px; display: flex; flex-direction: column; justify-content: center; }
+      @keyframes rk-spot-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+      .rk-lp-spot-inner { animation: rk-spot-in .5s cubic-bezier(.16,1,.3,1) both; }
+      .rk-lp-spot-label { font: 400 11px/1 var(--rk-font); letter-spacing: .09em; text-transform: uppercase; color: var(--rk-muted); }
+      .rk-lp-spot-value { margin-top: 18px; font: 700 clamp(64px, 11vw, 148px)/.84 var(--rk-font); letter-spacing: -.035em;
+                          color: var(--rk-accent); font-variant-numeric: tabular-nums; }
+      .rk-lp-spot-team { display: flex; align-items: center; gap: 12px; margin-top: 26px;
+                         font: 500 17px/1 var(--rk-font); color: var(--rk-title); }
+      .rk-lp-spot-crest { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: var(--rk-line); flex-shrink: 0; }
+      .rk-lp-spot-stake { font: 700 11px/1 var(--rk-font); letter-spacing: .06em; color: var(--rk-accent); }
+      .rk-lp-spot-nav { display: flex; gap: 26px; margin-top: 40px; }
+      .rk-lp-spot-tab { background: none; border: 0; padding: 0 0 8px; cursor: pointer;
+                        font: 400 11px/1 var(--rk-font); letter-spacing: .09em; text-transform: uppercase;
+                        color: var(--rk-muted); border-bottom: 2px solid transparent; transition: color .16s ease, border-color .16s ease; }
+      .rk-lp-spot-tab.is-on { color: var(--rk-title); border-bottom-color: var(--rk-accent); }
+      .rk-lp-spot-tab:hover { color: var(--rk-title); }
+      @media (prefers-reduced-motion: reduce) { .rk-lp-spot-inner { animation: none; } }
+
       .rk-lp-stakes { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 30px; margin-top: 30px;
                       padding-top: 24px; border-top: 1px solid var(--rk-line); }
       .rk-lp-stake-item { display: inline-flex; align-items: baseline; gap: 8px;
@@ -436,10 +425,6 @@
         /* All four categories stay — "the four categories are consistent
            everywhere" is the product's premise, so dropping two here broke the
            one rule the club never breaks. Columns tighten instead. */
-        .rk-lp-tr { grid-template-columns: 16px minmax(0,1fr) repeat(4, 38px) 52px; gap: 5px; padding: 13px 0; }
-        .rk-lp-tname { font-size: 13.5px; gap: 9px; }
-        .rk-lp-crest { width: 20px; height: 20px; }
-        .rk-lp-num-cell { font-size: 13.5px; }
         .rk-lp-stakes { gap: 8px 18px; }
         .rk-lp-stake-total { margin-left: 0; }
         .rk-lp-sports { padding: 52px var(--lp-gutter) 0; }

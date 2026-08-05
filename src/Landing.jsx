@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "./theme.js";
 import { useLeagueData } from "./useLeagueData.js";
@@ -58,6 +58,14 @@ export default function Landing() {
   const league = useLeagueData();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  // Which category is in the spotlight. Rotating one leader at a time reads as
+  // live and keeps the section to a single idea; the full table lives in the club.
+  const [spot, setSpot] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setSpot((v) => (v + 1) % CATS.length), 3400);
+    return () => clearInterval(id);
+  }, []);
 
   const fmtAvg = (v) => v.toFixed(3).replace("0.", ".");
   const fmtERA = (v) => v.toFixed(2);
@@ -157,34 +165,38 @@ export default function Landing() {
           <Link to={`/${DEMO_SLUG}`} className="rk-lp-board-open">Open the full club &rarr;</Link>
         </div>
 
-        <div className="rk-lp-card">
-        <div className="rk-lp-table">
-          <div className="rk-lp-tr rk-lp-thead">
-            <span>#</span><span>Team</span>
-            {CATS.map((c) => <span key={c.key} className="rk-lp-num-cell">{c.short}</span>)}
-            <span className="rk-lp-num-cell">Winning</span>
-          </div>
-          {standings.map((row, i) => (
-            <div key={row.team} className="rk-lp-tr">
-              <span className="rk-lp-rank">{i + 1}</span>
-              <span className="rk-lp-tname">
-                {row.logo && <img src={row.logo} alt="" className="rk-lp-crest" />}
-                <span className="rk-lp-tname-text">{row.team}</span>
-              </span>
-              {CATS.map((c) => {
-                const v = row.tot[c.key];
-                const shown = v == null ? "\u2014" : c.key === "avg" ? fmtAvg(v) : c.key === "era" ? fmtERA(v) : String(v);
-                return (
-                  <span key={c.key} className={"rk-lp-num-cell" + (isLeaderCell(c.key, row.team) ? " is-leader" : "")}>{shown}</span>
-                );
-              })}
-              <span className={"rk-lp-money" + (row.winning ? " is-winning" : "")}>
-                {row.winning ? `$${row.winning}` : "\u2014"}
-              </span>
+        {(() => {
+          const c = CATS[spot];
+          const l = leaders[c.key];
+          return (
+            <div className="rk-lp-spot">
+              {/* keyed so each rotation replays the entrance */}
+              <div className="rk-lp-spot-inner" key={spot}>
+                <div className="rk-lp-spot-label">{c.label}</div>
+                <div className="rk-lp-spot-value">{ready ? (l?.value ?? "\u2014") : "\u2014"}</div>
+                <div className="rk-lp-spot-team">
+                  {ready && l?.team && league.logos[l.team] && (
+                    <img src={league.logos[l.team]} alt="" className="rk-lp-spot-crest" />
+                  )}
+                  <span>{ready ? (l?.team ?? "\u2014") : "\u00a0"}</span>
+                  <span className="rk-lp-spot-stake">${PER_CATEGORY}</span>
+                </div>
+              </div>
+              <div className="rk-lp-spot-nav">
+                {CATS.map((cc, i) => (
+                  <button
+                    key={cc.key}
+                    type="button"
+                    className={"rk-lp-spot-tab" + (i === spot ? " is-on" : "")}
+                    onClick={() => setSpot(i)}
+                  >
+                    {cc.short}
+                  </button>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-        </div>
+          );
+        })()}
 
         {/* What those columns are worth — the reason it's a club, not a spreadsheet. */}
         <div className="rk-lp-stakes">
