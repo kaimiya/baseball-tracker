@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    {
+      "source": "/((?!api/).*)",
+      "has": [{ "type": "host", "value": "if-can-can.vercel.app" }],
+      "destination": "https://rake.club/if-can-can",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/" }
   ]
