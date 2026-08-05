@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    {
+      "//": "SPA fallback. Client-side routing means /if-can-can has no file on disk, so a direct load or refresh would 404 without this. /api/* is excluded by the negative lookahead so the serverless functions still resolve.",
+      "source": "/((?!api/).*)",
+      "destination": "/"
+    }
+  ]
+}
