@@ -120,7 +120,7 @@ const LOADER_ICONS = [
   ["00100", "01110", "11111", "00100", "00100"],          // gaining (up arrow)
   ["11111", "11111", "01110", "00100", "01110", "11111"], // title (trophy)
 ];
-const LOADER_DOT = 7; // dot size for the loader icons
+const LOADER_DOT = 5; // dot size for the loader icons
 // The loader draws every glyph on one fixed canvas sized to the tallest/widest
 // icon, so the SVG footprint never changes as icons cycle (see LoaderIcon).
 const LOADER_MAX_ROWS = Math.max(...LOADER_ICONS.map(r => r.length));
