@@ -309,7 +309,9 @@
                       padding: 18px var(--lp-gutter); border-bottom: 1px solid var(--rk-line); }
       .rk-lp-navbar .rk-nav { text-decoration: none; }
 
-      .rk-lp-statement { padding: 132px var(--lp-gutter) 112px; }
+      .rk-lp-statement { padding: 132px var(--lp-gutter) 112px; position: relative; overflow: hidden; }
+      /* Content sits above the texture. */
+      .rk-lp-h1, .rk-lp-sub, .rk-lp-hero-cta { position: relative; z-index: 1; }
       .rk-lp-h1 { margin: 0; font: 700 clamp(40px, 6.4vw, 92px)/.96 var(--rk-font); letter-spacing: -.032em;
                   text-transform: uppercase; color: var(--rk-title); }
       .rk-lp-sub { font: 400 18px/1.5 var(--rk-font); color: var(--rk-grey); margin: 28px 0 0; max-width: 46ch; }
