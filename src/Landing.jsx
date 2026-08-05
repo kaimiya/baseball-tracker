@@ -7,25 +7,6 @@ import { useTheme } from "./theme.js";
 // mockup.
 const DEMO_SLUG = "if-can-can";
 
-// Numbered value props, per the design's 01/02/03 row.
-const POINTS = [
-  {
-    n: "01",
-    head: "Locked before opening day",
-    body: "Categories and stakes go in first and can't be edited after the fact.",
-  },
-  {
-    n: "02",
-    head: "Read off the box score",
-    body: "Pulled every morning. Nobody types a number in by hand, so there is nothing to argue about.",
-  },
-  {
-    n: "03",
-    head: "Every category pays out",
-    body: "Each one settles on its own, so you don't have to win the league to get paid.",
-  },
-];
-
 function MarkTile({ t, size = 26 }) {
   return (
     <span
@@ -109,21 +90,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 01 / 02 / 03 */}
-      <section className="rk-lp-points">
-        {POINTS.map((p) => (
-          <div key={p.n} className="rk-lp-point">
-            <div className="rk-lp-num">{p.n}</div>
-            <div className="rk-lp-point-head">{p.head}</div>
-            <div className="rk-lp-point-body">{p.body}</div>
-          </div>
-        ))}
-      </section>
-
-      <footer className="rk-lp-foot">
-        <span className="rk-wordmark" style={{ fontSize: "19px", color: t.textPrimary }}>rake</span>
-        <span className="rk-lp-legal">Independent — not affiliated with any league or network</span>
-      </footer>
     </div>
   );
 }

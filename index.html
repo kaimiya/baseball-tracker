@@ -292,14 +292,21 @@
          hairline structure — so the two don't read as different products.
          ========================================================================== */
       .rk-landing { --lp-gutter: max(28px, calc((100vw - 1280px) / 2)); }
-      .rk-lp-bar { display: flex; align-items: center; justify-content: space-between; padding: 26px var(--lp-gutter); }
-      .rk-lp-navlink { font: 500 13.5px/1 var(--rk-font); letter-spacing: .01em; color: var(--rk-accent); text-decoration: none; }
-      .rk-lp-navlink:hover { text-decoration: underline; }
+      /* Matches the club header: hairline underneath, and the action set in the
+         same uppercase tracked caps as the club's nav tabs rather than as a
+         sentence-case link. */
+      .rk-lp-bar { display: flex; align-items: center; justify-content: space-between; padding: 26px var(--lp-gutter);
+                   border-bottom: 1px solid var(--rk-line); }
+      .rk-lp-navlink { font: 500 12.5px/1 var(--rk-font); letter-spacing: .04em; text-transform: uppercase;
+                       color: var(--rk-grey); text-decoration: none; transition: color .14s ease; }
+      .rk-lp-navlink:hover { color: var(--rk-title); }
 
       /* Hero: copy left, product right. The product column intentionally runs
          past the right edge — it reads as a window onto something bigger. */
+      /* One screen. The hero fills what's left under the bar and nothing scrolls,
+         so the phone has to be cropped rather than shrunk to fit. */
       .rk-lp-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr); gap: 72px; align-items: center;
-                    padding: 76px var(--lp-gutter) 96px; }
+                    padding: 0 var(--lp-gutter); min-height: calc(100vh - 78px); overflow: hidden; }
       .rk-lp-copy { max-width: 560px; }
       /* Display type: the largest thing in the product is 62px, so the pitch has
          to out-scale it. Tracking goes negative as size climbs. */
@@ -325,10 +332,16 @@
          read as a cropped screenshot rather than a product. Native size, no
          transform, so the type stays sharp. Radius is the one place a curve is
          allowed: it's a physical device, not a UI surface. */
-      .rk-lp-preview { min-width: 0; display: flex; justify-content: center; }
-      .rk-lp-frame { display: block; width: 390px; max-width: 100%; height: 740px; border: 1px solid var(--rk-title);
-                     border-radius: 42px; overflow: hidden; position: relative; background: var(--rk-paper); }
-      .rk-lp-frame iframe { width: 390px; height: 740px; border: 0; pointer-events: none; display: block; }
+      /* The phone runs off the bottom of the screen and dissolves into the page
+         rather than ending at a hard edge — it implies the board continues
+         instead of looking like a cropped image. Gradient sits above the frame
+         and is inert so the whole thing stays clickable. */
+      .rk-lp-preview { min-width: 0; display: flex; justify-content: center; position: relative; align-self: end; }
+      .rk-lp-preview::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 130px; pointer-events: none;
+                              background: linear-gradient(to bottom, transparent, var(--rk-paper)); }
+      .rk-lp-frame { display: block; width: 390px; max-width: 100%; height: 78vh; min-height: 520px; border: 1px solid var(--rk-title);
+                     border-bottom: 0; border-radius: 42px 42px 0 0; overflow: hidden; position: relative; background: var(--rk-paper); }
+      .rk-lp-frame iframe { width: 390px; height: 1200px; border: 0; pointer-events: none; display: block; }
 
       /* 01 / 02 / 03 */
       .rk-lp-points { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--rk-line);
