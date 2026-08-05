@@ -8,6 +8,19 @@ import { useLeagueData } from "./useLeagueData.js";
 const DEMO_SLUG = "if-can-can";
 // What each category pays in the club that's running. The figures are bets, not
 // stats — without the stake attached they're just four numbers.
+// Each frame is one beat of the loop: the full running order, and the averages
+// that justify it. Only the first VISIBLE_ROWS are on screen, so as the order
+// shuffles, teams genuinely climb into and drop out of view — which is the
+// behaviour this section exists to demonstrate.
+const VISIBLE_ROWS = 5;
+const DEMO_FRAMES = [
+  { order: [0, 1, 2, 3, 4, 5, 6, 7], vals: [".264", ".263", ".253", ".252", ".251", ".249", ".247", ".241"] },
+  { order: [1, 0, 4, 2, 3, 6, 5, 7], vals: [".267", ".264", ".261", ".256", ".252", ".250", ".249", ".241"] },
+  { order: [4, 1, 5, 0, 2, 3, 7, 6], vals: [".272", ".269", ".266", ".264", ".258", ".252", ".250", ".247"] },
+  { order: [5, 4, 1, 7, 0, 2, 6, 3], vals: [".275", ".273", ".270", ".266", ".264", ".259", ".251", ".248"] },
+  { order: [7, 5, 6, 4, 1, 0, 3, 2], vals: [".278", ".276", ".272", ".269", ".266", ".264", ".255", ".250"] },
+  { order: [6, 7, 0, 5, 2, 4, 1, 3], vals: [".281", ".277", ".274", ".271", ".268", ".265", ".262", ".254"] },
+];
 const PER_CATEGORY = 100;
 const TOTAL_ON_THE_LINE = 400;
 const CATS = [
@@ -61,6 +74,7 @@ export default function Landing() {
   // Matches the club's nav: the item for the section you're looking at is
   // marked, rather than every item sitting inert until clicked.
   const [activeNav, setActiveNav] = useState("");
+  // Marks the section you're looking at, the way the club's nav does.
   useEffect(() => {
     const ids = ["how", "request"];
     const onScroll = () => {
@@ -76,61 +90,27 @@ export default function Landing() {
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-  // Which category is in the spotlight. Rotating one leader at a time reads as
-  // live and keeps the section to a single idea; the full table lives in the club.
+  // A scripted loop, deliberately NOT the live feed. This section's job is to
+  // show what the product does — teams overtaking each other as averages move —
+  // and then send you to the real club. Live averages barely shift day to day,
+  // so wiring this to real data would mean it never visibly animated.
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setFrame((f) => (f + 1) % DEMO_FRAMES.length), 2600);
+    return () => clearInterval(id);
+  }, []);
 
-  const fmtAvg = (v) => v.toFixed(3).replace("0.", ".");
-  const fmtERA = (v) => v.toFixed(2);
-
-  // Best value per category across the league — the same figures the board's
-  // Leaders row shows, so the landing and the club can never disagree.
   const ready = league.status === "ready" && league.players.length > 0;
-  const leaders = {};
-  if (ready) {
-    CATS.forEach(({ key }) => {
-      let best = null, who = null;
-      league.players.forEach((p) => {
-        const v = (league.seasonTotals[p] || {})[key];
-        if (v == null) return;
-        if (best == null || (key === "era" ? v < best : v > best)) { best = v; who = p; }
-      });
-      leaders[key] = best == null ? null : {
-        value: key === "avg" ? fmtAvg(best) : key === "era" ? fmtERA(best) : String(best),
-        team: who,
-      };
-    });
-  }
-  // Standings exactly as the club orders them, trimmed to what fits. Showing the
-  // board is the only thing that answers "what is this" — four figures alone
-  // were a row torn out of a table.
-  // Order for the category in the spotlight. Each category ranks the league
-  // differently, so when it changes the rows genuinely reshuffle — that
-  // reordering IS the animation.
-  const activeCat = CATS.find((c) => c.key === "avg");
+
+  // Four real teams supply the names and crests; the running order and the
+  // averages come from DEMO_FRAMES, not from these figures.
   const ranked = ready
     ? [...league.players]
-        .map((p) => ({ team: p, logo: league.logos[p], v: (league.seasonTotals[p] || {})[activeCat.key] }))
-        .filter((r) => r.v != null)
-        .sort((a, b) => (activeCat.key === "era" ? a.v - b.v : b.v - a.v))
-        .slice(0, 4)
-    : [];
-  const fmtCat = (key, v) => (key === "avg" ? fmtAvg(v) : key === "era" ? fmtERA(v) : String(v));
-
-  const standings = ready
-    ? [...league.players]
         .sort((a, b) => (league.seeds[a] || 999) - (league.seeds[b] || 999))
-        .slice(0, 6)
-        .map((p) => ({
-          team: p,
-          logo: league.logos[p],
-          tot: league.seasonTotals[p] || {},
-          // What this team is currently taking: one stake per category it leads.
-          // This is the fact the product exists for, and a plain standings table
-          // doesn't show it.
-          winning: CATS.reduce((n, c) => n + (leaders[c.key]?.team === p ? PER_CATEGORY : 0), 0),
-        }))
+        .slice(0, 8)
+        .map((p) => ({ team: p, logo: league.logos[p] }))
     : [];
-  const isLeaderCell = (key, team) => leaders[key] && leaders[key].team === team;
 
   function submit(e) {
     e.preventDefault();
@@ -182,12 +162,13 @@ export default function Landing() {
       {/* The board itself, live. A club is a leaderboard with money on it, and
           that only reads if you can see the leaderboard. */}
       <section className="rk-lp-board" id="club">
+        {/* Says what the section is, then names the club — the eyebrow used to
+            float above a centred title with no relationship to it. */}
         <div className="rk-lp-board-head">
-          <div>
-            <div className="rk-lp-board-eyebrow">A live club</div>
-            <div className="rk-lp-board-name">{ready ? league.meta?.leagueName || "If Can Can" : "If Can Can"}</div>
-          </div>
-          <Link to={`/${DEMO_SLUG}`} className="rk-lp-board-open">Open the full club &rarr;</Link>
+          <div className="rk-lp-board-name">Watch the standings move</div>
+          <p className="rk-lp-board-sub">
+            Every category re-ranks itself as games finish. Here's one running now.
+          </p>
         </div>
 
         {/* Every team holds its own row; only the row's vertical position
@@ -195,24 +176,33 @@ export default function Landing() {
             never remounts them, which is what lets the transform transition
             instead of snapping. */}
         <div className="rk-lp-card">
-        <div className="rk-lp-race" style={{ height: `${ranked.length * 50}px` }}>
-          {ranked.map((row, i) => (
-            <div
-              key={row.team}
-              className={"rk-lp-racerow" + (i === 0 ? " is-first" : "")}
-              style={{ transform: `translateY(${i * 50}px)` }}
-            >
-              <span className="rk-lp-racerank">{i + 1}</span>
-              {row.logo && <img src={row.logo} alt="" className="rk-lp-racecrest" />}
-              <span className="rk-lp-racename">{row.team}</span>
-              <span className="rk-lp-racevalue">{fmtCat(activeCat.key, row.v)}</span>
-            </div>
-          ))}
-        </div>
-
+          <div className="rk-lp-race" style={{ height: `${VISIBLE_ROWS * 50}px` }}>
+            {ranked.map((row, teamIdx) => {
+              const pos = DEMO_FRAMES[frame].order.indexOf(teamIdx);
+              const val = DEMO_FRAMES[frame].vals[pos];
+              // Off-screen ranks stay mounted so they can slide back in.
+              const offscreen = pos >= VISIBLE_ROWS;
+              return (
+                <div
+                  key={row.team}
+                  className={"rk-lp-racerow" + (pos === 0 ? " is-first" : "")}
+                  style={{ transform: `translateY(${pos * 50}px)`, opacity: offscreen ? 0 : 1 }}
+                >
+                  <span className="rk-lp-racerank">{pos + 1}</span>
+                  {row.logo && <img src={row.logo} alt="" className="rk-lp-racecrest" />}
+                  <span className="rk-lp-racename">{row.team}</span>
+                  <span className="rk-lp-racevalue">{val}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* What those columns are worth — the reason it's a club, not a spreadsheet. */}
+        <div className="rk-lp-board-cta">
+          <Link to={`/${DEMO_SLUG}`} className="rk-lp-board-open">Open {ready ? league.meta?.leagueName || "the full club" : "the full club"} &rarr;</Link>
+        </div>
+
         <div className="rk-lp-stakes">
           {CATS.map((c) => (
             <span key={c.key} className="rk-lp-stake-item">
@@ -228,6 +218,7 @@ export default function Landing() {
           the board's own column rhythm. */}
       <section className="rk-lp-sports" id="how">
         <div className="rk-lp-sports-head">A bet is a stat, a direction and a payout.<br />That works in any sport.</div>
+        <p className="rk-lp-sports-sub">Add any category your league tracks on the side.</p>
         <div className="rk-lp-sports-grid">
           {SPORTS.map((s) => (
             <div key={s.sport} className={"rk-lp-sport" + (s.live ? " is-live" : "")}>

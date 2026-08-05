@@ -331,9 +331,10 @@
       .rk-lp-board { border-top: 1px solid var(--rk-line); padding: 60px var(--lp-gutter) 68px; }
       .rk-lp-board-head { text-align: center; }
       .rk-lp-board-head { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 30px; text-align: center; }
-      .rk-lp-board-eyebrow { font: 400 10.5px/1 var(--rk-font); letter-spacing: .09em; text-transform: uppercase; color: var(--rk-accent); }
+      .rk-lp-board-sub { font: 400 16px/1.5 var(--rk-font); color: var(--rk-grey); margin: 12px auto 0; max-width: 44ch; }
+      .rk-lp-board-cta { display: flex; justify-content: center; margin-top: 26px; }
       .rk-lp-board-name { font: 700 clamp(22px, 2.4vw, 32px)/1.1 var(--rk-font); letter-spacing: -.018em;
-                          text-transform: uppercase; color: var(--rk-title); margin-top: 12px; }
+                          text-transform: uppercase; color: var(--rk-title); }
       .rk-lp-board-open { font: 500 12.5px/1 var(--rk-font); letter-spacing: .04em; text-transform: uppercase;
                           color: var(--rk-accent); text-decoration: none; white-space: nowrap; }
       .rk-lp-board-open:hover { text-decoration: underline; }
@@ -355,7 +356,7 @@
       .rk-lp-race { position: relative; }
       .rk-lp-racerow { position: absolute; left: 0; right: 0; height: 50px; display: flex; align-items: center; gap: 13px;
                        border-bottom: 1px solid var(--rk-line);
-                       transition: transform .62s cubic-bezier(.22,1,.36,1); will-change: transform; }
+                       transition: transform .72s cubic-bezier(.22,1,.36,1), opacity .45s ease; will-change: transform; }
       .rk-lp-racerank { width: 20px; flex-shrink: 0; font: 700 13px/1 var(--rk-font); color: var(--rk-muted);
                         font-variant-numeric: tabular-nums; transition: color .3s ease; }
       .rk-lp-racecrest { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--rk-line); }
@@ -367,7 +368,7 @@
       .rk-lp-racerow.is-first .rk-lp-racerank,
       .rk-lp-racerow.is-first .rk-lp-racevalue { color: var(--rk-accent); font-weight: 700; }
       .rk-lp-racerow.is-first .rk-lp-racename { font-weight: 700; }
-      @media (prefers-reduced-motion: reduce) { .rk-lp-racerow { transition: none; } }
+      @media (prefers-reduced-motion: reduce) { .rk-lp-racerow { transition: none; opacity: 1 !important; } }
 
       .rk-lp-spot-nav { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 34px; }
       .rk-lp-spot-tab { background: none; border: 0; padding: 0 0 8px; cursor: pointer;
@@ -387,6 +388,7 @@
       .rk-lp-sports { border-top: 1px solid var(--rk-line); padding: 76px var(--lp-gutter) 0; }
       .rk-lp-sports-head { font: 700 clamp(22px, 2.6vw, 34px)/1.2 var(--rk-font); letter-spacing: -.018em;
                            text-transform: uppercase; color: var(--rk-title); max-width: 22ch; }
+      .rk-lp-sports-sub { font: 400 17px/1.5 var(--rk-font); color: var(--rk-grey); margin: 16px 0 0; max-width: 46ch; }
       .rk-lp-sports-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 54px; }
       .rk-lp-sport { padding: 34px 40px 62px 0; min-width: 0; border-top: 1px solid var(--rk-line); }
       .rk-lp-sport + .rk-lp-sport { border-left: 1px solid var(--rk-line); padding-left: 40px; }
@@ -440,6 +442,7 @@
            one rule the club never breaks. Columns tighten instead. */
         .rk-lp-stakes { gap: 8px 18px; }
         .rk-lp-sports { padding: 52px var(--lp-gutter) 0; }
+        .rk-lp-sports-sub { font-size: 15.5px; margin-top: 14px; }
         .rk-lp-sports-grid { grid-template-columns: 1fr; margin-top: 34px; }
         .rk-lp-sport { padding: 26px var(--lp-gutter) 34px 0; padding-left: var(--lp-gutter); }
         .rk-lp-sport + .rk-lp-sport { border-left: 0; padding-left: var(--lp-gutter); }
