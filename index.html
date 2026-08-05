@@ -301,7 +301,9 @@
          hero: the club's exact header/footer construction, full-bleed hairlines,
          tracked caps, and the live figures at poster scale.
          ========================================================================== */
-      .rk-landing { --lp-gutter: max(28px, calc((100vw - 1240px) / 2)); }
+      /* Same 1040px column as the club, so the two read as one product
+         rather than a wide marketing page bolted onto a narrow app. */
+      .rk-landing { --lp-gutter: max(22px, calc((100vw - 1040px) / 2)); }
       /* Header/footer mirror the club's, so the two never read as separate sites. */
       .rk-lp-brandbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
                         padding: 16px var(--lp-gutter); border-bottom: 1px solid var(--rk-line); }
