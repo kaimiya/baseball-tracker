@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, Fragment } from "react";
+import { Link } from "react-router-dom";
 import { useLeagueData } from "./useLeagueData.js";
 import { useLiveToday } from "./useLiveToday.js";
 import { useTheme } from "./theme.js";
@@ -653,7 +654,8 @@ export default function BaseballTracker() {
           {/* Header — centred wordmark, no chip; scrolls away (the mark also lives in the footer). */}
           <div className="rk-section rk-brandbar" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", padding: "16px var(--rk-gutter)" }}>
             <span />
-            <span className="rk-wordmark rk-wordmark-top" style={{ fontSize: "25px", justifySelf: "center" }}>rake</span>
+            {/* The wordmark is the way back out of a club to rake.club itself. */}
+            <Link to="/" className="rk-wordmark rk-wordmark-top rk-homelink" style={{ fontSize: "25px", justifySelf: "center" }} aria-label="rake — home">rake</Link>
             <button className="rk-iconbtn" onClick={toggle} aria-label={toggleLabel} title={toggleLabel} style={{ justifySelf: "end" }}>
               {mode === "light" ? <MoonIcon /> : <SunIcon />}
             </button>
@@ -911,10 +913,10 @@ export default function BaseballTracker() {
               from the last content section without touching the shared 38px
               section rhythm. */}
           <div className="rk-section" style={{ display: "grid", gridTemplateColumns: "auto 1fr", alignItems: "center", gap: "12px", padding: "18px var(--rk-gutter)", marginTop: "48px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+            <Link to="/" className="rk-homelink" style={{ display: "flex", alignItems: "center", gap: "9px" }} aria-label="rake — home">
               <MarkTile t={t} size={26} />
               <span className="rk-wordmark" style={{ fontSize: "19px" }}>rake</span>
-            </div>
+            </Link>
             <div style={{ justifySelf: "end", textAlign: "right", font: `400 10px/1.5 ${FONT}`, color: t.textFaint }}>
               Live category standings · data from ESPN Fantasy &amp; MLB<br />Not affiliated with ESPN or MLB.
             </div>
