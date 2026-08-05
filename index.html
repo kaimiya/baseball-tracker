@@ -349,7 +349,11 @@
       .rk-lp-card::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 150px;
                            pointer-events: none; background: linear-gradient(to bottom, transparent, var(--rk-paper) 88%); }
 
-      .rk-lp-tr { display: grid; grid-template-columns: 26px minmax(0,1fr) repeat(4, 78px); align-items: center; gap: 10px;
+      /* Capped so the flexible Team column can't open a void between the name
+         and its figures on a wide card — the club's table is bounded by its own
+         1040px shell, this one isn't. */
+      .rk-lp-table { max-width: 880px; }
+      .rk-lp-tr { display: grid; grid-template-columns: 26px minmax(0,1fr) repeat(4, 70px) 84px; align-items: center; gap: 10px;
                   padding: 15px 0; border-bottom: 1px solid var(--rk-line); }
       .rk-lp-thead { padding: 0 0 11px; font: 400 10px/1 var(--rk-font); letter-spacing: .05em;
                      text-transform: uppercase; color: var(--rk-muted); }
@@ -358,9 +362,14 @@
       .rk-lp-tname { display: flex; align-items: center; gap: 11px; min-width: 0;
                      font: 500 15px/1.2 var(--rk-font); letter-spacing: .012em; color: var(--rk-title); }
       .rk-lp-tname-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .rk-lp-crest { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; object-fit: cover; background: var(--rk-line); }
+      .rk-lp-crest { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; object-fit: cover; background: var(--rk-line); }
       .rk-lp-num-cell { text-align: center; font: 500 15px/1 var(--rk-font); color: var(--rk-ink); font-variant-numeric: tabular-nums; }
       .rk-lp-num-cell.is-leader { font-weight: 700; color: var(--rk-accent); }
+      /* The money column is the point of the table — set heavier than the stats
+         it's derived from, and greyed out entirely for teams taking nothing. */
+      .rk-lp-money { text-align: right; font: 700 15px/1 var(--rk-font); color: var(--rk-muted);
+                     font-variant-numeric: tabular-nums; }
+      .rk-lp-money.is-winning { color: var(--rk-title); }
 
       /* The stakes, stated once under the table. */
       .rk-lp-stakes { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 30px; margin-top: 30px;
@@ -424,8 +433,10 @@
         .rk-lp-board { padding: 40px var(--lp-gutter) 46px; }
         .rk-lp-board-head { flex-direction: column; align-items: flex-start; gap: 14px; margin-bottom: 24px; }
         /* Drop to two stat columns on a phone; the club's own table does the same. */
-        .rk-lp-tr { grid-template-columns: 20px minmax(0,1fr) repeat(2, 52px); gap: 8px; padding: 13px 0; }
-        .rk-lp-tr > .rk-lp-num-cell:nth-child(5), .rk-lp-tr > .rk-lp-num-cell:nth-child(6) { display: none; }
+        /* All four categories stay — "the four categories are consistent
+           everywhere" is the product's premise, so dropping two here broke the
+           one rule the club never breaks. Columns tighten instead. */
+        .rk-lp-tr { grid-template-columns: 16px minmax(0,1fr) repeat(4, 38px) 52px; gap: 5px; padding: 13px 0; }
         .rk-lp-tname { font-size: 13.5px; gap: 9px; }
         .rk-lp-crest { width: 20px; height: 20px; }
         .rk-lp-num-cell { font-size: 13.5px; }

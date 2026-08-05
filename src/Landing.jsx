@@ -87,7 +87,15 @@ export default function Landing() {
     ? [...league.players]
         .sort((a, b) => (league.seeds[a] || 999) - (league.seeds[b] || 999))
         .slice(0, 6)
-        .map((p) => ({ team: p, logo: league.logos[p], tot: league.seasonTotals[p] || {} }))
+        .map((p) => ({
+          team: p,
+          logo: league.logos[p],
+          tot: league.seasonTotals[p] || {},
+          // What this team is currently taking: one stake per category it leads.
+          // This is the fact the product exists for, and a plain standings table
+          // doesn't show it.
+          winning: CATS.reduce((n, c) => n + (leaders[c.key]?.team === p ? PER_CATEGORY : 0), 0),
+        }))
     : [];
   const isLeaderCell = (key, team) => leaders[key] && leaders[key].team === team;
 
@@ -154,6 +162,7 @@ export default function Landing() {
           <div className="rk-lp-tr rk-lp-thead">
             <span>#</span><span>Team</span>
             {CATS.map((c) => <span key={c.key} className="rk-lp-num-cell">{c.short}</span>)}
+            <span className="rk-lp-num-cell">Winning</span>
           </div>
           {standings.map((row, i) => (
             <div key={row.team} className="rk-lp-tr">
@@ -169,6 +178,9 @@ export default function Landing() {
                   <span key={c.key} className={"rk-lp-num-cell" + (isLeaderCell(c.key, row.team) ? " is-leader" : "")}>{shown}</span>
                 );
               })}
+              <span className={"rk-lp-money" + (row.winning ? " is-winning" : "")}>
+                {row.winning ? `$${row.winning}` : "\u2014"}
+              </span>
             </div>
           ))}
         </div>
