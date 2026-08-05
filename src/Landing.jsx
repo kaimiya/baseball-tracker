@@ -13,13 +13,20 @@ const DEMO_SLUG = "if-can-can";
 // shuffles, teams genuinely climb into and drop out of view — which is the
 // behaviour this section exists to demonstrate.
 const VISIBLE_ROWS = 5;
+// One overtake per beat: each frame differs from the previous by a single
+// adjacent swap, so exactly one team is seen passing one other. Reshuffling
+// several places at once read as noise rather than as a pass.
 const DEMO_FRAMES = [
-  { order: [0, 1, 2, 3, 4, 5, 6, 7], vals: [".264", ".263", ".253", ".252", ".251", ".249", ".247", ".241"] },
-  { order: [1, 0, 4, 2, 3, 6, 5, 7], vals: [".267", ".264", ".261", ".256", ".252", ".250", ".249", ".241"] },
-  { order: [4, 1, 5, 0, 2, 3, 7, 6], vals: [".272", ".269", ".266", ".264", ".258", ".252", ".250", ".247"] },
-  { order: [5, 4, 1, 7, 0, 2, 6, 3], vals: [".275", ".273", ".270", ".266", ".264", ".259", ".251", ".248"] },
-  { order: [7, 5, 6, 4, 1, 0, 3, 2], vals: [".278", ".276", ".272", ".269", ".266", ".264", ".255", ".250"] },
-  { order: [6, 7, 0, 5, 2, 4, 1, 3], vals: [".281", ".277", ".274", ".271", ".268", ".265", ".262", ".254"] },
+  { order: [0, 1, 2, 3, 4, 5, 6, 7], vals: [".264", ".262", ".258", ".255", ".252", ".249", ".246", ".241"] },
+  { order: [1, 0, 2, 3, 4, 5, 6, 7], vals: [".266", ".264", ".258", ".255", ".252", ".249", ".246", ".241"] },
+  { order: [1, 0, 3, 2, 4, 5, 6, 7], vals: [".266", ".264", ".260", ".258", ".252", ".249", ".246", ".241"] },
+  { order: [1, 3, 0, 2, 4, 5, 6, 7], vals: [".266", ".265", ".264", ".258", ".252", ".249", ".246", ".241"] },
+  { order: [1, 3, 0, 4, 2, 5, 6, 7], vals: [".266", ".265", ".264", ".259", ".258", ".249", ".246", ".241"] },
+  { order: [3, 1, 0, 4, 2, 5, 6, 7], vals: [".268", ".266", ".264", ".259", ".258", ".249", ".246", ".241"] },
+  { order: [3, 1, 0, 4, 5, 2, 6, 7], vals: [".268", ".266", ".264", ".259", ".257", ".255", ".246", ".241"] },
+  { order: [3, 1, 4, 0, 5, 2, 6, 7], vals: [".268", ".266", ".265", ".264", ".257", ".255", ".246", ".241"] },
+  { order: [3, 1, 4, 0, 5, 6, 2, 7], vals: [".268", ".266", ".265", ".264", ".257", ".256", ".255", ".241"] },
+  { order: [3, 1, 4, 5, 0, 6, 2, 7], vals: [".268", ".266", ".265", ".265", ".264", ".256", ".255", ".241"] },
 ];
 const PER_CATEGORY = 100;
 const TOTAL_ON_THE_LINE = 400;
@@ -97,7 +104,15 @@ export default function Landing() {
   const [frame, setFrame] = useState(0);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => setFrame((f) => (f + 1) % DEMO_FRAMES.length), 2600);
+    // Ping-pong rather than wrap: looping back to frame 0 from the last frame
+    // would jump every row at once, which is exactly the reshuffle the
+    // single-swap frames exist to avoid. Reversing keeps every transition to
+    // one pass.
+    let dir = 1;
+    const id = setInterval(() => setFrame((f) => {
+      if (f + dir >= DEMO_FRAMES.length || f + dir < 0) dir = -dir;
+      return f + dir;
+    }), 2600);
     return () => clearInterval(id);
   }, []);
 

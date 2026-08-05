@@ -329,9 +329,10 @@
          category leader — so the landing shows the product instead of
          describing it. */
       .rk-lp-board { border-top: 1px solid var(--rk-line); padding: 60px var(--lp-gutter) 68px; }
-      .rk-lp-board-head { text-align: center; }
-      .rk-lp-board-head { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 30px; text-align: center; }
-      .rk-lp-board-sub { font: 400 16px/1.5 var(--rk-font); color: var(--rk-grey); margin: 12px auto 0; max-width: 44ch; }
+      /* Left-aligned like every other heading on the page; only the card and
+         the stakes row under it are centred. */
+      .rk-lp-board-head { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 30px; text-align: left; }
+      .rk-lp-board-sub { font: 400 16px/1.5 var(--rk-font); color: var(--rk-grey); margin: 12px 0 0; max-width: 44ch; }
       .rk-lp-board-cta { display: flex; justify-content: center; margin-top: 26px; }
       .rk-lp-board-name { font: 700 clamp(22px, 2.4vw, 32px)/1.1 var(--rk-font); letter-spacing: -.018em;
                           text-transform: uppercase; color: var(--rk-title); }
