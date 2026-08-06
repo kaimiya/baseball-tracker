@@ -9,7 +9,7 @@ import { useLiveToday } from "./useLiveToday.js";
 const DEMO_SLUG = "if-can-can";
 // How many rows of the running order are on screen at once.
 const VISIBLE_ROWS = 6;
-const ROW_H = 64;   // taller than the club's 52 — on a landing page the board is the hero image, not UI
+const ROW_H = 54;   // a touch over the club's 52; 64 left each row mostly empty air
 // What each category pays in the club that's running. One league's bet, not the
 // product's model — this belongs in league config once clubs are configurable.
 const PER_CATEGORY = 100;
@@ -283,6 +283,7 @@ export default function Landing() {
                   key={team}
                   className={"rk-lp-racerow" + (i === 0 ? " is-first" : "") + (dealt ? "" : " is-dealt")}
                   style={{
+                    height: `${ROW_H}px`,
                     transform: `translateY(${i * ROW_H}px)`,
                     animationDelay: dealt ? undefined : `${i * 55}ms`,
                     opacity: i >= VISIBLE_ROWS ? 0 : 1,

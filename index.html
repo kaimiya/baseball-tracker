@@ -462,7 +462,18 @@
       .rk-lp-legal { justify-self: end; text-align: right; font: 400 10px/1.5 var(--rk-font); color: var(--rk-muted); }
 
       @media (max-width: 900px) {
-        .rk-landing { --lp-gutter: 16px; }
+        /* More room at the edges: 16px left content almost touching the frame
+           on mid-size windows, which is most of why the page read "too wide". */
+        .rk-landing { --lp-gutter: 34px; }
+        /* Once the hero stacks, the board spans the full column — the 64px rows
+           and 18px figures were scaled for a ~520px column beside the copy, and
+           at full width they read oversized. Row height stays 64 (the JS
+           positions rows by that exact value); only the contents come down. */
+        .rk-lp-racename { font-size: 15px; }
+        .rk-lp-racevalue { font-size: 16px; }
+        .rk-lp-racecrest { width: 28px; height: 28px; }
+        .rk-lp-hero .rk-lp-h1 { font-size: clamp(30px, 6.6vw, 42px); }
+        .rk-lp-hero .rk-lp-sub { font-size: 16px; }
         .rk-lp-navbar { gap: 18px; }
         .rk-lp-statement { padding: 64px var(--lp-gutter) 56px; }
         /* 2x2 — the same shape the board's own Leaders grid takes on mobile */
@@ -708,7 +719,7 @@
       .rk-lp-racerow { /* Full-bleed inside the card: the card pads 22px, so without cancelling
                          it every row hairline stopped short of the card's own border and
                          read as a missing line. Content keeps the inset via padding. */
-                       position: absolute; background: var(--rk-page); left: -22px; right: -22px; padding: 0 22px; height: 64px; display: flex; align-items: center; gap: 13px;
+                       position: absolute; background: var(--rk-page); left: -22px; right: -22px; padding: 0 22px; display: flex; align-items: center; gap: 13px;
                        border-top: 1px solid var(--rk-line);
                        transition: transform .55s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; will-change: transform; }
       .rk-lp-racerank { width: 20px; font: 700 13px/1 var(--rk-font); font-variant-numeric: tabular-nums; color: var(--rk-muted); }
