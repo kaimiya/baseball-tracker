@@ -145,11 +145,15 @@ export default function Landing() {
     return () => clearInterval(id);
   }, []);
 
+  // The category's values in rank order, held fixed while names move through them.
+  const sortedVals = DEMO_TEAMS.map((d) => d[cat])
+    .sort((a, b) => (cat === "era" ? a - b : b - a));
+
   const leader = order[0];
   const runnerUp = order[1];
   let marginText = "";
   if (leader && runnerUp) {
-    const d = Math.abs(valOf(leader, cat) - valOf(runnerUp, cat));
+    const d = Math.abs(sortedVals[0] - sortedVals[1]);
     const amount =
       cat === "avg" ? `${Math.round(d * 1000)} points`
       : cat === "era" ? d.toFixed(2).replace(/^0/, "")
@@ -188,70 +192,42 @@ export default function Landing() {
       {/* On-page anchors first, then the way out to a real club last — it's the
           only item that leaves the page, so it reads as the destination. */}
       <nav className="rk-lp-navbar">
-        <a href="#how" className={"rk-nav" + (activeNav === "how" ? " is-active" : "")}>How It Works</a>
         <a href="#board" className={"rk-nav" + (activeNav === "board" ? " is-active" : "")}>The Board</a>
         <a href="#request" className={"rk-nav" + (activeNav === "request" ? " is-active" : "")}>Request Access</a>
         <Link to={`/${DEMO_SLUG}`} className="rk-nav">View a Live Club</Link>
       </nav>
 
-      {/* Statement. Set in the board's own language — uppercase, bold, tight. */}
-      <section className="rk-lp-statement">
-        <h1 className="rk-lp-h1">
-          Doing the math<br />your league won't.
-        </h1>
-        <p className="rk-lp-sub">
-          Live category standings for your league's side bets. Read off the box
-          score every morning, so nobody has to take anybody's word for it.
-        </p>
-        {/* The statement had nothing to act on — the only way in was a nav item. */}
-        <div className="rk-lp-hero-cta">
-          <a href="#request" className="rk-lp-cta-primary">Request access &rarr;</a>
-          <Link to={`/${DEMO_SLUG}`} className="rk-lp-cta-secondary">View a live club</Link>
-        </div>
-      </section>
-
-      {/* The section the nav has always promised. Three steps, once a season. */}
-      <section className="rk-lp-how" id="how">
-        <div className="rk-lp-how-head">How it works</div>
-        <p className="rk-lp-how-sub">Three steps, once a season. After that it runs off the box score without anybody touching it.</p>
-        <div className="rk-lp-how-grid">
-          {STEPS.map((st) => (
-            <div key={st.n} className="rk-lp-step">
-              {/* Line-coloured on purpose: at this size it's ordering texture,
-                  not type, so it adds scale without spending the accent. */}
-              <div className="rk-lp-step-n">{st.n}</div>
-              <div className="rk-lp-step-head">{st.head}</div>
-              <p className="rk-lp-step-body">{st.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* The board, live. Four categories, four different races over the same
-          eight teams — switching between them is the whole point. */}
-      <section className="rk-lp-board" id="board">
-        <div className="rk-lp-board-head">
-          <div className="rk-lp-board-name">The board</div>
-          {live.meta?.gamesLive > 0 && (
-            <span className="rk-badge-live"><span className="rk-live-dot" />Live</span>
-          )}
-        </div>
-        <p className="rk-lp-board-sub">
-          Every category keeps its own running order. Switch between them — the same eight teams, four different races.
-        </p>
-
-        <div className="rk-lp-spot-tabs">
-          {CATS.map((c) => (
-            <button
-              key={c.key}
-              className={"rk-lp-spot-tab" + (cat === c.key ? " is-active" : "")}
-              onClick={() => { paused.current = true; setCat(c.key); }}
-            >
-              {c.label}
-            </button>
-          ))}
+      {/* Hero. The headline and the working board share the first screen: the
+          board demonstrates the product in four seconds, which the copy can only
+          describe. Splitting them meant a visitor read a pitch and scrolled past
+          three explanatory sections before seeing the thing itself. */}
+      <section className="rk-lp-hero" id="board">
+        <div className="rk-lp-hero-copy">
+          <h1 className="rk-lp-h1">
+            Doing the math<br />your league won't.
+          </h1>
+          <p className="rk-lp-sub">
+            Live standings for the side bets your league runs — read off the box
+            score, so nobody takes anybody's word for it.
+          </p>
+          <div className="rk-lp-hero-cta">
+            <a href="#request" className="rk-lp-cta-primary">Request access &rarr;</a>
+            <Link to={`/${DEMO_SLUG}`} className="rk-lp-cta-secondary">View a live club</Link>
+          </div>
         </div>
 
+        <div className="rk-lp-hero-board">
+          <div className="rk-lp-spot-tabs">
+            {CATS.map((c) => (
+              <button
+                key={c.key}
+                className={"rk-lp-spot-tab" + (cat === c.key ? " is-active" : "")}
+                onClick={() => { paused.current = true; setCat(c.key); }}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
         <div className="rk-lp-board-body">
           {/* Rows are keyed by team and move by transform only — reordering them
               in the DOM would remount and the transition could never run. */}
@@ -276,29 +252,22 @@ export default function Landing() {
                   <span className="rk-lp-racerank">{i + 1}</span>
                   <img src={DEMO_TEAMS.find((d) => d.name === team)?.crest} alt="" className="rk-lp-racecrest" />
                   <span className="rk-lp-racename">{team}</span>
-                  <span className="rk-lp-racevalue">{fmtVal(cat, valOf(team, cat))}</span>
+                  {/* Positional, not per-team: the swap moves NAMES between fixed
+                      values, so the column always reads top-to-bottom in order.
+                      Carrying each team's own number made the board unsorted
+                      after a couple of beats — 4th place showing the highest
+                      figure, which just looks broken. */}
+                  <span className="rk-lp-racevalue">{fmtVal(cat, sortedVals[i])}</span>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* The headline figure, next to the order it's derived from. */}
-          <div className="rk-lp-spot">
-            <div className="rk-lp-spot-eyebrow">Leading now</div>
-            <div className="rk-lp-spot-figure">{leader ? fmtVal(cat, valOf(leader, cat)) : "—"}</div>
-            <div className="rk-lp-spot-team">{leader || "—"}</div>
-            {marginText && <div className="rk-lp-spot-margin">{marginText}</div>}
-            <div className="rk-lp-spot-stake">
-              <span className="rk-lp-spot-stake-l">On this category</span>
-              <span className="rk-lp-spot-stake-v">${PER_CATEGORY}</span>
             </div>
           </div>
         </div>
 
         <div className="rk-lp-board-foot">
-          <Link to={`/${DEMO_SLUG}`} className="rk-lp-board-open">
-            View a live club &rarr;
-          </Link>
+          <Link to={`/${DEMO_SLUG}`} className="rk-lp-board-open">View a live club &rarr;</Link>
+          <span className="rk-lp-board-meta">${PER_CATEGORY} a category &middot; settled automatically</span>
+        </div>
         </div>
       </section>
 
