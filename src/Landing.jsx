@@ -149,6 +149,39 @@ export default function Landing() {
   const sortedVals = DEMO_TEAMS.map((d) => d[cat])
     .sort((a, b) => (cat === "era" ? a - b : b - a));
 
+  // Split-flap digits in the band. They roll, settle, hold, then roll again —
+  // a scoreboard mid-update rather than a static number.
+  const [flap, setFlap] = useState([2, 6, 8]);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let settle;
+    const roll = () => {
+      let ticks = 0;
+      const spin = setInterval(() => {
+        setFlap([0, 1, 2].map(() => Math.floor(Math.random() * 10)));
+        if (++ticks > 7) {
+          clearInterval(spin);
+          // land on a plausible home-run total, not noise
+          setFlap(String(240 + Math.floor(Math.random() * 40)).split("").map(Number));
+        }
+      }, 70);
+    };
+    settle = setInterval(roll, 4600);
+    return () => { clearInterval(settle); };
+  }, []);
+
+  // Pause on interaction, then resume — don't stop for good. Killing autoplay
+  // on the first tab click made sense when the board sat mid-page, but it's the
+  // hero now and the motion is the pitch: clicking a category left you with a
+  // permanently frozen board, which reads as broken rather than considerate.
+  const resumeAt = useRef(null);
+  const pauseBriefly = () => {
+    paused.current = true;
+    clearTimeout(resumeAt.current);
+    resumeAt.current = setTimeout(() => { paused.current = false; }, 6000);
+  };
+  useEffect(() => () => clearTimeout(resumeAt.current), []);
+
   const leader = order[0];
   const runnerUp = order[1];
   let marginText = "";
@@ -189,13 +222,6 @@ export default function Landing() {
             : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>}
         </button>
       </div>
-      {/* On-page anchors first, then the way out to a real club last — it's the
-          only item that leaves the page, so it reads as the destination. */}
-      <nav className="rk-lp-navbar">
-        <a href="#board" className={"rk-nav" + (activeNav === "board" ? " is-active" : "")}>The Board</a>
-        <a href="#request" className={"rk-nav" + (activeNav === "request" ? " is-active" : "")}>Request Access</a>
-        <Link to={`/${DEMO_SLUG}`} className="rk-nav">View a Live Club</Link>
-      </nav>
 
       {/* Hero. The headline and the working board share the first screen: the
           board demonstrates the product in four seconds, which the copy can only
@@ -222,7 +248,7 @@ export default function Landing() {
               <button
                 key={c.key}
                 className={"rk-lp-spot-tab" + (cat === c.key ? " is-active" : "")}
-                onClick={() => { paused.current = true; setCat(c.key); }}
+                onClick={() => { pauseBriefly(); setCat(c.key); }}
               >
                 {c.label}
               </button>
@@ -264,8 +290,10 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* Caption only — the "view a live club" link lives in the hero CTA pair
+            a few inches to the left, and repeating it in the same view read as
+            a mistake rather than a second chance to click. */}
         <div className="rk-lp-board-foot">
-          <Link to={`/${DEMO_SLUG}`} className="rk-lp-board-open">View a live club &rarr;</Link>
           <span className="rk-lp-board-meta">${PER_CATEGORY} a category &middot; settled automatically</span>
         </div>
         </div>
@@ -274,12 +302,18 @@ export default function Landing() {
       {/* Full-bleed band. Dark in both themes — its own ground is the boundary,
           so it needs no hairline. */}
       <section className="rk-lp-band">
-        <div className="rk-lp-band-photo">
-          <img src="/band.jpg" alt="" />
-          {/* Ground-coloured dots painted over the photo, strongest at the right
-              and gone by the midpoint, so the image breaks apart into the
-              brand's dot matrix instead of stopping at an edge. */}
-          <span className="rk-lp-band-dots" aria-hidden="true" />
+        {/* A split-flap board rather than a photograph. The one here was a
+            licensed press shot with rights unverified, and a stock celebration
+            frame is what every sports product uses. A scoreboard that keeps
+            re-settling says "these numbers move" in the product's own language,
+            and it's original. */}
+        <span className="rk-lp-band-dots" aria-hidden="true" />
+        <div className="rk-lp-flap" aria-hidden="true">
+          {flap.map((d, i) => (
+            <span key={i} className="rk-lp-flap-cell">
+              <span key={`${i}-${d}`} className="rk-lp-flap-digit">{d}</span>
+            </span>
+          ))}
         </div>
         <div className="rk-lp-band-type">
           <div className="rk-lp-band-head">Nobody argues with the box score.</div>
