@@ -692,7 +692,10 @@
       .rk-lp-race { position: relative; }
       /* border-TOP, not bottom: with rows moving by transform, a top border stays
          attached to the row above the name rather than trailing it. */
-      .rk-lp-racerow { position: absolute; background: var(--rk-page); left: 0; right: 0; height: 52px; display: flex; align-items: center; gap: 13px;
+      .rk-lp-racerow { /* Full-bleed inside the card: the card pads 22px, so without cancelling
+                         it every row hairline stopped short of the card's own border and
+                         read as a missing line. Content keeps the inset via padding. */
+                       position: absolute; background: var(--rk-page); left: -22px; right: -22px; padding: 0 22px; height: 52px; display: flex; align-items: center; gap: 13px;
                        border-top: 1px solid var(--rk-line);
                        transition: transform .55s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; will-change: transform; }
       .rk-lp-racerank { width: 20px; font: 700 13px/1 var(--rk-font); font-variant-numeric: tabular-nums; color: var(--rk-muted); }
@@ -761,8 +764,8 @@
       .rk-lp-band-dots { position: absolute; inset: 0; pointer-events: none;
                          background-image: radial-gradient(circle, rgba(255,255,255,.16) 1.1px, transparent 1.1px);
                          background-size: 7px 7px;
-                         -webkit-mask-image: linear-gradient(to left, transparent 34%, #000 100%);
-                         mask-image: linear-gradient(to left, transparent 34%, #000 100%); }
+                         -webkit-mask-image: linear-gradient(to right, transparent 34%, #000 100%);
+                         mask-image: linear-gradient(to right, transparent 34%, #000 100%); }
       .rk-lp-band-type { position: relative; z-index: 1; min-width: 0; order: 1; }
       .rk-lp-band-head { font: 700 clamp(30px, 3.6vw, 48px)/1.04 var(--rk-font); letter-spacing: -.028em; text-transform: uppercase;
                          color: #EDEDED; text-wrap: balance; }
