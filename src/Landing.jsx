@@ -9,7 +9,7 @@ import { useLiveToday } from "./useLiveToday.js";
 const DEMO_SLUG = "if-can-can";
 // How many rows of the running order are on screen at once.
 const VISIBLE_ROWS = 6;
-const ROW_H = 52;
+const ROW_H = 64;   // taller than the club's 52 — on a landing page the board is the hero image, not UI
 // What each category pays in the club that's running. One league's bet, not the
 // product's model — this belongs in league config once clubs are configurable.
 const PER_CATEGORY = 100;
@@ -170,6 +170,23 @@ export default function Landing() {
     return () => { clearInterval(settle); };
   }, []);
 
+  // Reveal sections as they enter view. One observer, unobserving as it fires —
+  // a section should animate once, not every time it re-enters.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll(".rk-reveal").forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  // Rows deal in on first paint only; after that the swap animation owns them.
+  const [dealt, setDealt] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setDealt(true), 900); return () => clearTimeout(t); }, []);
+
   // Pause on interaction, then resume — don't stop for good. Killing autoplay
   // on the first tab click made sense when the board sat mid-page, but it's the
   // hero now and the motion is the pitch: clicking a category left you with a
@@ -262,9 +279,10 @@ export default function Landing() {
               {order.map((team, i) => (
                 <div
                   key={team}
-                  className={"rk-lp-racerow" + (i === 0 ? " is-first" : "")}
+                  className={"rk-lp-racerow" + (i === 0 ? " is-first" : "") + (dealt ? "" : " is-dealt")}
                   style={{
                     transform: `translateY(${i * ROW_H}px)`,
+                    animationDelay: dealt ? undefined : `${i * 55}ms`,
                     opacity: i >= VISIBLE_ROWS ? 0 : 1,
                     // No per-row delay. Staggering by destination index — what
                     // the handoff asked for — means a team dropping from 1st to
@@ -301,7 +319,7 @@ export default function Landing() {
 
       {/* Full-bleed band. Dark in both themes — its own ground is the boundary,
           so it needs no hairline. */}
-      <section className="rk-lp-band">
+      <section className="rk-lp-band rk-reveal">
         {/* A split-flap board rather than a photograph. The one here was a
             licensed press shot with rights unverified, and a stock celebration
             frame is what every sports product uses. A scoreboard that keeps
@@ -323,7 +341,7 @@ export default function Landing() {
 
       {/* The bet travels. Below the band now — breadth only lands once you know
           what the thing is. */}
-      <section className="rk-lp-sports">
+      <section className="rk-lp-sports rk-reveal">
         <div className="rk-lp-sports-head">A bet is a stat, a direction and a payout.<br />That works in any sport.</div>
         <p className="rk-lp-sports-sub">Baseball is the season that's running. The machinery doesn't care which one it is.</p>
         <div className="rk-lp-sports-grid">
@@ -339,7 +357,7 @@ export default function Landing() {
       </section>
 
       {/* Where a league can live. Honest about what's connected today. */}
-      <section className="rk-lp-platforms">
+      <section className="rk-lp-platforms rk-reveal">
         <div className="rk-lp-platforms-label">Connect your league</div>
         <div className="rk-lp-platforms-row">
           {PLATFORMS.map((p) => (
@@ -353,7 +371,7 @@ export default function Landing() {
       </section>
 
       {/* Request access — a ruled line, matching the product's unfilled controls */}
-      <section className="rk-lp-request" id="request">
+      <section className="rk-lp-request rk-reveal" id="request">
         <div className="rk-lp-request-head">Request access</div>
         {/* Names the next season rather than the current one — baseball is
             already running, so the thing to sign up FOR is football. */}

@@ -313,6 +313,19 @@
         .rk-lp-hero { grid-template-columns: minmax(0, 1fr); gap: 40px; padding: 44px var(--lp-gutter) 52px; }
       }
 
+      /* Entrance. Nothing on the page moved on arrival, which is most of why it
+         read as rendered rather than designed. Sections rise as they come into
+         view; board rows deal in from the top with a stagger. */
+      @keyframes rk-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+      .rk-reveal { opacity: 0; }
+      .rk-reveal.is-in { animation: rk-rise .62s cubic-bezier(.16,1,.3,1) both; }
+      @keyframes rk-deal { from { opacity: 0; transform: translateY(-10px); } }
+      .rk-lp-racerow.is-dealt { animation: rk-deal .5s cubic-bezier(.16,1,.3,1) both; }
+      @media (prefers-reduced-motion: reduce) {
+        .rk-reveal, .rk-reveal.is-in { opacity: 1; animation: none; }
+        .rk-lp-racerow.is-dealt { animation: none; }
+      }
+
       /* ==========================================================================
          Landing page. Built from the board's own language rather than a generic
          hero: the club's exact header/footer construction, full-bleed hairlines,
@@ -376,8 +389,8 @@
       .rk-lp-race { position: relative; }
       .rk-lp-racerank { width: 20px; flex-shrink: 0; font: 700 13px/1 var(--rk-font); color: var(--rk-muted);
                         font-variant-numeric: tabular-nums; transition: color .3s ease; }
-      .rk-lp-racecrest { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: none; }
-      .rk-lp-racename { flex: 1; min-width: 0; font: 500 14px/1.2 var(--rk-font); letter-spacing: .012em; color: var(--rk-title);
+      .rk-lp-racecrest { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: none; }
+      .rk-lp-racename { flex: 1; min-width: 0; font: 500 16px/1.2 var(--rk-font); letter-spacing: .012em; color: var(--rk-title);
                         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .rk-lp-racevalue { flex-shrink: 0; font: 500 15px/1 var(--rk-font); color: var(--rk-ink);
                          font-variant-numeric: tabular-nums; transition: color .3s ease, font-weight .3s ease; }
@@ -695,18 +708,18 @@
       .rk-lp-racerow { /* Full-bleed inside the card: the card pads 22px, so without cancelling
                          it every row hairline stopped short of the card's own border and
                          read as a missing line. Content keeps the inset via padding. */
-                       position: absolute; background: var(--rk-page); left: -22px; right: -22px; padding: 0 22px; height: 52px; display: flex; align-items: center; gap: 13px;
+                       position: absolute; background: var(--rk-page); left: -22px; right: -22px; padding: 0 22px; height: 64px; display: flex; align-items: center; gap: 13px;
                        border-top: 1px solid var(--rk-line);
                        transition: transform .55s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; will-change: transform; }
       .rk-lp-racerank { width: 20px; font: 700 13px/1 var(--rk-font); font-variant-numeric: tabular-nums; color: var(--rk-muted); }
       .rk-lp-racerow.is-first .rk-lp-racerank { color: var(--rk-accent); }
       /* No fill behind the crest — an empty slot should read as nothing there,
          not as a grey placeholder chip. */
-      .rk-lp-racecrest { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: none; flex-shrink: 0; }
-      .rk-lp-racename { flex: 1; min-width: 0; font: 500 14px/1.2 var(--rk-font); letter-spacing: .018em; color: var(--rk-title);
+      .rk-lp-racecrest { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: none; flex-shrink: 0; }
+      .rk-lp-racename { flex: 1; min-width: 0; font: 500 16px/1.2 var(--rk-font); letter-spacing: .018em; color: var(--rk-title);
                         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .rk-lp-racerow.is-first .rk-lp-racename { font-weight: 700; }
-      .rk-lp-racevalue { font: 500 15px/1 var(--rk-font); font-variant-numeric: tabular-nums; color: var(--rk-ink); }
+      .rk-lp-racevalue { font: 500 18px/1 var(--rk-font); font-variant-numeric: tabular-nums; color: var(--rk-ink); }
       .rk-lp-racerow.is-first .rk-lp-racevalue { font-weight: 700; color: var(--rk-accent); }
       .rk-lp-spot { flex: 0 1 288px; min-width: 240px; display: flex; flex-direction: column; padding-top: 4px; }
       .rk-lp-spot-eyebrow { font: 400 10.5px/1 var(--rk-font); letter-spacing: .05em; text-transform: uppercase; color: var(--rk-muted); }
