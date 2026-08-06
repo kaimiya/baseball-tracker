@@ -761,14 +761,18 @@
       .rk-flap-half { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden;
                       background: #16181D; display: flex; justify-content: center;
                       backface-visibility: hidden; }
-      .rk-flap-half b { font: 700 clamp(40px, 4.8vw, 68px)/1 var(--rk-font); letter-spacing: -.02em;
+      /* The glyph box is 200% of its half — i.e. the full cell height — and is
+         anchored to one end, so each half reveals only its share of a single
+         centred digit. Sizing the glyph to the half instead let a whole digit
+         fit inside each one, which rendered the number twice per cell. */
+      .rk-flap-half b { position: absolute; left: 0; right: 0; height: 200%;
+                        display: flex; align-items: center; justify-content: center;
+                        font: 700 clamp(40px, 4.8vw, 68px)/1 var(--rk-font); letter-spacing: -.02em;
                         color: #EDEDED; font-variant-numeric: tabular-nums; }
-      /* Each half clips one end of a full-height glyph, so the two line up into
-         a single digit with the hinge seam running through its middle. */
-      .rk-flap-top { top: 0; align-items: flex-start; border-bottom: 1px solid #0A0A0A; }
-      .rk-flap-top b { transform: translateY(-6%); }
-      .rk-flap-bot { bottom: 0; align-items: flex-end; }
-      .rk-flap-bot b { transform: translateY(6%); }
+      .rk-flap-top { top: 0; border-bottom: 1px solid #0A0A0A; }
+      .rk-flap-top b { top: 0; }
+      .rk-flap-bot { bottom: 0; }
+      .rk-flap-bot b { bottom: 0; }
 
       .rk-flap-leaf-top { transform-origin: 50% 100%; z-index: 2;
                           animation: rk-leaf-top .22s cubic-bezier(.4,.02,.9,.5) both; }
