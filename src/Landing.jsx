@@ -236,11 +236,13 @@ export default function Landing() {
                   style={{
                     transform: `translateY(${i * ROW_H}px)`,
                     opacity: i >= VISIBLE_ROWS ? 0 : 1,
-                    // Cascading top-down is what makes a category switch read
-                    // as teams passing each other rather than one reshuffle. At
-                    // 45ms the moves overlapped enough to look like two rows
-                    // swapping at once, so each is given room to land first.
-                    transitionDelay: `${i * 85}ms`,
+                    // No per-row delay. Staggering by destination index — what
+                    // the handoff asked for — means a team dropping from 1st to
+                    // 8th sits still for 595ms while everything moves around it
+                    // and then falls late, because the rows that travel furthest
+                    // are the ones made to wait longest. That stagger suits a
+                    // list appearing; a category switch is a re-sort, and a
+                    // leaderboard re-sorting should settle as one.
                   }}
                 >
                   <span className="rk-lp-racerank">{i + 1}</span>
