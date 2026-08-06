@@ -152,19 +152,21 @@ export default function Landing() {
   // Split-flap digits in the band. They roll, settle, hold, then roll again —
   // a scoreboard mid-update rather than a static number.
   const [flap, setFlap] = useState([2, 6, 8]);
+  const prevFlap = useRef([2, 6, 8]);
+  const setFlapTracked = (next) => { setFlap((cur) => { prevFlap.current = cur; return next; }); };
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let settle;
     const roll = () => {
       let ticks = 0;
       const spin = setInterval(() => {
-        setFlap([0, 1, 2].map(() => Math.floor(Math.random() * 10)));
-        if (++ticks > 7) {
+        setFlapTracked([0, 1, 2].map(() => Math.floor(Math.random() * 10)));
+        if (++ticks > 3) {
           clearInterval(spin);
           // land on a plausible home-run total, not noise
-          setFlap(String(240 + Math.floor(Math.random() * 40)).split("").map(Number));
+          setFlapTracked(String(240 + Math.floor(Math.random() * 40)).split("").map(Number));
         }
-      }, 90);
+      }, 480);   // one full two-leaf hand-off (.22s fall + .24s rise)
     };
     settle = setInterval(roll, 4600);
     return () => { clearInterval(settle); };
@@ -327,11 +329,21 @@ export default function Landing() {
             and it's original. */}
         <span className="rk-lp-band-dots" aria-hidden="true" />
         <div className="rk-lp-flap" aria-hidden="true">
-          {flap.map((d, i) => (
-            <span key={i} className="rk-lp-flap-cell">
-              <span key={`${i}-${d}`} className="rk-lp-flap-digit">{d}</span>
-            </span>
-          ))}
+          {flap.map((d, i) => {
+            const was = prevFlap.current[i];
+            return (
+              <span key={i} className="rk-lp-flap-cell">
+                {/* Settled state underneath: top half already shows the new
+                    digit, bottom half still shows the old one. */}
+                <span className="rk-flap-half rk-flap-top"><b>{d}</b></span>
+                <span className="rk-flap-half rk-flap-bot"><b>{was}</b></span>
+                {/* Two hinged leaves over them, keyed so each change replays:
+                    the old top falls away, then the new bottom swings up. */}
+                <span key={`t${d}-${was}`} className="rk-flap-half rk-flap-top rk-flap-leaf-top"><b>{was}</b></span>
+                <span key={`b${d}-${was}`} className="rk-flap-half rk-flap-bot rk-flap-leaf-bot"><b>{d}</b></span>
+              </span>
+            );
+          })}
         </div>
         <div className="rk-lp-band-type">
           <div className="rk-lp-band-head">Nobody argues with the box score.</div>

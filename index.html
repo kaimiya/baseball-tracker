@@ -748,29 +748,44 @@
                           -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 46%);
                           mask-image: linear-gradient(to right, transparent 0%, #000 46%); }
       .rk-lp-band-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
-      /* Split-flap board. Each cell is a card with a hairline across its
-         midline — the seam a real flap board has — and the digit flips in on
-         rotateX from above, so it reads as mechanical rather than a fade. */
-      /* order, not DOM position: the flap markup sits before the copy (it's
-         painted with the band's texture), but it belongs in the right column. */
+      /* Split-flap board — a real one. Each cell holds the digit twice, clipped
+         into halves: the top half already shows the incoming digit, the bottom
+         half still shows the outgoing one. Two hinged leaves sit over them —
+         the old top falls forward on its bottom edge, and as it clears, the new
+         bottom swings up on its top edge. That hand-off is what a mechanical
+         board does; cross-fading one whole digit (the previous version) is what
+         made it read as a cheap imitation. */
       .rk-lp-flap { display: flex; gap: 10px; z-index: 1; pointer-events: none; order: 2; }
       .rk-lp-flap-cell { position: relative; width: clamp(52px, 6vw, 86px); height: clamp(70px, 8vw, 116px);
-                         background: #16181D; border: 1px solid #23262B; overflow: hidden;
-                         display: flex; align-items: center; justify-content: center; perspective: 320px; }
-      /* the seam */
-      .rk-lp-flap-cell::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
-                                background: #0A0A0A; z-index: 2; }
-      .rk-lp-flap-digit { font: 700 clamp(40px, 4.8vw, 68px)/1 var(--rk-font); letter-spacing: -.02em;
-                          color: #EDEDED; font-variant-numeric: tabular-nums;
-                          /* Must complete inside one roll tick (90ms) — at .16s each digit
-                             restarted mid-rotation and sat edge-on, so the board read blank. */
-                          animation: rk-flap .075s cubic-bezier(.4,0,.2,1); transform-origin: 50% 0; }
-      @keyframes rk-flap { from { transform: rotateX(-88deg); opacity: .25; } to { transform: none; opacity: 1; } }
+                         perspective: 260px; background: #0A0A0A; }
+      .rk-flap-half { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden;
+                      background: #16181D; display: flex; justify-content: center;
+                      backface-visibility: hidden; }
+      .rk-flap-half b { font: 700 clamp(40px, 4.8vw, 68px)/1 var(--rk-font); letter-spacing: -.02em;
+                        color: #EDEDED; font-variant-numeric: tabular-nums; }
+      /* Each half clips one end of a full-height glyph, so the two line up into
+         a single digit with the hinge seam running through its middle. */
+      .rk-flap-top { top: 0; align-items: flex-start; border-bottom: 1px solid #0A0A0A; }
+      .rk-flap-top b { transform: translateY(-6%); }
+      .rk-flap-bot { bottom: 0; align-items: flex-end; }
+      .rk-flap-bot b { transform: translateY(6%); }
+
+      .rk-flap-leaf-top { transform-origin: 50% 100%; z-index: 2;
+                          animation: rk-leaf-top .22s cubic-bezier(.4,.02,.9,.5) both; }
+      .rk-flap-leaf-bot { transform-origin: 50% 0; z-index: 2;
+                          animation: rk-leaf-bot .24s cubic-bezier(.1,.6,.3,1) .22s both; }
+      /* Slight darkening as each leaf turns edge-on — a flat rotation with no
+         shading reads as a sliding rectangle rather than something with a face. */
+      @keyframes rk-leaf-top { from { transform: rotateX(0); filter: brightness(1); }
+                               to   { transform: rotateX(-90deg); filter: brightness(.55); } }
+      @keyframes rk-leaf-bot { from { transform: rotateX(90deg); filter: brightness(.55); }
+                               to   { transform: rotateX(0); filter: brightness(1); } }
       @media (max-width: 900px) {
-        /* Stacks — there isn't width for type and board side by side. */
         .rk-lp-band { grid-template-columns: minmax(0,1fr); gap: 30px; }
       }
-      @media (prefers-reduced-motion: reduce) { .rk-lp-flap-digit { animation: none; } }
+      @media (prefers-reduced-motion: reduce) {
+        .rk-flap-leaf-top, .rk-flap-leaf-bot { animation: none; opacity: 0; }
+      }
 
       /* Ground-coloured dots over the dark band, densest at the right and
          dissolving leftward — the mark's own matrix standing in for imagery. */
