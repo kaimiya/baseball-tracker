@@ -17,14 +17,14 @@ const PER_CATEGORY = 100;
 // Invented teams. This is a demo, so it shouldn't publish a real league's
 // names — and the placeholder crest keeps it visibly a sample, not a club.
 const DEMO_TEAMS = [
-  { name: "Rally Caps",       hr: 268, avg: .271, wins: 96, era: 3.18 },
-  { name: "Warning Track",    hr: 254, avg: .266, wins: 91, era: 3.31 },
-  { name: "The Cutoff Man",   hr: 249, avg: .262, wins: 88, era: 3.44 },
-  { name: "Foul Territory",   hr: 241, avg: .259, wins: 84, era: 3.57 },
-  { name: "Bush League",      hr: 232, avg: .255, wins: 80, era: 3.69 },
-  { name: "Can Of Corn",      hr: 224, avg: .252, wins: 77, era: 3.78 },
-  { name: "Pinch Runners",    hr: 216, avg: .249, wins: 73, era: 3.91 },
-  { name: "Golden Sombrero",  hr: 205, avg: .244, wins: 69, era: 4.06 },
+  { name: "Rally Caps",       crest: "/logos/demo/1.png", hr: 268, avg: .271, wins: 96, era: 3.18 },
+  { name: "Warning Track",    crest: "/logos/demo/2.png", hr: 254, avg: .266, wins: 91, era: 3.31 },
+  { name: "The Cutoff Man",   crest: "/logos/demo/3.png", hr: 249, avg: .262, wins: 88, era: 3.44 },
+  { name: "Foul Territory",   crest: "/logos/demo/4.png", hr: 241, avg: .259, wins: 84, era: 3.57 },
+  { name: "Bush League",      crest: "/logos/demo/5.png", hr: 232, avg: .255, wins: 80, era: 3.69 },
+  { name: "Can Of Corn",      crest: "/logos/demo/6.png", hr: 224, avg: .252, wins: 77, era: 3.78 },
+  { name: "Pinch Runners",    crest: "/logos/demo/1.png", hr: 216, avg: .249, wins: 73, era: 3.91 },
+  { name: "Golden Sombrero",  crest: "/logos/demo/2.png", hr: 205, avg: .244, wins: 69, era: 4.06 },
 ];
 
 const STEPS = [
@@ -206,7 +206,7 @@ export default function Landing() {
         {/* The statement had nothing to act on — the only way in was a nav item. */}
         <div className="rk-lp-hero-cta">
           <a href="#request" className="rk-lp-cta-primary">Request access &rarr;</a>
-          <Link to={`/${DEMO_SLUG}`} className="rk-lp-cta-secondary">See a live club</Link>
+          <Link to={`/${DEMO_SLUG}`} className="rk-lp-cta-secondary">View a live club</Link>
         </div>
       </section>
 
@@ -274,7 +274,7 @@ export default function Landing() {
                   }}
                 >
                   <span className="rk-lp-racerank">{i + 1}</span>
-                  <span className="rk-lp-racecrest" aria-hidden="true" />
+                  <img src={DEMO_TEAMS.find((d) => d.name === team)?.crest} alt="" className="rk-lp-racecrest" />
                   <span className="rk-lp-racename">{team}</span>
                   <span className="rk-lp-racevalue">{fmtVal(cat, valOf(team, cat))}</span>
                 </div>

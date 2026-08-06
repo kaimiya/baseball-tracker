@@ -356,7 +356,7 @@
       .rk-lp-race { position: relative; }
       .rk-lp-racerank { width: 20px; flex-shrink: 0; font: 700 13px/1 var(--rk-font); color: var(--rk-muted);
                         font-variant-numeric: tabular-nums; transition: color .3s ease; }
-      .rk-lp-racecrest { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--rk-line); }
+      .rk-lp-racecrest { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: none; }
       .rk-lp-racename { flex: 1; min-width: 0; font: 500 14px/1.2 var(--rk-font); letter-spacing: .012em; color: var(--rk-title);
                         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .rk-lp-racevalue { flex-shrink: 0; font: 500 15px/1 var(--rk-font); color: var(--rk-ink);
@@ -675,7 +675,9 @@
                        transition: transform .55s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; will-change: transform; }
       .rk-lp-racerank { width: 20px; font: 700 13px/1 var(--rk-font); font-variant-numeric: tabular-nums; color: var(--rk-muted); }
       .rk-lp-racerow.is-first .rk-lp-racerank { color: var(--rk-accent); }
-      .rk-lp-racecrest { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: var(--rk-line); flex-shrink: 0; }
+      /* No fill behind the crest — an empty slot should read as nothing there,
+         not as a grey placeholder chip. */
+      .rk-lp-racecrest { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: none; flex-shrink: 0; }
       .rk-lp-racename { flex: 1; min-width: 0; font: 500 14px/1.2 var(--rk-font); letter-spacing: .018em; color: var(--rk-title);
                         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .rk-lp-racerow.is-first .rk-lp-racename { font-weight: 700; }
