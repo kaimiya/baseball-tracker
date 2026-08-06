@@ -46,5 +46,9 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
     plugins: [react(), espnApiDevPlugin(env)],
+    // Vite doesn't read PORT on its own — without this it ignores a
+    // harness-assigned port and does its own 5173→5174 search, so the
+    // preview opens a tab on a port nothing is listening to.
+    server: { port: Number(process.env.PORT) || 5173 },
   };
 });

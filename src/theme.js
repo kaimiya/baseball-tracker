@@ -129,6 +129,10 @@ export function useTheme() {
     root.setProperty("--rk-grey", th.textMuted);
     root.setProperty("--rk-muted", th.textFaint);
     root.setProperty("--rk-accent", th.accent);
+    // Type that sits ON the accent — white in light, near-black in dark, where
+    // the accent is a pale blue and white type would fall under 3:1.
+    root.setProperty("--rk-accent-text", th.accentText);
+    root.setProperty("--rk-accent-hover", th.accentHover);
     root.setProperty("--rk-well", th.well);
     root.setProperty("--rk-hover", th.rowHover);
     root.setProperty("--rk-sel", th.rowSelected);

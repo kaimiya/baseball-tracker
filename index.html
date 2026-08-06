@@ -418,12 +418,16 @@
       /* Sport breadth. Same column rhythm as the board, hairline-divided. The
          running sport is marked; the others are the same machinery unstarted. */
       .rk-lp-sports { border-top: 1px solid var(--rk-line); padding: 76px var(--lp-gutter) 14px; }
-      .rk-lp-sports-head { font: 700 clamp(22px, 2.6vw, 34px)/1.2 var(--rk-font); letter-spacing: -.018em;
-                           text-transform: uppercase; color: var(--rk-title); max-width: 22ch; }
+      .rk-lp-sports-head { font: 700 clamp(22px, 2.6vw, 34px)/1.14 var(--rk-font); letter-spacing: -.022em;
+                           color: var(--rk-title); max-width: 24ch; text-wrap: balance; }
       .rk-lp-sports-sub { font: 400 17px/1.5 var(--rk-font); color: var(--rk-grey); margin: 16px 0 0; max-width: 46ch; }
       .rk-lp-sports-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 54px; }
       .rk-lp-sport { padding: 34px 40px 62px 0; min-width: 0; border-top: 1px solid var(--rk-line); }
       .rk-lp-sport + .rk-lp-sport { border-left: 1px solid var(--rk-line); padding-left: 40px; }
+      /* Takes its colour from the eyebrow beneath it — muted, or accent on the
+         season that's actually running, so the live column reads at a glance. */
+      .rk-lp-sport-icon { display: block; color: var(--rk-muted); margin-bottom: 18px; }
+      .rk-lp-sport.is-live .rk-lp-sport-icon { color: var(--rk-accent); }
       .rk-lp-sport-name { font: 700 10.5px/1 var(--rk-font); letter-spacing: .09em; text-transform: uppercase; color: var(--rk-muted); }
       .rk-lp-sport.is-live .rk-lp-sport-name { color: var(--rk-accent); }
       .rk-lp-sport-bets { list-style: none; margin: 20px 0 0; padding: 0; }
@@ -685,6 +689,301 @@
         .rk-pay-col + .rk-pay-col { border-left: 0; border-top: 1px solid var(--rk-line); }
       }
 
+      /* ---- The reel -------------------------------------------------------- */
+      /* A tall track wrapping a sticky viewport-height frame. Scrolling the
+         track advances the demo season inside the frame, which never moves. */
+      /* Pull the reel up under the bar so the sticky 100vh frame starts at the
+         very top of the viewport. The bar keeps its z-index and its blue, so it
+         still paints over the opening — same colour, no seam — but it no longer
+         pushes the frame down and shoves the headline off centre. */
+      .rk-reel-track { position: relative; margin-top: -62px; }
+      .rk-reel-frame { position: sticky; top: 0; height: 100vh; overflow: hidden;
+                       display: flex; flex-direction: column; justify-content: center;
+                       padding: 0 var(--lp-gutter); }
+      /* Reduced motion gets the finished season as an ordinary block — a pinned
+         frame you can't scrub is just a stuck page. */
+      .rk-reel-frame.is-still { position: static; height: auto; padding-top: 56px; padding-bottom: 72px; }
+      .rk-reel-frame.is-still .rk-reel-intro { position: static; margin-bottom: 40px; }
+
+      .rk-reel-stage { width: 100%; max-width: 1080px; margin: 0 auto; will-change: opacity, transform; }
+
+      /* Rail + board. The split used to reveal a lone table in a field of
+         white — all reveal, no payoff. The rail gives the stage a headline:
+         the number to beat at display size, ticking with the scroll. */
+      .rk-reel-main { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.5fr);
+                      gap: clamp(36px, 6vw, 84px); align-items: center; margin-top: 10px; }
+      .rk-reel-rail { min-width: 0; }
+      .rk-reel-rail-label { display: block; font: 500 10.5px/1 var(--rk-font); letter-spacing: .09em;
+                            text-transform: uppercase; color: var(--rk-muted); }
+      .rk-reel-figure { font: 700 clamp(64px, 9vw, 132px)/.92 var(--rk-font); letter-spacing: -.035em;
+                        color: var(--rk-accent); font-variant-numeric: tabular-nums; margin-top: 16px;
+                        white-space: nowrap; }
+      .rk-reel-leader { font: 700 19px/1.2 var(--rk-font); letter-spacing: -.01em; color: var(--rk-title); margin-top: 14px; }
+      .rk-reel-margin { font: 400 13px/1.4 var(--rk-font); color: var(--rk-grey); margin-top: 6px; }
+
+      /* Lights out at the finish. The reel's theme tokens are re-declared on
+         the frame, so one class flips every surface inside it — rows, rail,
+         tabs, hairlines — in a single frame. A hard cut, timed to the winner's
+         flash; the dark band follows immediately below, so the finish and the
+         thesis share one continuous dark ground. */
+      .rk-reel-frame { background: var(--rk-page); }
+      .rk-reel-frame.is-dark { --rk-page: #0A0A0A; --rk-line: #1F1F1F; --rk-hover: #161616;
+                               --rk-title: #EDEDED; --rk-ink: #D4D4D4; --rk-grey: #A8A8A8;
+                               --rk-muted: #7C7C7C; --rk-accent: #4FA6D4; }
+
+      /* The opening. A full-bleed Honolulu-blue card that SPLITS at the middle
+         and draws apart on scroll, revealing the board behind it. The previous
+         version cross-faded the headline against the board, so for half the
+         handoff you saw two things ghosted through each other and neither read.
+         Two solid halves can't ghost — at every scroll position you're either
+         looking at the opening, the board, or a clean edge between them. */
+      /* The bar rides ON the opening rather than sitting above it. A white
+         strip across the top cut the blue panel off at the shoulders and read
+         as a header bolted to a hero; sharing the ground makes the opening one
+         surface, and the hairline goes with it. */
+      /* The bar has a fixed height so the reel can cancel it exactly (below).
+         Without that, the 100vh frame began BELOW the bar, hung 62px past the
+         fold, and every centred thing inside it sat ~57% down the screen. */
+      .rk-lp-brandbar.is-accent { --rk-bar-h: 62px; height: var(--rk-bar-h); box-sizing: border-box;
+                                  position: relative; z-index: 30;
+                                  display: flex; align-items: center; justify-content: space-between;
+                                  background: var(--rk-accent); border-bottom: 0; }
+      .rk-lp-brandbar.is-accent .rk-iconbtn { color: var(--rk-accent-text); }
+      .rk-lp-brandbar.is-accent .rk-iconbtn:hover { background: rgba(255,255,255,.14); }
+
+      .rk-open { position: absolute; inset: 0; z-index: 4; }
+      .rk-open-half { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden;
+                      background: var(--rk-accent); will-change: transform; }
+      /* A 1px bleed of the same blue below the top half's edge. At an odd
+         viewport height the halves meet at a fractional boundary (450.5px on
+         901) and two boxes butted at a half-pixel crack open into a visible
+         hairline across the panel on 1× displays. A box-shadow paints over the
+         crack without changing either half's box — heights and the inner's
+         offset stay exactly as they were, so the two halves remain registered.
+         It rides up with the top half as the panel opens, flush to its edge. */
+      .rk-open-half.is-top { top: 0; box-shadow: 0 1px 0 0 var(--rk-accent); }
+      .rk-open-half.is-bot { top: 50%; }
+      /* Both halves hold the SAME block at double height, offset so the two
+         clipped views line up as one continuous image across the seam. */
+      /* translateY lifts the block off dead centre so the space BELOW it (the
+         buttons, the cue) is larger than the space above — a symmetric void
+         reads as accidental, a weighted one reads as placed. Kept to 3.5%:
+         further up and the seam, which is pinned to 50%, stops cutting through
+         the headline and lands in the gap beneath it, losing the letterforms
+         pulling apart. Both halves get the identical transform, so they stay
+         registered. */
+      .rk-open-inner { position: absolute; left: 0; right: 0; height: 200%;
+                       display: flex; flex-direction: column; justify-content: center;
+                       padding: 0 var(--lp-gutter); transform: translateY(-3.5%); }
+      .rk-open-half.is-top .rk-open-inner { top: 0; }
+      .rk-open-half.is-bot .rk-open-inner { top: -100%; }
+      /* Sentence case, not caps — at this size uppercase reads as shouting. */
+      /* Ran to 15ch, which left most of the panel empty blue to the right.
+         Wider measure + larger type so the headline actually occupies the
+         width, with the buttons holding the opposite corner. */
+      .rk-open-title { margin: 0; max-width: 22ch;
+                       font: 700 clamp(40px, 7.4vw, 104px)/1 var(--rk-font);
+                       letter-spacing: -.034em; text-transform: none; color: var(--rk-accent-text); }
+      /* Sub and buttons on one row, tops aligned. */
+      .rk-open-row { display: flex; align-items: flex-start; justify-content: space-between;
+                     gap: clamp(32px, 6vw, 72px); margin-top: 28px; }
+      /* Full opacity and a size up: this is the only sentence on the panel that
+         says what rake actually IS, and it was set like fine print under a
+         headline that's pure attitude. Shorter measure so it holds two lines. */
+      .rk-open-sub { margin: 0; max-width: 36ch; font: 400 20px/1.5 var(--rk-font);
+                     color: var(--rk-accent-text); }
+      /* Inverted against the blue: the solid button takes the accent's own
+         contrast colour, so it reads as the loudest thing on the panel. */
+      /* In flow now, as the right half of the sub's row — no longer absolutely
+         pinned to the right gutter. Being in flow is also what permanently
+         fixes the half-registration bug: the position no longer changes between
+         breakpoints, so the two halves can't drift apart. */
+      .rk-open-cta { display: flex; flex-direction: row; align-items: center;
+                     gap: 26px; white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
+      .rk-open-cta-primary { font: 700 12.5px/1 var(--rk-font); letter-spacing: .06em; text-transform: uppercase;
+                             color: var(--rk-accent); background: var(--rk-accent-text); padding: 16px 24px;
+                             text-decoration: none; transition: background .18s ease; }
+      /* Cream on hover — the mark's own paper colour, not a dimmed white. */
+      .rk-open-cta-primary:hover { background: #F6F2E9; }
+      .rk-open-cta-secondary { font: 500 12.5px/1 var(--rk-font); letter-spacing: .04em; text-transform: uppercase;
+                               color: var(--rk-accent-text); text-decoration: none; padding-bottom: 4px;
+                               border-bottom: 1px solid currentColor; }
+      /* Too narrow to hold two columns — the row stacks. */
+      @media (max-width: 900px) {
+        .rk-open-row { flex-direction: column; align-items: flex-start; gap: 26px; margin-top: 20px; }
+        .rk-open-sub { font-size: 16.5px; max-width: 34ch; }
+        .rk-open-cta { flex-wrap: wrap; gap: 20px; padding-top: 0; }
+      }
+
+      .rk-reel-meta { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; }
+      .rk-reel-week { font: 500 12px/1 var(--rk-font); letter-spacing: .08em; text-transform: uppercase;
+                      color: var(--rk-title); white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .rk-reel-rule { flex: 1; height: 1px; background: var(--rk-line); position: relative; overflow: hidden; }
+      .rk-reel-rule > span { position: absolute; inset: 0; background: var(--rk-accent);
+                             transform-origin: left center; will-change: transform; }
+      .rk-reel-mark { font: 500 10.5px/1 var(--rk-font); letter-spacing: .09em; text-transform: uppercase;
+                      color: var(--rk-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .rk-reel-mark.is-done { color: var(--rk-accent); font-weight: 700; }
+
+      .rk-reel-tabs { display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 4px; }
+      /* The underline GROWS in from the left instead of blinking on — the
+         border-color swap made every tab change a hard cut. */
+      .rk-reel-tabs .rk-lp-spot-tab { border-bottom: 0; position: relative; }
+      .rk-reel-tabs .rk-lp-spot-tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+                                             height: 2px; background: var(--rk-accent);
+                                             transform: scaleX(0); transform-origin: left center;
+                                             transition: transform .32s cubic-bezier(.25,.8,.4,1); }
+      .rk-reel-tabs .rk-lp-spot-tab.is-active::after { transform: scaleX(1); }
+
+      /* Scroll cue: a hairline with a slow drip, sitting at the foot of the
+         opening. The painter fades it out over the first inch of scroll. */
+      .rk-open-cue { position: absolute; left: var(--lp-gutter); bottom: 34px;
+                     display: flex; align-items: center; gap: 14px; will-change: opacity; }
+      .rk-open-cue-line { position: relative; width: 1px; height: 30px; overflow: hidden;
+                          background: rgba(255,255,255,.26); flex-shrink: 0; }
+      .rk-open-cue-line i { position: absolute; left: 0; top: 0; width: 1px; height: 10px;
+                            background: var(--rk-accent-text);
+                            animation: rk-cue-drip 2.1s cubic-bezier(.4,0,.2,1) infinite; }
+      .rk-open-cue-label { font: 500 10.5px/1 var(--rk-font); letter-spacing: .09em;
+                           text-transform: uppercase; color: var(--rk-accent-text); opacity: .78; }
+      @keyframes rk-cue-drip {
+        0% { transform: translateY(-10px); opacity: 0; }
+        18% { opacity: .9; }
+        100% { transform: translateY(32px); opacity: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) { .rk-open-cue-line i { animation: none; opacity: .9; } }
+
+      /* The finish gets one beat: the winning row flashes as the season closes.
+         An animation (not inline style) so the painter's background writes
+         can't fight it, and re-adding the class replays it on every re-visit. */
+      .rk-reel-board.is-final .rk-reel-row.is-first {
+        animation: rk-final-beat .9s cubic-bezier(.25,.8,.4,1) both;
+      }
+      @keyframes rk-final-beat {
+        0% { background-color: color-mix(in srgb, var(--rk-accent) 14%, var(--rk-page)); }
+        100% { background-color: var(--rk-page); }
+      }
+
+      .rk-reel-board { position: relative; border-top: 1px solid var(--rk-line); }
+      /* No transition while scrubbing: rank is interpolated between weeks, so
+         the row is ALREADY at the right place on every frame and a transition
+         would only make it trail the scroll. The tween is switched on for the
+         one moment it's wanted — a category change, when the board re-sorts at
+         a standstill. */
+      /* Rows carry a SOLID ground and the painter raises the overtaking row's
+         z-index, so a pass reads as one card sliding over another. Without the
+         opaque ground, two translucent rows glide straight through each other
+         mid-pass — and since scroll is the clock, a visitor can stop exactly on
+         the collision and stare at two team names printed through one another. */
+      .rk-reel-row { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 16px;
+                     background: var(--rk-page); border-bottom: 1px solid var(--rk-line); will-change: transform; }
+      .rk-reel-board.is-switching .rk-reel-row { transition: transform .4s cubic-bezier(.25,.8,.4,1); }
+      /* Promote the moving parts to their own layers so a scroll frame composites
+         rather than repaints. */
+      .rk-open-half, .rk-reel-stage { will-change: transform; backface-visibility: hidden; }
+      .rk-reel-rank { width: 20px; flex-shrink: 0; font: 700 13px/1 var(--rk-font); color: var(--rk-muted);
+                      font-variant-numeric: tabular-nums; }
+      .rk-reel-crest { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+                       object-fit: cover; display: block; background: none; }
+      .rk-reel-name { flex: 1; min-width: 0; font: 500 16px/1.2 var(--rk-font); letter-spacing: .012em;
+                      color: var(--rk-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .rk-reel-value { flex-shrink: 0; font: 500 16px/1 var(--rk-font); color: var(--rk-ink);
+                       font-variant-numeric: tabular-nums; }
+      .rk-reel-row.is-first .rk-reel-rank,
+      .rk-reel-row.is-first .rk-reel-value { color: var(--rk-accent); font-weight: 700; }
+      .rk-reel-row.is-first .rk-reel-name { font-weight: 700; }
+
+      /* Same columns as .rk-reel-main, so the link lands under the rail and the
+         caption under the board. */
+      .rk-reel-foot { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.5fr);
+                      gap: clamp(36px, 6vw, 84px); align-items: baseline; margin-top: 22px; }
+      .rk-reel-caption { font: 400 12px/1.4 var(--rk-font); color: var(--rk-grey); }
+
+      @media (prefers-reduced-motion: reduce) { .rk-reel-row { transition: none; } }
+      @media (max-width: 900px) {
+        .rk-reel-intro { top: 15vh; }
+        .rk-reel-name { font-size: 15px; }
+        .rk-reel-value { font-size: 15px; }
+        .rk-reel-crest { width: 26px; height: 26px; }
+        .rk-reel-meta { gap: 12px; margin-bottom: 18px; }
+        .rk-reel-tabs { gap: 20px; }
+        .rk-reel-week { font-size: 11px; }
+        /* The rail goes. Stacked, it restates the board's own leading row —
+           same team, same number, barely 40px apart — and the eyebrow above it
+           repeats the tab that's already selected. On desktop it's a separate
+           column and reads as a summary of the board beside it; in one column
+           it just reads as the page saying everything twice. The leading row
+           already carries the accent, so nothing is lost, and the stage gets
+           ~150px back on the short viewports that were tightest. */
+        .rk-reel-rail { display: none; }
+        .rk-reel-main { grid-template-columns: 1fr; gap: 0; margin-top: 20px; }
+        /* One column below the breakpoint, matching .rk-reel-main. Extra space
+           above so the link reads as a control under the table rather than as
+           one more row of it — its underline sits right where a row rule would. */
+        .rk-reel-foot { grid-template-columns: 1fr; gap: 12px; margin-top: 26px; justify-items: start; }
+      }
+      /* No room for it once the panel is short — it sits under the buttons. */
+      @media (max-height: 700px) { .rk-open-cue { display: none; } }
+      /* Keep all four categories on one line. Below ~420px the fourth dropped
+         to a row of its own, which read as a stray heading rather than as the
+         last of a set — and moved the board down by a line for no reason. */
+      @media (max-width: 430px) {
+        .rk-reel-tabs { gap: 14px; flex-wrap: nowrap; }
+        .rk-reel-tabs .rk-lp-spot-tab { font-size: 10px; letter-spacing: .05em; white-space: nowrap; }
+      }
+      /* Short viewports — a 640px-tall phone, or any handset once the browser
+         chrome is showing. Everything that isn't the board gives up height, and
+         the board itself drops to 40px rows (set in JS, which owns the row
+         transforms). Verified to clear the frame rather than being silently
+         cropped by its overflow:hidden. */
+      @media (max-height: 700px) {
+        .rk-reel-meta { margin-bottom: 12px; }
+        .rk-reel-tabs { gap: 18px; margin-bottom: 0; }
+        .rk-reel-tabs .rk-lp-spot-tab { padding-bottom: 7px; }
+        .rk-reel-main { gap: 10px; margin-top: 0; }
+        .rk-reel-name { font-size: 14px; }
+        .rk-reel-value { font-size: 14px; }
+        .rk-reel-crest { width: 22px; height: 22px; }
+        .rk-reel-row { gap: 12px; }
+        .rk-reel-foot { margin-top: 12px; }
+        .rk-reel-caption { font-size: 11px; }
+      }
+
+      /* ---- Below the reel -------------------------------------------------- */
+      /* Scroll-LINKED entrance, bound to position rather than a clock, so these
+         sections keep moving with the wheel and reverse on the way back up.
+         The old .rk-reveal fired once on an IntersectionObserver and then
+         unobserved itself — after that first pass the whole lower page was
+         completely inert, which is most of what made it read as flat. */
+      @supports (animation-timeline: view()) {
+        @media (prefers-reduced-motion: no-preference) {
+          /* Eased, not linear — the movement front-loads and settles as the
+             element arrives, instead of tracking the wheel like a ruler. */
+          .rk-rise { animation: rk-rise-in auto cubic-bezier(.25,.8,.4,1) both;
+                     animation-timeline: view(); animation-range: entry entry 190%; }
+          @keyframes rk-rise-in { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
+        }
+      }
+
+      /* Grounds alternate so the page has a beat instead of six white slabs in
+         a row: board (white) → band (near-black) → sports/platforms (white) →
+         request (blue). The blue close bookends the blue opening, so the accent
+         frames the page rather than appearing once and never returning. */
+      .rk-lp-request.is-accent { background: var(--rk-accent); border-top: 0; padding-top: 92px; padding-bottom: 96px; }
+      .rk-lp-request.is-accent .rk-lp-request-head { color: var(--rk-accent-text); font-size: clamp(30px, 3.6vw, 46px);
+                                                     text-transform: none; letter-spacing: -.024em; }
+      .rk-lp-request.is-accent .rk-lp-request-sub { color: var(--rk-accent-text); opacity: .84; font-size: 18px; max-width: 50ch; }
+      .rk-lp-request.is-accent .rk-lp-field { border-bottom-color: var(--rk-accent-text); }
+      .rk-lp-request.is-accent .rk-lp-input { color: var(--rk-accent-text); }
+      .rk-lp-request.is-accent .rk-lp-input::placeholder { color: var(--rk-accent-text); opacity: .55; }
+      .rk-lp-request.is-accent .rk-lp-submit { color: var(--rk-accent-text); }
+      .rk-lp-request.is-accent .rk-lp-sent { color: var(--rk-accent-text); border-bottom-color: var(--rk-accent-text); }
+      .rk-lp-request.is-accent .rk-lp-form { max-width: 560px; }
+
+      /* Bigger, quieter section heads — every head on the page was the same
+         27px, so nothing had rank. */
+      .rk-lp-sports-head { font-size: clamp(28px, 3.8vw, 48px); }
+
       /* ---- How it works ---------------------------------------------------- */
       .rk-lp-how { border-top: 1px solid var(--rk-line); padding: 76px var(--lp-gutter) 14px; }
       .rk-lp-how-head { font: 700 27px/1.05 var(--rk-font); letter-spacing: -.012em; text-transform: uppercase; color: var(--rk-title); }
@@ -755,10 +1054,6 @@
       .rk-lp-band { position: relative; overflow: hidden; background: #0A0A0A;
                     display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 48px;
                     padding: 64px var(--lp-gutter); min-height: clamp(320px, 32vw, 400px); }
-      .rk-lp-band-photo { position: absolute; top: 0; right: 0; bottom: 0; width: 62%;
-                          -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 46%);
-                          mask-image: linear-gradient(to right, transparent 0%, #000 46%); }
-      .rk-lp-band-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
       /* Split-flap board — a real one. Each cell holds the digit twice, clipped
          into halves: the top half already shows the incoming digit, the bottom
          half still shows the outgoing one. Two hinged leaves sit over them —
@@ -810,7 +1105,9 @@
                          -webkit-mask-image: linear-gradient(to right, transparent 34%, #000 100%);
                          mask-image: linear-gradient(to right, transparent 34%, #000 100%); }
       .rk-lp-band-type { position: relative; z-index: 1; min-width: 0; order: 1; }
-      .rk-lp-band-head { font: 700 clamp(30px, 3.6vw, 48px)/1.04 var(--rk-font); letter-spacing: -.028em; text-transform: uppercase;
+      /* Sentence case, matching the opening — the page dropped caps up top
+         because they read as shouting, and the lower sections have to agree. */
+      .rk-lp-band-head { font: 700 clamp(34px, 4.6vw, 64px)/1.04 var(--rk-font); letter-spacing: -.03em;
                          color: #EDEDED; text-wrap: balance; }
       /* px, not ch — ch resolves against this wrapper's 16px, which wrapped the
          48px headline to five lines. */
@@ -823,7 +1120,6 @@
         .rk-lp-board-body { gap: 30px; }
         .rk-lp-spot { flex: 1 1 100%; }
         .rk-lp-band { min-height: 0; padding: 48px var(--lp-gutter); }
-        .rk-lp-band-photo { width: 100%; opacity: .5; }
         .rk-lp-board-count { margin-left: 0; }
       }
     </style>
