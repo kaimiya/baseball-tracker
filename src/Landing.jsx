@@ -14,6 +14,19 @@ const ROW_H = 52;
 // product's model — this belongs in league config once clubs are configurable.
 const PER_CATEGORY = 100;
 // Three steps, once a season. The nav has always promised this section.
+// Invented teams. This is a demo, so it shouldn't publish a real league's
+// names — and the placeholder crest keeps it visibly a sample, not a club.
+const DEMO_TEAMS = [
+  { name: "Rally Caps",       hr: 268, avg: .271, wins: 96, era: 3.18 },
+  { name: "Warning Track",    hr: 254, avg: .266, wins: 91, era: 3.31 },
+  { name: "The Cutoff Man",   hr: 249, avg: .262, wins: 88, era: 3.44 },
+  { name: "Foul Territory",   hr: 241, avg: .259, wins: 84, era: 3.57 },
+  { name: "Bush League",      hr: 232, avg: .255, wins: 80, era: 3.69 },
+  { name: "Can Of Corn",      hr: 224, avg: .252, wins: 77, era: 3.78 },
+  { name: "Pinch Runners",    hr: 216, avg: .249, wins: 73, era: 3.91 },
+  { name: "Golden Sombrero",  hr: 205, avg: .244, wins: 69, era: 4.06 },
+];
+
 const STEPS = [
   { n: "01", head: "Connect the league", body: "Sign in to ESPN once. Rake reads your league's box score directly — no exports, no spreadsheet to keep current." },
   { n: "02", head: "Name the bets", body: "Pick the categories you're betting on and what each one pays. Most clubs run four. Yours can run one or ten." },
@@ -87,38 +100,53 @@ export default function Landing() {
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-  // The board section reads the LIVE feed, one category at a time, and cycles
-  // through them. The previous version animated a scripted column of batting
-  // averages — it proved a quarter of the product and none of it was real.
+  // A DEMO, not the live board. Switching categories only re-sorts the same
+  // eight teams, so most switches move one or two rows and read as nothing
+  // happening — the section's whole job is to show that the order changes by
+  // itself. So: real names and crests from the feed, but a scripted sequence of
+  // single adjacent overtakes on top, one per beat, so you always see exactly
+  // one team pass one other. The real numbers are inside the club.
   const [cat, setCat] = useState("hr");
   const paused = useRef(false);
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => {
-      // A control that keeps moving after you've used it is hostile, so the
-      // first tab click stops this permanently.
-      if (paused.current) return;
-      setCat((c) => CATS[(CATS.findIndex((x) => x.key === c) + 1) % CATS.length].key);
-    }, 3200);
-    return () => clearInterval(id);
-  }, []);
 
   const ready = league.status === "ready" && league.players.length > 0;
   const fmtAvg = (v) => v.toFixed(3).replace("0.", ".");
   const fmtERA = (v) => v.toFixed(2);
   const fmtVal = (k, v) => (v == null ? "—" : k === "avg" ? fmtAvg(v) : k === "era" ? fmtERA(v) : String(Math.round(v)));
+  const valOf = (team, k) => DEMO_TEAMS.find((d) => d.name === team)?.[k];
 
-  // ERA ascending, everything else descending — "best" differs by category.
-  const valOf = (team, k) => (league.seasonTotals?.[team] || {})[k];
-  const ranked = ready
-    ? [...league.players]
-        .filter((p) => valOf(p, cat) != null)
-        .sort((a, b) => (cat === "era" ? valOf(a, cat) - valOf(b, cat) : valOf(b, cat) - valOf(a, cat)))
-    : [];
-  const leader = ranked[0];
-  const runnerUp = ranked[1];
-  // How far clear the leader is, phrased per category — a hundredth of an ERA
-  // and a hundred home runs are both "1" without this.
+  // The true standing for this category — the order the demo starts from.
+  const base = [...DEMO_TEAMS]
+    .map((d) => d.name)
+    .sort((a, b) => (cat === "era" ? valOf(a, cat) - valOf(b, cat) : valOf(b, cat) - valOf(a, cat)));
+
+  // The running order, mutated one adjacent swap at a time. It has to persist
+  // between beats: recomputing "base plus one swap" each time meant the previous
+  // swap unwound as the next one applied, so three or four rows moved at once
+  // instead of one team passing one other.
+  const [order, setOrder] = useState([]);
+  useEffect(() => { setOrder(base); }, [cat]);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => {
+      if (paused.current) return;
+      setOrder((prev) => {
+        if (prev.length < 2) return prev;
+        // Swap a random adjacent pair inside the visible rows, so the overtake
+        // always happens where it can be seen.
+        const top = Math.min(VISIBLE_ROWS, prev.length) - 1;
+        const k = Math.floor(Math.random() * top);
+        const next = [...prev];
+        [next[k], next[k + 1]] = [next[k + 1], next[k]];
+        return next;
+      });
+    }, 2400);
+    return () => clearInterval(id);
+  }, []);
+
+  const leader = order[0];
+  const runnerUp = order[1];
   let marginText = "";
   if (leader && runnerUp) {
     const d = Math.abs(valOf(leader, cat) - valOf(runnerUp, cat));
@@ -229,7 +257,7 @@ export default function Landing() {
               in the DOM would remount and the transition could never run. */}
           <div className="rk-lp-card">
             <div className="rk-lp-race" style={{ height: `${VISIBLE_ROWS * ROW_H + 1}px` }}>
-              {ranked.map((team, i) => (
+              {order.map((team, i) => (
                 <div
                   key={team}
                   className={"rk-lp-racerow" + (i === 0 ? " is-first" : "")}
@@ -246,7 +274,7 @@ export default function Landing() {
                   }}
                 >
                   <span className="rk-lp-racerank">{i + 1}</span>
-                  {league.logos?.[team] && <img src={league.logos[team]} alt="" className="rk-lp-racecrest" />}
+                  <span className="rk-lp-racecrest" aria-hidden="true" />
                   <span className="rk-lp-racename">{team}</span>
                   <span className="rk-lp-racevalue">{fmtVal(cat, valOf(team, cat))}</span>
                 </div>
@@ -269,17 +297,8 @@ export default function Landing() {
 
         <div className="rk-lp-board-foot">
           <Link to={`/${DEMO_SLUG}`} className="rk-lp-board-open">
-            Open {ready ? league.meta?.leagueName || "the full club" : "the full club"} &rarr;
+            View a live club &rarr;
           </Link>
-          {ready && league.meta?.teamCount && (
-            <span className="rk-lp-board-meta">{league.meta.teamCount} teams · {league.meta.seasonId} season</span>
-          )}
-          {daysLeft != null && (
-            <span className="rk-lp-board-count">
-              <span className="rk-lp-board-count-n">{daysLeft}</span>
-              <span className="rk-lp-board-count-l">days left</span>
-            </span>
-          )}
         </div>
       </section>
 
