@@ -1,35 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "./theme.js";
 import { useLeagueData } from "./useLeagueData.js";
+import { useLiveToday } from "./useLiveToday.js";
 
 // The club that's actually running. The landing page's proof is that these
 // numbers are real and moving, so it reads from the same feed the board does.
 const DEMO_SLUG = "if-can-can";
-// What each category pays in the club that's running. The figures are bets, not
-// stats — without the stake attached they're just four numbers.
-// Each frame is one beat of the loop: the full running order, and the averages
-// that justify it. Only the first VISIBLE_ROWS are on screen, so as the order
-// shuffles, teams genuinely climb into and drop out of view — which is the
-// behaviour this section exists to demonstrate.
-const VISIBLE_ROWS = 5;
-// One overtake per beat: each frame differs from the previous by a single
-// adjacent swap, so exactly one team is seen passing one other. Reshuffling
-// several places at once read as noise rather than as a pass.
-const DEMO_FRAMES = [
-  { order: [0, 1, 2, 3, 4, 5, 6, 7], vals: [".264", ".262", ".258", ".255", ".252", ".249", ".246", ".241"] },
-  { order: [1, 0, 2, 3, 4, 5, 6, 7], vals: [".266", ".264", ".258", ".255", ".252", ".249", ".246", ".241"] },
-  { order: [1, 0, 3, 2, 4, 5, 6, 7], vals: [".266", ".264", ".260", ".258", ".252", ".249", ".246", ".241"] },
-  { order: [1, 3, 0, 2, 4, 5, 6, 7], vals: [".266", ".265", ".264", ".258", ".252", ".249", ".246", ".241"] },
-  { order: [1, 3, 0, 4, 2, 5, 6, 7], vals: [".266", ".265", ".264", ".259", ".258", ".249", ".246", ".241"] },
-  { order: [3, 1, 0, 4, 2, 5, 6, 7], vals: [".268", ".266", ".264", ".259", ".258", ".249", ".246", ".241"] },
-  { order: [3, 1, 0, 4, 5, 2, 6, 7], vals: [".268", ".266", ".264", ".259", ".257", ".255", ".246", ".241"] },
-  { order: [3, 1, 4, 0, 5, 2, 6, 7], vals: [".268", ".266", ".265", ".264", ".257", ".255", ".246", ".241"] },
-  { order: [3, 1, 4, 0, 5, 6, 2, 7], vals: [".268", ".266", ".265", ".264", ".257", ".256", ".255", ".241"] },
-  { order: [3, 1, 4, 5, 0, 6, 2, 7], vals: [".268", ".266", ".265", ".265", ".264", ".256", ".255", ".241"] },
-];
+// How many rows of the running order are on screen at once.
+const VISIBLE_ROWS = 6;
+const ROW_H = 52;
+// What each category pays in the club that's running. One league's bet, not the
+// product's model — this belongs in league config once clubs are configurable.
 const PER_CATEGORY = 100;
-const TOTAL_ON_THE_LINE = 400;
+// Three steps, once a season. The nav has always promised this section.
+const STEPS = [
+  { n: "01", head: "Connect the league", body: "Sign in to ESPN once. Rake reads your league's box score directly — no exports, no spreadsheet to keep current." },
+  { n: "02", head: "Name the bets", body: "Pick the categories you're betting on and what each one pays. Most clubs run four. Yours can run one or ten." },
+  { n: "03", head: "Read the board", body: "Standings re-rank themselves as games finish. Everyone in the league sees the same number at the same time." },
+];
 const CATS = [
   { key: "hr", label: "Home Runs", short: "HR" },
   { key: "avg", label: "Batting Avg", short: "AVG" },
@@ -76,6 +65,7 @@ export default function Landing() {
   const { mode, t, toggle } = useTheme();
   const toggleLabel = mode === "light" ? "Dark mode" : "Light mode";
   const league = useLeagueData();
+  const live = useLiveToday();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   // Matches the club's nav: the item for the section you're looking at is
@@ -83,7 +73,7 @@ export default function Landing() {
   const [activeNav, setActiveNav] = useState("");
   // Marks the section you're looking at, the way the club's nav does.
   useEffect(() => {
-    const ids = ["how", "request"];
+    const ids = ["how", "board", "request"];
     const onScroll = () => {
       const line = window.innerHeight * 0.35;
       let current = "";
@@ -97,35 +87,52 @@ export default function Landing() {
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-  // A scripted loop, deliberately NOT the live feed. This section's job is to
-  // show what the product does — teams overtaking each other as averages move —
-  // and then send you to the real club. Live averages barely shift day to day,
-  // so wiring this to real data would mean it never visibly animated.
-  const [frame, setFrame] = useState(0);
+  // The board section reads the LIVE feed, one category at a time, and cycles
+  // through them. The previous version animated a scripted column of batting
+  // averages — it proved a quarter of the product and none of it was real.
+  const [cat, setCat] = useState("hr");
+  const paused = useRef(false);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    // Ping-pong rather than wrap: looping back to frame 0 from the last frame
-    // would jump every row at once, which is exactly the reshuffle the
-    // single-swap frames exist to avoid. Reversing keeps every transition to
-    // one pass.
-    let dir = 1;
-    const id = setInterval(() => setFrame((f) => {
-      if (f + dir >= DEMO_FRAMES.length || f + dir < 0) dir = -dir;
-      return f + dir;
-    }), 2600);
+    const id = setInterval(() => {
+      // A control that keeps moving after you've used it is hostile, so the
+      // first tab click stops this permanently.
+      if (paused.current) return;
+      setCat((c) => CATS[(CATS.findIndex((x) => x.key === c) + 1) % CATS.length].key);
+    }, 3200);
     return () => clearInterval(id);
   }, []);
 
   const ready = league.status === "ready" && league.players.length > 0;
+  const fmtAvg = (v) => v.toFixed(3).replace("0.", ".");
+  const fmtERA = (v) => v.toFixed(2);
+  const fmtVal = (k, v) => (v == null ? "—" : k === "avg" ? fmtAvg(v) : k === "era" ? fmtERA(v) : String(Math.round(v)));
 
-  // Four real teams supply the names and crests; the running order and the
-  // averages come from DEMO_FRAMES, not from these figures.
+  // ERA ascending, everything else descending — "best" differs by category.
+  const valOf = (team, k) => (league.seasonTotals?.[team] || {})[k];
   const ranked = ready
     ? [...league.players]
-        .sort((a, b) => (league.seeds[a] || 999) - (league.seeds[b] || 999))
-        .slice(0, 8)
-        .map((p) => ({ team: p, logo: league.logos[p] }))
+        .filter((p) => valOf(p, cat) != null)
+        .sort((a, b) => (cat === "era" ? valOf(a, cat) - valOf(b, cat) : valOf(b, cat) - valOf(a, cat)))
     : [];
+  const leader = ranked[0];
+  const runnerUp = ranked[1];
+  // How far clear the leader is, phrased per category — a hundredth of an ERA
+  // and a hundred home runs are both "1" without this.
+  let marginText = "";
+  if (leader && runnerUp) {
+    const d = Math.abs(valOf(leader, cat) - valOf(runnerUp, cat));
+    const amount =
+      cat === "avg" ? `${Math.round(d * 1000)} points`
+      : cat === "era" ? d.toFixed(2).replace(/^0/, "")
+      : String(Math.round(d));
+    marginText = `${amount} clear of ${runnerUp}`;
+  }
+
+  // Same deadline the club counts down to.
+  const REGULAR_SEASON_END = new Date(2026, 7, 30);
+  const today = new Date();
+  const daysLeft = Math.max(0, Math.ceil((REGULAR_SEASON_END - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / 86400000));
 
   function submit(e) {
     e.preventDefault();
@@ -154,6 +161,7 @@ export default function Landing() {
           only item that leaves the page, so it reads as the destination. */}
       <nav className="rk-lp-navbar">
         <a href="#how" className={"rk-nav" + (activeNav === "how" ? " is-active" : "")}>How It Works</a>
+        <a href="#board" className={"rk-nav" + (activeNav === "board" ? " is-active" : "")}>The Board</a>
         <a href="#request" className={"rk-nav" + (activeNav === "request" ? " is-active" : "")}>Request Access</a>
         <Link to={`/${DEMO_SLUG}`} className="rk-nav">View a Live Club</Link>
       </nav>
@@ -174,66 +182,126 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* The board itself, live. A club is a leaderboard with money on it, and
-          that only reads if you can see the leaderboard. */}
-      <section className="rk-lp-board" id="club">
-        {/* Says what the section is, then names the club — the eyebrow used to
-            float above a centred title with no relationship to it. */}
-        <div className="rk-lp-board-head">
-          <div className="rk-lp-board-name">Watch the standings move</div>
-          <p className="rk-lp-board-sub">
-            Every category re-ranks itself as games finish. Here's one running now.
-          </p>
-        </div>
-
-        {/* Every team holds its own row; only the row's vertical position
-            changes when the category does. Rows are keyed by team so React
-            never remounts them, which is what lets the transform transition
-            instead of snapping. */}
-        <div className="rk-lp-card">
-          <div className="rk-lp-race" style={{ height: `${VISIBLE_ROWS * 50}px` }}>
-            {ranked.map((row, teamIdx) => {
-              const pos = DEMO_FRAMES[frame].order.indexOf(teamIdx);
-              const val = DEMO_FRAMES[frame].vals[pos];
-              // Off-screen ranks stay mounted so they can slide back in.
-              const offscreen = pos >= VISIBLE_ROWS;
-              return (
-                <div
-                  key={row.team}
-                  className={"rk-lp-racerow" + (pos === 0 ? " is-first" : "")}
-                  style={{ transform: `translateY(${pos * 50}px)`, opacity: offscreen ? 0 : 1 }}
-                >
-                  <span className="rk-lp-racerank">{pos + 1}</span>
-                  {row.logo && <img src={row.logo} alt="" className="rk-lp-racecrest" />}
-                  <span className="rk-lp-racename">{row.team}</span>
-                  <span className="rk-lp-racevalue">{val}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* What those columns are worth — the reason it's a club, not a spreadsheet. */}
-        <div className="rk-lp-board-cta">
-          <Link to={`/${DEMO_SLUG}`} className="rk-lp-board-open">Open {ready ? league.meta?.leagueName || "the full club" : "the full club"} &rarr;</Link>
-        </div>
-
-        <div className="rk-lp-stakes">
-          {CATS.map((c) => (
-            <span key={c.key} className="rk-lp-stake-item">
-              <span className="rk-lp-stake-cat">{c.label}</span>
-              <span className="rk-lp-stake-amt">${PER_CATEGORY}</span>
-            </span>
+      {/* The section the nav has always promised. Three steps, once a season. */}
+      <section className="rk-lp-how" id="how">
+        <div className="rk-lp-how-head">How it works</div>
+        <p className="rk-lp-how-sub">Three steps, once a season. After that it runs off the box score without anybody touching it.</p>
+        <div className="rk-lp-how-grid">
+          {STEPS.map((st) => (
+            <div key={st.n} className="rk-lp-step">
+              {/* Line-coloured on purpose: at this size it's ordering texture,
+                  not type, so it adds scale without spending the accent. */}
+              <div className="rk-lp-step-n">{st.n}</div>
+              <div className="rk-lp-step-head">{st.head}</div>
+              <p className="rk-lp-step-body">{st.body}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* The bet travels. The live figures above are baseball because that's the
-          club that's running — this says the same machinery works anywhere, in
-          the board's own column rhythm. */}
-      <section className="rk-lp-sports" id="how">
+      {/* The board, live. Four categories, four different races over the same
+          eight teams — switching between them is the whole point. */}
+      <section className="rk-lp-board" id="board">
+        <div className="rk-lp-board-head">
+          <div className="rk-lp-board-name">The board</div>
+          {live.meta?.gamesLive > 0 && (
+            <span className="rk-badge-live"><span className="rk-live-dot" />Live</span>
+          )}
+        </div>
+        <p className="rk-lp-board-sub">
+          Every category keeps its own running order. Switch between them — the same eight teams, four different races.
+        </p>
+
+        <div className="rk-lp-spot-tabs">
+          {CATS.map((c) => (
+            <button
+              key={c.key}
+              className={"rk-lp-spot-tab" + (cat === c.key ? " is-active" : "")}
+              onClick={() => { paused.current = true; setCat(c.key); }}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="rk-lp-board-body">
+          {/* Rows are keyed by team and move by transform only — reordering them
+              in the DOM would remount and the transition could never run. */}
+          <div className="rk-lp-card">
+            <div className="rk-lp-race" style={{ height: `${VISIBLE_ROWS * ROW_H + 1}px` }}>
+              {ranked.map((team, i) => (
+                <div
+                  key={team}
+                  className={"rk-lp-racerow" + (i === 0 ? " is-first" : "")}
+                  style={{
+                    transform: `translateY(${i * ROW_H}px)`,
+                    opacity: i >= VISIBLE_ROWS ? 0 : 1,
+                    // Cascading top-down is what makes a category switch read
+                    // as teams passing each other rather than one reshuffle. At
+                    // 45ms the moves overlapped enough to look like two rows
+                    // swapping at once, so each is given room to land first.
+                    transitionDelay: `${i * 85}ms`,
+                  }}
+                >
+                  <span className="rk-lp-racerank">{i + 1}</span>
+                  {league.logos?.[team] && <img src={league.logos[team]} alt="" className="rk-lp-racecrest" />}
+                  <span className="rk-lp-racename">{team}</span>
+                  <span className="rk-lp-racevalue">{fmtVal(cat, valOf(team, cat))}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* The headline figure, next to the order it's derived from. */}
+          <div className="rk-lp-spot">
+            <div className="rk-lp-spot-eyebrow">Leading now</div>
+            <div className="rk-lp-spot-figure">{leader ? fmtVal(cat, valOf(leader, cat)) : "—"}</div>
+            <div className="rk-lp-spot-team">{leader || "—"}</div>
+            {marginText && <div className="rk-lp-spot-margin">{marginText}</div>}
+            <div className="rk-lp-spot-stake">
+              <span className="rk-lp-spot-stake-l">On this category</span>
+              <span className="rk-lp-spot-stake-v">${PER_CATEGORY}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="rk-lp-board-foot">
+          <Link to={`/${DEMO_SLUG}`} className="rk-lp-board-open">
+            Open {ready ? league.meta?.leagueName || "the full club" : "the full club"} &rarr;
+          </Link>
+          {ready && league.meta?.teamCount && (
+            <span className="rk-lp-board-meta">{league.meta.teamCount} teams · {league.meta.seasonId} season</span>
+          )}
+          {daysLeft != null && (
+            <span className="rk-lp-board-count">
+              <span className="rk-lp-board-count-n">{daysLeft}</span>
+              <span className="rk-lp-board-count-l">days left</span>
+            </span>
+          )}
+        </div>
+      </section>
+
+      {/* Full-bleed band. Dark in both themes — its own ground is the boundary,
+          so it needs no hairline. */}
+      <section className="rk-lp-band">
+        <div className="rk-lp-band-photo">
+          <img src="/band.jpg" alt="" />
+          {/* Ground-coloured dots painted over the photo, strongest at the right
+              and gone by the midpoint, so the image breaks apart into the
+              brand's dot matrix instead of stopping at an edge. */}
+          <span className="rk-lp-band-dots" aria-hidden="true" />
+        </div>
+        <div className="rk-lp-band-type">
+          <div className="rk-lp-band-head">Nobody argues with the box score.</div>
+          <p className="rk-lp-band-sub">The number everyone in the league is looking at is the same number, at the same time, from the same source.</p>
+        </div>
+      </section>
+
+      {/* The bet travels. Below the band now — breadth only lands once you know
+          what the thing is. */}
+      <section className="rk-lp-sports">
         <div className="rk-lp-sports-head">A bet is a stat, a direction and a payout.<br />That works in any sport.</div>
-        <p className="rk-lp-sports-sub">Add any category your league tracks on the side.</p>
+        <p className="rk-lp-sports-sub">Baseball is the season that's running. The machinery doesn't care which one it is.</p>
         <div className="rk-lp-sports-grid">
           {SPORTS.map((s) => (
             <div key={s.sport} className={"rk-lp-sport" + (s.live ? " is-live" : "")}>
@@ -266,7 +334,7 @@ export default function Landing() {
         {/* Names the next season rather than the current one — baseball is
             already running, so the thing to sign up FOR is football. */}
         <p className="rk-lp-request-sub">
-          Want to start tracking your league's side bets for the upcoming football season?
+          Baseball is already running. Football is the one to get set up for — leave an address and we'll open it before the draft.
         </p>
         <form className="rk-lp-form" onSubmit={submit}>
           {sent ? (

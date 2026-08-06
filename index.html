@@ -330,7 +330,7 @@
          hairline rows, tracked caps header, tabular figures, blue only on a
          category leader — so the landing shows the product instead of
          describing it. */
-      .rk-lp-board { border-top: 1px solid var(--rk-line); padding: 60px var(--lp-gutter) 68px; }
+      .rk-lp-board { border-top: 1px solid var(--rk-line); padding: 76px var(--lp-gutter); }
       /* Left-aligned like every other heading on the page; only the card and
          the stakes row under it are centred. */
       .rk-lp-board-head { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 30px; text-align: left; }
@@ -349,9 +349,6 @@
          cut-off is the reason to open the club. */
       /* Bounded, not full-bleed — a leaderboard stretched across a wide screen
          opens a void between each name and its figure. */
-      .rk-lp-card { position: relative; border: 1px solid var(--rk-line); padding: 16px 22px 0; overflow: hidden; max-width: 560px; margin: 0 auto; }
-      .rk-lp-card::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 96px;
-                           pointer-events: none; background: linear-gradient(to bottom, transparent, var(--rk-paper) 90%); }
 
       /* The race. Rows are absolutely positioned and moved only by transform,
          so switching category slides each team to its new rank instead of
@@ -388,7 +385,7 @@
 
       /* Sport breadth. Same column rhythm as the board, hairline-divided. The
          running sport is marked; the others are the same machinery unstarted. */
-      .rk-lp-sports { border-top: 1px solid var(--rk-line); padding: 76px var(--lp-gutter) 0; }
+      .rk-lp-sports { border-top: 1px solid var(--rk-line); padding: 76px var(--lp-gutter) 14px; }
       .rk-lp-sports-head { font: 700 clamp(22px, 2.6vw, 34px)/1.2 var(--rk-font); letter-spacing: -.018em;
                            text-transform: uppercase; color: var(--rk-title); max-width: 22ch; }
       .rk-lp-sports-sub { font: 400 17px/1.5 var(--rk-font); color: var(--rk-grey); margin: 16px 0 0; max-width: 46ch; }
@@ -403,7 +400,7 @@
 
       /* Platforms. A league owner's first question is whether theirs is here, so
          the state is stated plainly rather than implied by logo presence. */
-      .rk-lp-platforms { border-top: 1px solid var(--rk-line); padding: 44px var(--lp-gutter) 50px; }
+      .rk-lp-platforms { border-top: 1px solid var(--rk-line); padding: 76px var(--lp-gutter); }
       .rk-lp-platforms-label { font: 400 10.5px/1 var(--rk-font); letter-spacing: .05em; text-transform: uppercase; color: var(--rk-muted); }
       .rk-lp-platforms-row { display: flex; flex-wrap: wrap; gap: 14px 40px; margin-top: 22px; align-items: baseline; }
       .rk-lp-platform { display: inline-flex; align-items: baseline; gap: 10px;
@@ -415,7 +412,7 @@
       .rk-lp-platform-state { font: 400 9.5px/1 var(--rk-font); letter-spacing: .07em; text-transform: uppercase; color: var(--rk-muted); }
       .rk-lp-platform.is-live .rk-lp-platform-state { color: var(--rk-accent); }
 
-      .rk-lp-request { border-top: 1px solid var(--rk-line); padding: 76px var(--lp-gutter) 88px; }
+      .rk-lp-request { border-top: 1px solid var(--rk-line); padding: 76px var(--lp-gutter); }
       .rk-lp-request-head { font: 700 27px/1.05 var(--rk-font); letter-spacing: -.012em; text-transform: uppercase; color: var(--rk-title); }
       .rk-lp-request-sub { font: 400 17px/1.5 var(--rk-font); color: var(--rk-grey); margin: 16px 0 0; max-width: 46ch; }
       .rk-lp-form { margin-top: 24px; max-width: 520px; }
@@ -437,22 +434,22 @@
         .rk-lp-navbar { gap: 18px; }
         .rk-lp-statement { padding: 64px var(--lp-gutter) 56px; }
         /* 2x2 — the same shape the board's own Leaders grid takes on mobile */
-        .rk-lp-board { padding: 40px var(--lp-gutter) 46px; }
+        .rk-lp-board { padding: 52px var(--lp-gutter); }
         .rk-lp-board-head { flex-direction: column; align-items: flex-start; gap: 14px; margin-bottom: 24px; }
         /* Drop to two stat columns on a phone; the club's own table does the same. */
         /* All four categories stay — "the four categories are consistent
            everywhere" is the product's premise, so dropping two here broke the
            one rule the club never breaks. Columns tighten instead. */
         .rk-lp-stakes { gap: 8px 18px; }
-        .rk-lp-sports { padding: 52px var(--lp-gutter) 0; }
+        .rk-lp-sports { padding: 52px var(--lp-gutter) 8px; }
         .rk-lp-sports-sub { font-size: 15.5px; margin-top: 14px; }
         .rk-lp-sports-grid { grid-template-columns: 1fr; margin-top: 34px; }
         .rk-lp-sport { padding: 26px var(--lp-gutter) 34px 0; padding-left: var(--lp-gutter); }
         .rk-lp-sport + .rk-lp-sport { border-left: 0; padding-left: var(--lp-gutter); }
-        .rk-lp-platforms { padding: 34px var(--lp-gutter) 38px; }
+        .rk-lp-platforms { padding: 52px var(--lp-gutter); }
         .rk-lp-platforms-row { gap: 12px 26px; }
         .rk-lp-platform { font-size: 18px; }
-        .rk-lp-request { padding: 54px var(--lp-gutter) 60px; }
+        .rk-lp-request { padding: 52px var(--lp-gutter); }
         .rk-lp-request-sub { font-size: 15.5px; margin-top: 14px; }
         .rk-lp-foot { grid-template-columns: 1fr; gap: 12px; }
         .rk-lp-legal { justify-self: start; text-align: left; }
@@ -643,6 +640,98 @@
         .rk-is-dates { display: none !important; }
         .rk-payouts { grid-template-columns: 1fr; }
         .rk-pay-col + .rk-pay-col { border-left: 0; border-top: 1px solid var(--rk-line); }
+      }
+
+      /* ---- How it works ---------------------------------------------------- */
+      .rk-lp-how { border-top: 1px solid var(--rk-line); padding: 76px var(--lp-gutter) 14px; }
+      .rk-lp-how-head { font: 700 27px/1.05 var(--rk-font); letter-spacing: -.012em; text-transform: uppercase; color: var(--rk-title); }
+      .rk-lp-how-sub { font: 400 17px/1.5 var(--rk-font); color: var(--rk-grey); max-width: 46ch; margin: 16px 0 0; }
+      .rk-lp-how-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 54px; }
+      .rk-lp-step { border-top: 1px solid var(--rk-line); padding: 28px 40px 62px 0; min-width: 0; }
+      .rk-lp-step:nth-child(2) { border-left: 1px solid var(--rk-line); padding: 28px 40px 62px; }
+      .rk-lp-step:nth-child(3) { border-left: 1px solid var(--rk-line); padding: 28px 0 62px 40px; }
+      .rk-lp-step-n { font: 700 clamp(40px, 4.4vw, 56px)/1 var(--rk-font); letter-spacing: -.03em; color: var(--rk-line); }
+      .rk-lp-step-head { font: 700 20px/1.2 var(--rk-font); letter-spacing: -.012em; text-transform: uppercase; color: var(--rk-title); margin-top: 14px; }
+      .rk-lp-step-body { font: 400 16px/1.6 var(--rk-font); color: var(--rk-grey); margin: 12px 0 0; text-wrap: pretty; }
+
+      /* ---- Board ----------------------------------------------------------- */
+      /* flex-direction must be reset explicitly — an earlier .rk-lp-board-head
+         sets column, and inheriting that with align-items:center centred the
+         heading horizontally instead of sitting the badge beside it. */
+      .rk-lp-board-head { display: flex; flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap; text-align: left; }
+      .rk-lp-board-name { font: 700 27px/1.05 var(--rk-font); letter-spacing: -.012em; text-transform: uppercase; color: var(--rk-title); }
+      .rk-lp-board-sub { font: 400 17px/1.5 var(--rk-font); color: var(--rk-grey); max-width: 48ch; margin: 16px 0 0; }
+      .rk-lp-spot-tabs { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 38px; }
+      .rk-lp-spot-tab { font: 400 11px/1 var(--rk-font); letter-spacing: .09em; text-transform: uppercase; color: var(--rk-muted);
+                        background: none; border: 0; border-bottom: 2px solid transparent; padding: 0 0 10px; cursor: pointer; transition: color .15s ease; }
+      .rk-lp-spot-tab:hover { color: var(--rk-title); }
+      .rk-lp-spot-tab.is-active { color: var(--rk-title); border-bottom-color: var(--rk-accent); }
+      .rk-lp-board-body { display: flex; flex-wrap: wrap; align-items: stretch; gap: 40px; margin-top: 30px; }
+      /* border-top:0 — the first row draws its own hairline, so a container top
+         border would double it. */
+      .rk-lp-card { flex: 1 1 400px; min-width: 0; border: 1px solid var(--rk-line); border-top: 0; padding: 0 22px; }
+      .rk-lp-race { position: relative; }
+      /* border-TOP, not bottom: with rows moving by transform, a top border stays
+         attached to the row above the name rather than trailing it. */
+      .rk-lp-racerow { position: absolute; left: 0; right: 0; height: 52px; display: flex; align-items: center; gap: 13px;
+                       border-top: 1px solid var(--rk-line);
+                       transition: transform .46s cubic-bezier(.4, 0, .2, 1), opacity .3s ease; will-change: transform; }
+      .rk-lp-racerank { width: 20px; font: 700 13px/1 var(--rk-font); font-variant-numeric: tabular-nums; color: var(--rk-muted); }
+      .rk-lp-racerow.is-first .rk-lp-racerank { color: var(--rk-accent); }
+      .rk-lp-racecrest { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: var(--rk-line); flex-shrink: 0; }
+      .rk-lp-racename { flex: 1; min-width: 0; font: 500 14px/1.2 var(--rk-font); letter-spacing: .018em; color: var(--rk-title);
+                        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .rk-lp-racerow.is-first .rk-lp-racename { font-weight: 700; }
+      .rk-lp-racevalue { font: 500 15px/1 var(--rk-font); font-variant-numeric: tabular-nums; color: var(--rk-ink); }
+      .rk-lp-racerow.is-first .rk-lp-racevalue { font-weight: 700; color: var(--rk-accent); }
+      .rk-lp-spot { flex: 0 1 288px; min-width: 240px; display: flex; flex-direction: column; padding-top: 4px; }
+      .rk-lp-spot-eyebrow { font: 400 10.5px/1 var(--rk-font); letter-spacing: .05em; text-transform: uppercase; color: var(--rk-muted); }
+      /* 62px/.88 overflows its box upward ~4px, so this needs clearance from the
+         tabs' 2px underline. */
+      .rk-lp-spot-figure { font: 700 62px/.88 var(--rk-font); letter-spacing: -.022em; color: var(--rk-accent);
+                           font-variant-numeric: tabular-nums; margin-top: 16px; }
+      .rk-lp-spot-team { font: 500 12.5px/1.25 var(--rk-font); letter-spacing: .012em; color: var(--rk-ink); margin-top: 14px; }
+      .rk-lp-spot-margin { font: 400 12px/1.4 var(--rk-font); color: var(--rk-grey); margin-top: 5px; }
+      .rk-lp-spot-stake { margin-top: auto; padding-top: 26px; border-top: 1px solid var(--rk-line); display: flex; justify-content: space-between; align-items: baseline; }
+      .rk-lp-spot-stake-l { font: 400 10.5px/1 var(--rk-font); letter-spacing: .05em; text-transform: uppercase; color: var(--rk-muted); }
+      .rk-lp-spot-stake-v { font: 700 20px/1 var(--rk-font); color: var(--rk-title); font-variant-numeric: tabular-nums; }
+      .rk-lp-board-foot { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px 14px; margin-top: 22px; }
+      .rk-lp-board-meta { font: 400 12px/1.4 var(--rk-font); color: var(--rk-grey); }
+      .rk-lp-board-count { margin-left: auto; display: inline-flex; align-items: baseline; gap: 6px; }
+      .rk-lp-board-count-n { font: 700 12px/1 var(--rk-font); color: var(--rk-title); font-variant-numeric: tabular-nums; }
+      .rk-lp-board-count-l { font: 400 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
+
+      /* ---- Image band ------------------------------------------------------ */
+      .rk-lp-band { position: relative; overflow: hidden; background: #0A0A0A; min-height: clamp(360px, 38vw, 460px);
+                    display: flex; align-items: center; padding: 64px var(--lp-gutter); }
+      .rk-lp-band-photo { position: absolute; top: 0; right: 0; bottom: 0; width: 62%;
+                          -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 46%);
+                          mask-image: linear-gradient(to right, transparent 0%, #000 46%); }
+      .rk-lp-band-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+      .rk-lp-band-dots { position: absolute; inset: 0; background-color: #0A0A0A; opacity: .92;
+        /* Third mask layer fades the dots away from the top and bottom edges.
+           Without it the 5px grid is sliced mid-tile at the band boundary and
+           leaves a serrated strip along the seam. */
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5'%3E%3Crect width='3.9' height='3.9' rx='0.62' fill='%23000'/%3E%3C/svg%3E"), linear-gradient(to right, transparent 48%, #000 96%), linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%);
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5'%3E%3Crect width='3.9' height='3.9' rx='0.62' fill='%23000'/%3E%3C/svg%3E"), linear-gradient(to right, transparent 48%, #000 96%), linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%);
+        -webkit-mask-size: 5px 5px, 100% 100%, 100% 100%; mask-size: 5px 5px, 100% 100%, 100% 100%;
+        -webkit-mask-composite: source-in, source-in; mask-composite: intersect, intersect; }
+      .rk-lp-band-type { position: relative; z-index: 1; max-width: 540px; }
+      .rk-lp-band-head { font: 700 clamp(30px, 3.6vw, 48px)/1.04 var(--rk-font); letter-spacing: -.028em; text-transform: uppercase;
+                         color: #EDEDED; text-wrap: balance; }
+      /* px, not ch — ch resolves against this wrapper's 16px, which wrapped the
+         48px headline to five lines. */
+      .rk-lp-band-sub { font: 400 16px/1.6 var(--rk-font); color: #A8A8A8; margin: 18px 0 0; max-width: 420px; }
+
+      @media (prefers-reduced-motion: reduce) { .rk-lp-racerow { transition: none; } }
+      @media (max-width: 900px) {
+        .rk-lp-how-grid { grid-template-columns: 1fr; }
+        .rk-lp-step, .rk-lp-step:nth-child(2), .rk-lp-step:nth-child(3) { border-left: 0; padding: 24px 0 40px; }
+        .rk-lp-board-body { gap: 30px; }
+        .rk-lp-spot { flex: 1 1 100%; }
+        .rk-lp-band { min-height: 0; padding: 48px var(--lp-gutter); }
+        .rk-lp-band-photo { width: 100%; opacity: .5; }
+        .rk-lp-board-count { margin-left: 0; }
       }
     </style>
   </head>
