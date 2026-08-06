@@ -382,6 +382,8 @@
       .rk-lp-racevalue { flex-shrink: 0; font: 500 15px/1 var(--rk-font); color: var(--rk-ink);
                          font-variant-numeric: tabular-nums; transition: color .3s ease, font-weight .3s ease; }
       /* Whoever is leading the category right now. */
+      .rk-lp-racerow:hover { z-index: 2; }
+      .rk-lp-racerow.is-first { z-index: 3; }
       .rk-lp-racerow.is-first .rk-lp-racerank,
       .rk-lp-racerow.is-first .rk-lp-racevalue { color: var(--rk-accent); font-weight: 700; }
       .rk-lp-racerow.is-first .rk-lp-racename { font-weight: 700; }
@@ -690,7 +692,7 @@
       .rk-lp-race { position: relative; }
       /* border-TOP, not bottom: with rows moving by transform, a top border stays
          attached to the row above the name rather than trailing it. */
-      .rk-lp-racerow { position: absolute; left: 0; right: 0; height: 52px; display: flex; align-items: center; gap: 13px;
+      .rk-lp-racerow { position: absolute; background: var(--rk-page); left: 0; right: 0; height: 52px; display: flex; align-items: center; gap: 13px;
                        border-top: 1px solid var(--rk-line);
                        transition: transform .55s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; will-change: transform; }
       .rk-lp-racerank { width: 20px; font: 700 13px/1 var(--rk-font); font-variant-numeric: tabular-nums; color: var(--rk-muted); }
@@ -721,8 +723,11 @@
       .rk-lp-board-count-l { font: 400 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
 
       /* ---- Image band ------------------------------------------------------ */
-      .rk-lp-band { position: relative; overflow: hidden; background: #0A0A0A; min-height: clamp(360px, 38vw, 460px);
-                    display: flex; align-items: center; padding: 64px var(--lp-gutter); }
+      /* Two columns, not an absolute overlay — the flap was landing on top of
+         the headline as soon as the copy wrapped to two lines. */
+      .rk-lp-band { position: relative; overflow: hidden; background: #0A0A0A;
+                    display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 48px;
+                    padding: 64px var(--lp-gutter); min-height: clamp(320px, 32vw, 400px); }
       .rk-lp-band-photo { position: absolute; top: 0; right: 0; bottom: 0; width: 62%;
                           -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 46%);
                           mask-image: linear-gradient(to right, transparent 0%, #000 46%); }
@@ -730,8 +735,9 @@
       /* Split-flap board. Each cell is a card with a hairline across its
          midline — the seam a real flap board has — and the digit flips in on
          rotateX from above, so it reads as mechanical rather than a fade. */
-      .rk-lp-flap { position: absolute; right: var(--lp-gutter); top: 50%; transform: translateY(-50%);
-                    display: flex; gap: 10px; z-index: 1; pointer-events: none; }
+      /* order, not DOM position: the flap markup sits before the copy (it's
+         painted with the band's texture), but it belongs in the right column. */
+      .rk-lp-flap { display: flex; gap: 10px; z-index: 1; pointer-events: none; order: 2; }
       .rk-lp-flap-cell { position: relative; width: clamp(52px, 6vw, 86px); height: clamp(70px, 8vw, 116px);
                          background: #16181D; border: 1px solid #23262B; overflow: hidden;
                          display: flex; align-items: center; justify-content: center; perspective: 320px; }
@@ -740,11 +746,13 @@
                                 background: #0A0A0A; z-index: 2; }
       .rk-lp-flap-digit { font: 700 clamp(40px, 4.8vw, 68px)/1 var(--rk-font); letter-spacing: -.02em;
                           color: #EDEDED; font-variant-numeric: tabular-nums;
-                          animation: rk-flap .16s cubic-bezier(.4,0,.2,1); transform-origin: 50% 0; }
+                          /* Must complete inside one roll tick (90ms) — at .16s each digit
+                             restarted mid-rotation and sat edge-on, so the board read blank. */
+                          animation: rk-flap .075s cubic-bezier(.4,0,.2,1); transform-origin: 50% 0; }
       @keyframes rk-flap { from { transform: rotateX(-88deg); opacity: .25; } to { transform: none; opacity: 1; } }
       @media (max-width: 900px) {
-        /* Below the type rather than beside it — there isn't width for both. */
-        .rk-lp-flap { position: static; transform: none; margin-top: 28px; }
+        /* Stacks — there isn't width for type and board side by side. */
+        .rk-lp-band { grid-template-columns: minmax(0,1fr); gap: 30px; }
       }
       @media (prefers-reduced-motion: reduce) { .rk-lp-flap-digit { animation: none; } }
 
@@ -753,9 +761,9 @@
       .rk-lp-band-dots { position: absolute; inset: 0; pointer-events: none;
                          background-image: radial-gradient(circle, rgba(255,255,255,.16) 1.1px, transparent 1.1px);
                          background-size: 7px 7px;
-                         -webkit-mask-image: linear-gradient(to right, transparent 30%, #000 100%);
-                         mask-image: linear-gradient(to right, transparent 30%, #000 100%); }
-      .rk-lp-band-type { position: relative; z-index: 1; max-width: 540px; }
+                         -webkit-mask-image: linear-gradient(to left, transparent 34%, #000 100%);
+                         mask-image: linear-gradient(to left, transparent 34%, #000 100%); }
+      .rk-lp-band-type { position: relative; z-index: 1; min-width: 0; order: 1; }
       .rk-lp-band-head { font: 700 clamp(30px, 3.6vw, 48px)/1.04 var(--rk-font); letter-spacing: -.028em; text-transform: uppercase;
                          color: #EDEDED; text-wrap: balance; }
       /* px, not ch — ch resolves against this wrapper's 16px, which wrapped the

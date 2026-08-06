@@ -164,7 +164,7 @@ export default function Landing() {
           // land on a plausible home-run total, not noise
           setFlap(String(240 + Math.floor(Math.random() * 40)).split("").map(Number));
         }
-      }, 70);
+      }, 90);
     };
     settle = setInterval(roll, 4600);
     return () => { clearInterval(settle); };
