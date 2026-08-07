@@ -6,6 +6,8 @@ import { DEMO_TEAMS, DEMO_SEASON, DEMO_WEEK_LABELS, WEEKS } from "./demoSeason.j
 // The club that's actually running — linked, not embedded. Real names and real
 // numbers live behind /if-can-can; this page is a sample.
 const DEMO_SLUG = "if-can-can";
+// Where access requests land until a collector exists. See submit().
+const ACCESS_INBOX = "hi@kailimiyamoto.com";
 // Row height has to flex with the viewport. The stage is centred inside a
 // 100vh frame with overflow:hidden, so on a short phone (360×640) a fixed 52px
 // row made the stage 707px tall — the top 379px, i.e. the entire board, was
@@ -72,7 +74,11 @@ const SPORT_PATHS = {
   football: (
     <>
       <path d="M3 12C6.5 4.6 17.5 4.6 21 12C17.5 19.4 6.5 19.4 3 12Z" />
-      <path d="M9.6 10v4M11.2 9.7v4.6M12.8 9.7v4.6M14.4 10v4" />
+      {/* Three laces, not four, and spaced 2 units apart instead of 1.6.
+          Four short ticks packed into the middle read as a cluster — a pupil,
+          or a smudge — rather than as stitching. Fewer, longer, further apart
+          is what actually says "football". */}
+      <path d="M10 9.5v5M12 9.2v5.6M14 9.5v5" />
     </>
   ),
   basketball: (
@@ -84,6 +90,47 @@ const SPORT_PATHS = {
     </>
   ),
 };
+
+// ── The group chat ──────────────────────────────────────────────────────────
+// The argument BEFORE the box score. These are the messages every league has
+// on a Sunday night, and they're the setup that makes "nobody argues with the
+// box score" a punchline instead of a claim. Roles, never names.
+// `at` is the scroll progress the message lands on, 0–1 through the section.
+// `size` is a ratio, not pixels — the CSS multiplies it, so the hierarchy
+// between messages survives every breakpoint. Hard pixel sizes got flattened to
+// a single value by the mobile rule, which made four voices read as one.
+// Deliberately uneven: a chat is people half-shouting over each other, and four
+// messages at the same weight read as a feature list.
+const CHAT = [
+  { text: "whos counting up\nour weekly bets??", at: 0.10, x: 57, y: 12, size: 17 },
+  { text: "bro that doesnt add up", at: 0.22, x: 5, y: 32, size: 33 },   // the loud one
+  { text: "i had him at 41 homers", at: 0.34, x: 62, y: 38, size: 20 },  // right side, mid
+  { text: "commissioner\nprivileges\nstrikes again", at: 0.45, x: 7, y: 58, size: 22 },
+  // Was at 0.60 and 15px — the smallest thing on screen, arriving at the loudest
+  // moment. Worse, it eased in over 0.07 and so reached full opacity at 0.67
+  // while the clear began at 0.66: it started fading before it finished
+  // appearing, and never once existed at full strength.
+  { text: "hows the\ncommissioner\nalways winning", at: 0.54, x: 58, y: 66, size: 24 },
+];
+// The face flips on the LAST message — derived from the array so retiming that
+// message keeps the cut attached to it.
+const CHAT_SHOUT = CHAT[CHAT.length - 1].at;
+// Then it HOLDS — the shout and the last line sit together for a beat before
+// anything moves. That pause is the whole joke; clearing straight away reads as
+// a transition rather than a punchline.
+// The last message is fully up at 0.61, so nothing moves until 0.72 — eleven
+// percent of the section where the shout and all five lines just sit there.
+// That pause IS the punchline; without it the section reads as a transition.
+const CHAT_CLEAR = 0.72;      // everything fades out, all the way to black
+const CHAT_STATEMENT = 0.84;  // and only then does the line arrive
+// Finishing at 0.98 meant the statement was still fading up as the section
+// unpinned — it was never on screen, at full strength, standing still. It now
+// completes by 0.90 and holds for the last tenth, which is the part you read.
+
+// Split so each word can be revealed on its own. A single block fading up is
+// the cheapest move there is; words rising out of a clipped edge, staggered,
+// is the one that reads as considered.
+const STATEMENT = "Nobody argues with the box score.".split(" ");
 
 function SportIcon({ kind }) {
   return (
@@ -200,6 +247,14 @@ export default function Landing() {
   const ruleRef = useRef(null);
   const cueRef = useRef(null);
   const frameRef = useRef(null);
+  const chatTrackRef = useRef(null);
+  const chatCalmRef = useRef(null);
+  const chatYellRef = useRef(null);
+  const chatMsgRefs = useRef([]);
+  const chatResolveRef = useRef(null);
+  const chatDotsRef = useRef(null);
+  const chatWordRefs = useRef([]);
+  const chatSubRef = useRef(null);
   // The painter reads row height from a ref (never a stale closure); the render
   // reads the state copy. Both update together on resize / orientation change.
   const [rowH, setRowH] = useState(() =>
@@ -357,6 +412,73 @@ export default function Landing() {
       // daylight; the whole season replays in reverse.
       if (frameRef.current) frameRef.current.classList.toggle("is-dark", done);
     }
+
+    // ── The group chat ──────────────────────────────────────────────────────
+    // Its own pinned track, deliberately short — this is a gag, not a second
+    // epic. Messages arrive one at a time, the face flips to the shout ON the
+    // last one, then the noise clears and the line answers it.
+    const ct = chatTrackRef.current;
+    if (ct) {
+      const cSpan = Math.max(ct.offsetHeight - vh, 1);
+      const cp = still ? 1 : clamp(-ct.getBoundingClientRect().top, 0, cSpan) / cSpan;
+
+      CHAT.forEach((m, i) => {
+        const node = chatMsgRefs.current[i];
+        if (!node) return;
+        // Each message eases in over a short window and holds, then the whole
+        // set clears together once the line takes over.
+        const t = clamp((cp - m.at) / 0.07, 0, 1);
+        const eased = t * t * (3 - 2 * t);
+        const out = clamp((cp - CHAT_CLEAR) / 0.08, 0, 1);
+        node.style.opacity = String(eased * (1 - out));
+        node.style.transform = `translateY(${((1 - eased) * 16 - out * 18).toFixed(1)}px) scale(${(0.94 + eased * 0.06).toFixed(3)})`;
+      });
+
+      // Hard cut, not a crossfade — a dissolve between two expressions is a
+      // morph, and a morph has no comic timing. The swap has to land as a cut.
+      const shout = cp >= CHAT_SHOUT;
+      if (chatCalmRef.current) chatCalmRef.current.style.opacity = shout ? "0" : "1";
+      if (chatYellRef.current) chatYellRef.current.style.opacity = shout ? "1" : "0";
+
+      // The face rises in, holds through the shout, then clears COMPLETELY.
+      // It used to fade only to 25% and start receding while the statement was
+      // already coming up, so the two overlapped and the screen was never
+      // actually empty — the line landed on top of a ghost instead of arriving
+      // out of black.
+      const rise = clamp(cp / 0.12, 0, 1);
+      const settle = rise * rise * (3 - 2 * rise);
+      const recede = clamp((cp - CHAT_CLEAR) / 0.10, 0, 1);
+      const holder = chatCalmRef.current?.parentElement;
+      if (holder) {
+        holder.style.opacity = String(settle * (1 - recede));
+        holder.style.transform =
+          `translateY(${((1 - settle) * 40 - recede * 18).toFixed(1)}px) scale(${(0.9 + settle * 0.1 - recede * 0.05).toFixed(3)})`;
+      }
+      // The texture goes with it, or the "black" still has a halo in it.
+      if (chatDotsRef.current) chatDotsRef.current.style.opacity = String(1 - recede);
+
+      // The statement assembles word by word. The container no longer fades —
+      // fading the whole block AND sliding it was two soft moves stacked, which
+      // is what "premium" motion never is. The words are clipped, so before
+      // their own window opens there is genuinely nothing on screen.
+      const r = clamp((cp - CHAT_STATEMENT) / 0.14, 0, 1);
+      chatWordRefs.current.forEach((w, i) => {
+        if (!w) return;
+        // Each word gets its own window, offset by index. easeOutExpo: a fast
+        // departure that decelerates hard into place — the curve that reads as
+        // weight arriving rather than a linear slide.
+        const t = clamp((r - i * 0.055) / 0.42, 0, 1);
+        const e = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+        w.style.transform = `translateY(${((1 - e) * 108).toFixed(2)}%)`;
+      });
+      // The supporting line waits until the headline is essentially seated.
+      if (chatSubRef.current) {
+        const s = clamp((r - 0.55) / 0.35, 0, 1);
+        const se = s * s * (3 - 2 * s);
+        chatSubRef.current.style.opacity = String(se);
+        chatSubRef.current.style.transform = `translateY(${((1 - se) * 12).toFixed(1)}px)`;
+      }
+    }
   };
 
   useEffect(() => {
@@ -405,38 +527,17 @@ export default function Landing() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Split-flap digits in the band. They roll, then settle — and they ALWAYS
-  // settle on the total that just won the sample season overhead. The spin is
-  // mechanical shuffle (a board mid-update), but the landing digit is the
-  // story's own number: the reel says 268 wins it, the band repeats 268. It
-  // used to settle on a random 240–279, which contradicted the season the
-  // visitor had just watched — a demo where the props disagree isn't a demo.
-  const FLAP_FINAL = String(Math.max(...DEMO_TEAMS.map(({ name }) => DEMO_SEASON[name][WEEKS - 1].hr)))
-    .padStart(3, "0").split("").map(Number);
-  const [flap, setFlap] = useState(FLAP_FINAL);
-  const prevFlap = useRef(FLAP_FINAL);
-  const setFlapTracked = (next) => { setFlap((cur) => { prevFlap.current = cur; return next; }); };
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const roll = () => {
-      let ticks = 0;
-      const spin = setInterval(() => {
-        setFlapTracked([0, 1, 2].map(() => Math.floor(Math.random() * 10)));
-        if (++ticks > 3) {
-          clearInterval(spin);
-          setFlapTracked(FLAP_FINAL);
-        }
-      }, 480);   // one full two-leaf hand-off (.22s fall + .24s rise)
-    };
-    const settle = setInterval(roll, 4600);
-    return () => { clearInterval(settle); };
-  }, []);
-
+  // STOPGAP until a real collector is wired: hand the address to a prefilled
+  // mail draft. It used to set `sent` and nothing else — the visitor read
+  // "You're on the list" and the address was discarded on the spot, which is
+  // worse than having no form at all. A mailto at least cannot lose anything.
   function submit(e) {
     e.preventDefault();
-    if (!email.trim()) return;
-    // TODO: wire to a real collector. Acknowledges locally rather than silently
-    // dropping the address.
+    const address = email.trim();
+    if (!address) return;
+    const subject = encodeURIComponent("rake — request access");
+    const body = encodeURIComponent(`Requesting access to rake.\n\nEmail: ${address}\n`);
+    window.location.href = `mailto:${ACCESS_INBOX}?subject=${subject}&body=${body}`;
     setSent(true);
   }
 
@@ -600,31 +701,52 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Full-bleed band. Dark in both themes — its own ground is the boundary,
-          so it needs no hairline. */}
-      {/* The type rises on scroll; the flap and ground stay anchored so the
-          band itself never lifts off the page. */}
-      <section className="rk-lp-band">
-        <span className="rk-lp-band-dots" aria-hidden="true" />
-        <div className="rk-lp-flap" aria-hidden="true">
-          {flap.map((d, i) => {
-            const was = prevFlap.current[i];
-            return (
-              <span key={i} className="rk-lp-flap-cell">
-                {/* Settled state underneath: top half already shows the new
-                    digit, bottom half still shows the old one. */}
-                <span className="rk-flap-half rk-flap-top"><b>{d}</b></span>
-                <span className="rk-flap-half rk-flap-bot"><b>{was}</b></span>
-                {/* Two hinged leaves over them, keyed so each change replays. */}
-                <span key={`t${d}-${was}`} className="rk-flap-half rk-flap-top rk-flap-leaf-top"><b>{was}</b></span>
-                <span key={`b${d}-${was}`} className="rk-flap-half rk-flap-bot rk-flap-leaf-bot"><b>{d}</b></span>
-              </span>
-            );
-          })}
-        </div>
-        <div className="rk-lp-band-type rk-rise">
-          <div className="rk-lp-band-head">Nobody argues with the box score.</div>
-          <p className="rk-lp-band-sub">The number everyone in the league is looking at is the same number, at the same time, from the same source.</p>
+      {/* The group chat. Sits between the reel's dark finish and the band, so
+          all three share one continuous dark run: the season settles, the
+          league argues about it, the box score answers. MOCKUP — the faces are
+          placeholders; swap in /faces/calm.webp and /faces/yell.webp. */}
+      <section className="rk-chat-track" ref={chatTrackRef} style={{ height: still ? "auto" : "230vh" }}>
+        <div className={"rk-chat-frame" + (still ? " is-still" : "")}>
+          <span className="rk-chat-dots" ref={chatDotsRef} aria-hidden="true" />
+          {/* Two layers, both loaded, opacity-swapped by the painter — the
+              cut has to be instant, and decoding a 1.4MP PNG at the punchline
+              would stall it. onError hides a missing file rather than showing
+              a broken-image icon. */}
+          <div className="rk-chat-face">
+            <span className="rk-chat-layer" ref={chatCalmRef}>
+              <img src="/faces/calm.webp" alt="" className="rk-chat-img"
+                   onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            </span>
+            <span className="rk-chat-layer" ref={chatYellRef}>
+              <img src="/faces/yell.webp" alt="" className="rk-chat-img"
+                   onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            </span>
+          </div>
+          {CHAT.map((m, i) => (
+            <span
+              key={m.text}
+              ref={(n) => { chatMsgRefs.current[i] = n; }}
+              className="rk-chat-msg"
+              style={{ left: `${m.x}%`, top: `${m.y}%`, "--s": m.size }}
+            >
+              {m.text}
+            </span>
+          ))}
+          {/* Each word rides in a clipped box, so it rises from behind a hard
+              edge rather than fading in place. Scrubbed by scroll, staggered
+              word by word — the line assembles itself as you arrive. */}
+          <div className="rk-chat-resolve" ref={chatResolveRef}>
+            <span className="rk-chat-line">
+              {STATEMENT.map((w, i) => (
+                <span className="rk-chat-word" key={`${w}-${i}`}>
+                  <i ref={(n) => { chatWordRefs.current[i] = n; }}>{w}</i>
+                </span>
+              ))}
+            </span>
+            <span className="rk-chat-sub" ref={chatSubRef}>
+              The number everyone in the league is looking at is the same number, at the same time, from the same source.
+            </span>
+          </div>
         </div>
       </section>
 
@@ -666,9 +788,12 @@ export default function Landing() {
         <p className="rk-lp-request-sub rk-rise">
           Baseball is already running. Football is the one to get set up for — leave an address and we'll open it before the draft.
         </p>
+        {/* The confirmation says what actually happened. "You're on the list"
+            was a claim the page couldn't keep — the send is in the visitor's
+            hands until a collector exists. */}
         <form className="rk-lp-form rk-rise" onSubmit={submit}>
           {sent ? (
-            <div className="rk-lp-sent">You're on the list — we'll be in touch.</div>
+            <div className="rk-lp-sent">Your mail app should be open — send it and you're on the list.</div>
           ) : (
             <div className="rk-lp-field">
               <input

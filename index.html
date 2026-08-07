@@ -3,24 +3,35 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>rake · If Can Can</title>
+    <!-- The static title is the PRODUCT's, because "/" is the page that gets
+         shared and crawled. The club route renames the tab itself on mount.
+         Kept short deliberately: a tab shows ~20 characters, and the headline
+         version truncated to "rake — doing the math", which says nothing. This
+         front-loads what the thing does, so even the clipped form reads. -->
+    <title>rake — settle the side bets</title>
 
     <!-- Link preview. Without these a shared URL renders as a bare card in
          iMessage/Slack/Discord, which is most of how this app gets opened.
          og:image must be an ABSOLUTE url — scrapers don't resolve relative
          paths — and 1200x630 is the ratio every platform crops toward. -->
-    <meta name="description" content="Live category standings for a fantasy baseball money league — home runs, batting average, wins and ERA." />
+    <!-- These describe the PRODUCT, not the club. They used to carry the
+         private league's name, which meant every shared link — and every
+         scraper that ever touched the URL — published it. The landing page
+         goes to lengths to keep that league out of public view; the document
+         head has to agree. -->
+    <meta name="description" content="Live standings for the side bets your league runs — read straight off the box score, so nobody takes anybody's word for it." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="rake" />
-    <meta property="og:title" content="If Can Can, No Can Garbage Can" />
-    <meta property="og:description" content="Live category standings — home runs, batting average, wins and ERA." />
+    <meta property="og:title" content="rake — doing the math your league won't" />
+    <meta property="og:description" content="Live standings for the side bets your league runs, read straight off the box score." />
     <meta property="og:url" content="https://if-can-can.vercel.app/" />
     <meta property="og:image" content="https://if-can-can.vercel.app/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The rake mark, cream on Honolulu blue." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="If Can Can, No Can Garbage Can" />
-    <meta name="twitter:description" content="Live category standings — home runs, batting average, wins and ERA." />
+    <meta name="twitter:title" content="rake — doing the math your league won't" />
+    <meta name="twitter:description" content="Live standings for the side bets your league runs, read straight off the box score." />
     <meta name="twitter:image" content="https://if-can-can.vercel.app/og.png" />
     <!-- Tints the browser chrome on mobile to match the app's ground. -->
     <meta name="theme-color" content="#FFFFFF" />
@@ -947,6 +958,86 @@
         .rk-reel-row { gap: 12px; }
         .rk-reel-foot { margin-top: 12px; }
         .rk-reel-caption { font-size: 11px; }
+      }
+
+      /* ---- The group chat -------------------------------------------------- */
+      /* Its own pinned track, ~2 screens — short on purpose. The reel earns a
+         long scroll because a season is passing; this is a joke, and a joke you
+         have to scroll five screens for isn't one. */
+      .rk-chat-track { position: relative; background: #0A0A0A; }
+      .rk-chat-frame { position: sticky; top: 0; height: 100vh; overflow: hidden;
+                       background: #0A0A0A; display: flex; align-items: center; justify-content: center; }
+      /* Reduced motion gets the SCENE, not the end of it. The painter pins
+         progress to 1 when there's no scrubbing, and 1 is the state where
+         everything has already cleared — so these users were getting an empty
+         black panel with only the closing line, never seeing the messages or
+         the faces at all. Here the whole thing is laid out statically instead:
+         the shout, every message in normal flow, then the line. !important
+         because the painter still writes inline opacities. */
+      .rk-chat-frame.is-still { position: static; height: auto; padding: 72px var(--lp-gutter);
+                                flex-direction: column; align-items: flex-start; gap: 22px; }
+      .rk-chat-frame.is-still .rk-chat-dots { display: none; }
+      .rk-chat-frame.is-still .rk-chat-face { opacity: 1 !important; transform: none !important; }
+      .rk-chat-frame.is-still .rk-chat-layer:first-child { display: none; }   /* show the shout */
+      .rk-chat-frame.is-still .rk-chat-msg { position: static; left: auto; top: auto;
+                                             opacity: 1 !important; transform: none !important;
+                                             max-width: 34ch; }
+      .rk-chat-frame.is-still .rk-chat-resolve { position: static; transform: none; text-align: left;
+                                                 margin-top: 10px; }
+      .rk-chat-frame.is-still .rk-chat-sub { margin-left: 0; opacity: 1 !important; transform: none !important; }
+      .rk-chat-dots { position: absolute; inset: 0; pointer-events: none;
+                      background-image: radial-gradient(circle, rgba(255,255,255,.14) 1.1px, transparent 1.1px);
+                      background-size: 7px 7px;
+                      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, #000 8%, transparent 68%);
+                      mask-image: radial-gradient(ellipse at 50% 50%, #000 8%, transparent 68%); }
+
+      /* Square, matching the actual cutouts (1400×1400). The box was portrait
+         for the drawn placeholder, which letterboxed the real files and shrank
+         the head to fit the narrower dimension. */
+      .rk-chat-face { position: relative; width: clamp(210px, 24vw, 340px); aspect-ratio: 1 / 1;
+                      will-change: opacity, transform; }
+      .rk-chat-layer { position: absolute; inset: 0; display: block; will-change: opacity; }
+      .rk-chat-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+      /* Positioned as a scatter around the face, the way they land in a chat —
+         not stacked in a tidy column, which would read as a feature list. */
+      /* --s is a ratio set per message; the multiplier here is the only place
+         the actual size is decided, so the hierarchy holds at every width. */
+      .rk-chat-msg { position: absolute; max-width: 26ch; white-space: pre-line;
+                     font-size: calc(var(--s, 18) * 1px);
+                     font-weight: 700; line-height: 1.2; letter-spacing: -.012em;
+                     color: #fff; opacity: 0; will-change: opacity, transform;
+                     text-shadow: 0 2px 18px rgba(0,0,0,.65); pointer-events: none; }
+
+      .rk-chat-resolve { position: absolute; left: var(--lp-gutter); right: var(--lp-gutter);
+                         top: 50%; transform: translateY(-50%); text-align: center;
+                         font: 700 clamp(30px, 4.4vw, 60px)/1.12 var(--rk-font); letter-spacing: -.03em;
+                         color: #EDEDED; }
+      /* Each word sits in its own clipped box and starts pushed fully below it,
+         so nothing is visible until its window opens — a reveal from behind a
+         hard edge, not an opacity fade. padding-bottom gives descenders room;
+         without it the clip shaves the tails off "g" and "y". */
+      .rk-chat-line { display: block; }
+      .rk-chat-word { display: inline-block; overflow: hidden; vertical-align: bottom;
+                      padding-bottom: .12em; margin-bottom: -.12em; }
+      .rk-chat-word + .rk-chat-word { margin-left: .26em; }
+      .rk-chat-word i { display: inline-block; font-style: normal;
+                        transform: translateY(108%); will-change: transform; }
+      .rk-chat-sub { display: block; max-width: 46ch; margin: 22px auto 0;
+                     font: 400 16px/1.6 var(--rk-font); letter-spacing: 0; color: #A8A8A8;
+                     opacity: 0; will-change: opacity, transform; }
+      /* No scrubbing without a pointer — show the finished line. */
+      @media (prefers-reduced-motion: reduce) {
+        .rk-chat-word i { transform: none !important; }
+        .rk-chat-sub { opacity: 1 !important; }
+      }
+
+      @media (max-width: 900px) {
+        .rk-chat-face { width: clamp(150px, 42vw, 210px); }
+        /* Scale the ratio, don't overwrite it — a flat 13px collapsed a 33 and
+           a 14 into the same size and killed the hierarchy on every phone. */
+        .rk-chat-msg { max-width: 15ch; font-size: calc(var(--s, 18) * 0.6px); }
+        .rk-chat-resolve { font-size: clamp(24px, 7vw, 34px); }
       }
 
       /* ---- Below the reel -------------------------------------------------- */

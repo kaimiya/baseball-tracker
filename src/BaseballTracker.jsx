@@ -349,6 +349,17 @@ export default function BaseballTracker() {
   const live = useLiveToday();
   const { mode, t, toggle } = useTheme();
 
+  // The club names its own tab. index.html's static title belongs to the
+  // product, since "/" is the page that gets shared and crawled — putting the
+  // league's name there published it in every link preview and to every
+  // scraper. Restored on unmount so navigating back to "/" reverts.
+  useEffect(() => {
+    const previous = document.title;
+    const name = league.meta?.leagueName;
+    if (name) document.title = `rake · ${name}`;
+    return () => { document.title = previous; };
+  }, [league.meta?.leagueName]);
+
   const players = league.players;
   const colors = league.colors;
   const logos = league.logos;

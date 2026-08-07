@@ -45,8 +45,8 @@ const CRESTS = {
   "Foul Territory": "/logos/demo/4.png",
   "Bush League": "/logos/demo/5.png",
   "Can Of Corn": "/logos/demo/6.png",
-  "Pinch Runners": "/logos/demo/1.png",
-  "Golden Sombrero": "/logos/demo/2.png",
+  "Pinch Runners": "/logos/demo/7.png",
+  "Golden Sombrero": "/logos/demo/8.png",
 };
 
 export const DEMO_TEAMS = Object.keys(CRESTS).map((name) => ({ name, crest: CRESTS[name] }));
