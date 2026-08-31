@@ -8,6 +8,14 @@ import { fetchLiveToday, norm } from "./_mlb.js";
 const BENCH_SLOTS = new Set([16, 17]);
 const KEYS = ["hr", "r", "rbi", "sb", "h", "ab", "w", "k", "er", "outs"];
 
+// Last day the tracked season counts (Pacific). The board reports a
+// REGULAR-SEASON record and the category awards pay against it, so once the
+// season is closed there is nothing left for a live layer to add — folding
+// today's games on top would push playoff production into a final total. Empty
+// deltas here also switch the LIVE badge off in the client, which is correct:
+// nothing on this board is live any more.
+const TRACKING_ENDS = "2026-08-30";
+
 export default async function handler(req, res) {
   const leagueId = process.env.ESPN_LEAGUE_ID || "72471798";
   const seasonId = process.env.ESPN_SEASON_ID || "2026";
@@ -24,6 +32,19 @@ export default async function handler(req, res) {
     // next day's empty slate and drop every live stat. Pacific keeps us on
     // today's games until they're actually finished.
     const date = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+
+    // Season closed: return the empty shape rather than today's games. Answered
+    // before the ESPN/MLB calls so a finished season costs nothing upstream.
+    if (date > TRACKING_ENDS) {
+      res.setHeader("cache-control", "s-maxage=600, stale-while-revalidate=1200");
+      res.status(200).json({
+        teams: {}, date, seasonClosed: true, trackingEnded: TRACKING_ENDS,
+        gamesLive: 0, gamesFinal: 0, gamesTotal: 0,
+        fetchedAt: new Date().toISOString(),
+      });
+      return;
+    }
+
     const [rosters, live] = await Promise.all([
       fetchRosters({ leagueId, seasonId, espnS2, swid }),
       fetchLiveToday(date),

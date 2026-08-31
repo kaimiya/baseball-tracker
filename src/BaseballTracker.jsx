@@ -748,9 +748,19 @@ export default function BaseballTracker() {
             {/* One quiet caption, not a headline: the four figures above are the
                 only numbers meant to carry weight here. Date derived from the
                 same constant as the count so the two can't drift apart. */}
+            {/* Once the season is over the countdown has nothing to count. A
+                bare "0 days left" reads as a clock that ran out rather than as
+                a result — these four figures are final now, and the caption
+                should say so. */}
             <div className="rk-countdown">
-              <span className="rk-countdown-n">{daysLeft}</span>
-              <span>{daysLeft === 1 ? "day" : "days"} left · through {seasonEndLabel}</span>
+              {daysLeft > 0 ? (
+                <>
+                  <span className="rk-countdown-n">{daysLeft}</span>
+                  <span>{daysLeft === 1 ? "day" : "days"} left · through {seasonEndLabel}</span>
+                </>
+              ) : (
+                <span className="rk-countdown-done">Season ended {seasonEndLabel} · final</span>
+              )}
             </div>
           </div>
 

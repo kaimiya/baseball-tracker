@@ -530,6 +530,9 @@
       /* Ink, not accent: blue is reserved for what's live or leading, and a
          countdown is neither — it's context. Weight alone carries it. */
       .rk-countdown-n { font: 700 12px/1 var(--rk-font); color: var(--rk-title); font-variant-numeric: tabular-nums; }
+      /* Settled, not urgent — it's a result now, so it takes the title colour
+         rather than the accent the live badge uses. */
+      .rk-countdown-done { font: 700 10.5px/1 var(--rk-font); letter-spacing: .07em; text-transform: uppercase; color: var(--rk-title); }
       .rk-award-team span:last-child { min-width: 0; }
       /* How far clear the leader is, and over whom — quiet, below the team. */
       /* margin-top:auto pins this to the bottom of the cell, so the four lines

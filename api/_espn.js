@@ -94,6 +94,33 @@ function num(v) {
 // H=1, AB=0, ER=45, outs(IP*3)=34.
 const EMPTY = { hr: 0, avg: 0, wins: 0, era: 0, h: 0, ab: 0, er: 0, outs: 0 };
 
+// Last matchup period of the 2026 regular season — week 21 is "Aug 24 – Aug 30",
+// which lines up with REGULAR_SEASON_END in BaseballTracker.jsx. League config,
+// deliberately hardcoded: ESPN reports the CURRENT period, which advances into
+// the playoff bracket and can't tell us where the tracked season ended.
+export const REGULAR_SEASON_WEEKS = 21;
+
+// Season figures summed from the weekly components, capped at the regular
+// season. NOT the same thing as averaging weekly rate stats — that really is
+// wrong and this project fixed that bug once already. Here the raw components
+// are added and divided exactly once, which is what ESPN's own valuesByStat
+// does internally: verified on 2026-08-31, before any playoff stat landed, this
+// reproduced ESPN's season figures for all eight teams to the unit on HR/W and
+// to four decimals on AVG/ERA.
+function totalsFromWeeks(rows) {
+  const t = { hr: 0, wins: 0, h: 0, ab: 0, er: 0, outs: 0 };
+  for (const r of rows) {
+    t.hr += num(r.hr); t.wins += num(r.wins);
+    t.h += num(r.h); t.ab += num(r.ab);
+    t.er += num(r.er); t.outs += num(r.outs);
+  }
+  return {
+    ...t,
+    avg: t.ab > 0 ? t.h / t.ab : 0,
+    era: t.outs > 0 ? (27 * t.er) / t.outs : 0,   // 9 × ER / IP, IP = outs/3
+  };
+}
+
 // Pull the four stats (+ components) out of a matchup's scoreByStat map.
 function statsFromScoreByStat(sbs) {
   const score = (id) => num(sbs[id] && sbs[id].score);
@@ -170,7 +197,14 @@ function weekLabel(n) {
 export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }) {
   const base = await fetchBase({ leagueId, seasonId, espnS2, swid });
   const teams = Array.isArray(base.teams) ? base.teams : [];
-  const numWeeks = num(base.status && base.status.currentMatchupPeriod);
+  // ESPN keeps counting into the playoffs — currentMatchupPeriod rolled to 22
+  // on Aug 31. Everything this board reports is a REGULAR-SEASON record, and
+  // the four category awards pay against it, so the tracked season stops at
+  // REGULAR_SEASON_WEEKS. Past that point only the teams still alive in the
+  // bracket accumulate, so leaving it live wouldn't merely drift — it would
+  // tilt every category toward whoever survived.
+  const reportedWeeks = num(base.status && base.status.currentMatchupPeriod);
+  const numWeeks = Math.min(reportedWeeks, REGULAR_SEASON_WEEKS);
   const periodMap = (base.settings && base.settings.scheduleSettings && base.settings.scheduleSettings.matchupPeriods) || {};
 
   // Week N -> the scoring period that holds its final stats (last day of week).
@@ -194,15 +228,22 @@ export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }
 
   // teamId -> { weekNumber -> {hr,avg,wins,era} }
   const byTeamWeek = {};
+  // Category W-L-T tallied from the same matchups. team.record.overall keeps
+  // absorbing playoff results, so the standings record has to be rebuilt from
+  // the regular-season weeks rather than read off the team object.
+  const recordByTeam = {};
   for (const { week, raw } of periodResults) {
     if (!raw || !Array.isArray(raw.schedule)) continue;
     for (const m of raw.schedule) {
       if (m.matchupPeriodId !== week) continue;
       for (const side of ["home", "away"]) {
         const s = m[side];
-        const sbs = s && s.cumulativeScore && s.cumulativeScore.scoreByStat;
+        const cs = s && s.cumulativeScore;
+        const sbs = cs && cs.scoreByStat;
         if (!s || !sbs) continue;
         (byTeamWeek[s.teamId] = byTeamWeek[s.teamId] || {})[week] = statsFromScoreByStat(sbs);
+        const r = (recordByTeam[s.teamId] = recordByTeam[s.teamId] || { w: 0, l: 0, t: 0 });
+        r.w += num(cs.wins); r.l += num(cs.losses); r.t += num(cs.ties);
       }
     }
   }
@@ -227,11 +268,8 @@ export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }
     colors[name] = PALETTE[i % PALETTE.length];
     logos[name] = proxiedLogo(team.logo);
 
-    const rec = team.record && (team.record.overall || team.record.division);
-    records[name] = rec ? `${num(rec.wins)}-${num(rec.losses)}-${num(rec.ties)}` : null;
     seeds[name] = num(team.playoffSeed) || null;
     managers[name] = managerName(team, memberById);
-    seasonTotals[name] = seasonStats(team); // exact season AVG/ERA/HR/W from ESPN
 
     const tw = byTeamWeek[team.id] || {};
     const rows = [];
@@ -240,6 +278,15 @@ export async function buildLeague({ leagueId, seasonId, espnS2, swid, myTeamId }
     }
     // Fallback to a single season-total "week" if weekly data is missing.
     data[name] = rows.length ? rows : [seasonStats(team)];
+
+    // Both frozen to the regular season. team.record.overall and valuesByStat
+    // are whole-season accumulators that ESPN keeps adding playoff results to.
+    const rt = recordByTeam[team.id];
+    const espnRec = team.record && (team.record.overall || team.record.division);
+    records[name] = rt
+      ? `${rt.w}-${rt.l}-${rt.t}`
+      : espnRec ? `${num(espnRec.wins)}-${num(espnRec.losses)}-${num(espnRec.ties)}` : null;
+    seasonTotals[name] = rows.length ? totalsFromWeeks(rows) : seasonStats(team);
 
     if (String(team.id) === String(myTeamId)) myTeam = name;
   });
