@@ -759,7 +759,7 @@ export default function BaseballTracker() {
                   <span>{daysLeft === 1 ? "day" : "days"} left · through {seasonEndLabel}</span>
                 </>
               ) : (
-                <span className="rk-countdown-done">Season ended {seasonEndLabel} · final</span>
+                <span className="rk-countdown-done">Season ended {seasonEndLabel}</span>
               )}
             </div>
           </div>

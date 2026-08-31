@@ -526,13 +526,16 @@
          label size so it can't compete with the four award figures, which are
          the only numbers in this section meant to carry weight. Accent on the
          count alone, consistent with blue marking what's live or at stake. */
-      .rk-countdown { display: flex; align-items: baseline; gap: 7px; margin-top: 18px; font: 400 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
+      .rk-countdown { display: flex; align-items: baseline; gap: 7px; margin-top: 22px; font: 400 10.5px/1 var(--rk-font); letter-spacing: .03em; text-transform: uppercase; color: var(--rk-muted); }
       /* Ink, not accent: blue is reserved for what's live or leading, and a
          countdown is neither — it's context. Weight alone carries it. */
       .rk-countdown-n { font: 700 12px/1 var(--rk-font); color: var(--rk-title); font-variant-numeric: tabular-nums; }
-      /* Settled, not urgent — it's a result now, so it takes the title colour
-         rather than the accent the live badge uses. */
-      .rk-countdown-done { font: 700 10.5px/1 var(--rk-font); letter-spacing: .07em; text-transform: uppercase; color: var(--rk-title); }
+      /* A result, not a label. Set like the page's other statements — sentence
+         case, tight negative tracking — rather than the tracked-caps eyebrow
+         used for column labels; that treatment belongs on "HOME RUNS", not on
+         the season's last word. Overrides the parent's uppercase and tracking. */
+      .rk-countdown-done { font: 700 clamp(16px, 1.7vw, 21px)/1.2 var(--rk-font);
+                           letter-spacing: -.018em; text-transform: none; color: var(--rk-title); }
       .rk-award-team span:last-child { min-width: 0; }
       /* How far clear the leader is, and over whom — quiet, below the team. */
       /* margin-top:auto pins this to the bottom of the cell, so the four lines
